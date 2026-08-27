@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>帳號管理｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" class="active">帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel" id="not-super-admin-note" hidden>
+      <p class="hint">只有最高管理員可以管理後台帳號。</p>
+    </section>
+
+    <div id="accounts-app" hidden>
+      <section class="panel">
+        <h2>新增管理員帳號</h2>
+        <form id="add-account-form" class="add-form">
+          <div class="row">
+            <label>帳號
+              <input type="text" name="username" required>
+            </label>
+            <label>密碼（至少 6 個字元）
+              <input type="password" name="password" required minlength="6">
+            </label>
+            <label>角色
+              <select name="role">
+                <option value="admin">一般管理員</option>
+                <option value="super_admin">最高管理員</option>
+              </select>
+            </label>
+          </div>
+          <button type="submit">建立帳號</button>
+          <p id="add-account-status" class="status"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>帳號列表</h2>
+        <div id="account-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="admin.js" data-page="accounts"></script>
+</body>
+</html>

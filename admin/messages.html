@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訊息中心｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html" class="active">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <div class="msg-toolbar">
+        <div class="msg-filters">
+          <button class="msg-filter-btn active" data-filter="all">全部</button>
+          <button class="msg-filter-btn" data-filter="today">今天</button>
+          <button class="msg-filter-btn" data-filter="unread">未讀</button>
+        </div>
+        <button id="bulk-delete-btn" class="ghost-btn" disabled>刪除選取項目</button>
+      </div>
+      <div id="message-list"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="messages"></script>
+</body>
+</html>

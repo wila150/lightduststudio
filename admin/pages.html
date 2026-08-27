@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自訂頁面｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html" class="active">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <h2>新增頁面</h2>
+      <p class="hint">網址代稱只能用小寫英文、數字與連字號，例如 services。建立後網址會是 /pages/services，可以到「導覽選單」把它加進選單裡。</p>
+      <form id="add-page-form" class="add-form">
+        <div class="row">
+          <label>網址代稱（slug）
+            <input type="text" name="slug" placeholder="services" pattern="[a-z0-9-]+" required>
+          </label>
+          <label>頁面標題
+            <input type="text" name="title" placeholder="服務項目" required>
+          </label>
+        </div>
+        <div class="row">
+          <label>SEO 標題（選填）
+            <input type="text" name="seo_title">
+          </label>
+          <label>SEO 描述（選填）
+            <input type="text" name="seo_description">
+          </label>
+        </div>
+        <div class="row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="published" value="1" checked> 立即發佈
+          </label>
+          <label>排定發佈時間（選填，留空表示不排程）
+            <input type="datetime-local" name="publish_at">
+          </label>
+        </div>
+        <button type="submit">建立頁面</button>
+        <p id="add-page-status" class="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>頁面列表</h2>
+      <div id="page-list"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="pages"></script>
+</body>
+</html>

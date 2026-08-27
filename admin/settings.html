@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>網站設定｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html" class="active">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <h2>品牌識別</h2>
+      <div class="brand-preview">
+        <div class="logo-upload">
+          <img id="logo-preview" class="logo-img" alt="Logo">
+          <label class="upload-btn">
+            更換 Logo
+            <input type="file" id="logo-file" accept="image/*" hidden>
+          </label>
+        </div>
+        <div class="logo-upload">
+          <img id="favicon-preview" class="favicon-img" alt="Favicon">
+          <label class="upload-btn">
+            更換 Favicon
+            <input type="file" id="favicon-file" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+      <p id="logo-status" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>網站文字與聯絡資訊</h2>
+      <form id="settings-form" class="add-form">
+        <div class="row">
+          <label>品牌中文名稱
+            <input type="text" name="brand_name_zh" required>
+          </label>
+          <label>品牌英文名稱
+            <input type="text" name="brand_name_en" required>
+          </label>
+          <label>主色（Hex）
+            <input type="text" name="accent_color" placeholder="#b08a5a">
+          </label>
+        </div>
+        <div class="row">
+          <label>首頁 SEO 標題
+            <input type="text" name="seo_title">
+          </label>
+        </div>
+        <div class="row">
+          <label>首頁 SEO 描述
+            <textarea name="seo_description" rows="2"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label>頁尾簡介文字
+            <textarea name="footer_tagline" rows="2"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label>聯絡電話
+            <input type="text" name="contact_phone">
+          </label>
+          <label>聯絡 Email
+            <input type="email" name="contact_email">
+          </label>
+          <label>地址
+            <input type="text" name="contact_address">
+          </label>
+        </div>
+        <div class="row">
+          <label>LINE 連結
+            <input type="text" name="social_line" placeholder="https://line.me/ti/p/~yourid">
+          </label>
+          <label>Instagram 連結（選填）
+            <input type="text" name="social_instagram" placeholder="https://instagram.com/yourid">
+          </label>
+          <label>Facebook 連結（選填）
+            <input type="text" name="social_facebook" placeholder="https://facebook.com/yourpage">
+          </label>
+        </div>
+        <button type="submit">儲存設定</button>
+        <p id="form-status" class="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="settings"></script>
+</body>
+</html>

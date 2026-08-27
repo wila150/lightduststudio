@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>媒體庫｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html" class="active">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <h2>上傳檔案</h2>
+      <p class="hint">支援 JPG / PNG / WEBP / GIF 圖片與 MP4 影片，可一次選取多個檔案，或直接拖放到下方區域。上傳後會取得一個可重複使用的網址。</p>
+      <div id="dropzone" class="dropzone">
+        <p>將檔案拖放到這裡，或點擊選擇檔案</p>
+        <input type="file" id="file-input" multiple accept="image/*,video/mp4" hidden>
+      </div>
+      <p id="upload-status" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>所有媒體檔案</h2>
+      <div id="media-grid" class="media-grid"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="media"></script>
+</body>
+</html>

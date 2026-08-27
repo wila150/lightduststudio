@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首頁 Hero｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html" class="active">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <h2>新增輪播頁</h2>
+      <p class="hint">背景可以上傳圖片、上傳 MP4 影片，或貼上 YouTube／Vimeo 連結（三選一）。標題可用 Enter 換行。</p>
+      <form id="add-slide-form" class="add-form" enctype="multipart/form-data">
+        <div class="row">
+          <label>小標籤（英文，如 COMMERCIAL PHOTOGRAPHY）
+            <input type="text" name="eyebrow">
+          </label>
+        </div>
+        <div class="row">
+          <label>主標題
+            <textarea name="title" rows="2" required></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <label>副標題
+            <input type="text" name="subtitle">
+          </label>
+        </div>
+        <div class="row">
+          <label>右下角精選卡片標籤（選填）
+            <input type="text" name="card_tag" placeholder="FEATURED WORK">
+          </label>
+          <label>右下角精選卡片文字（留空則不顯示卡片）
+            <input type="text" name="card_text">
+          </label>
+        </div>
+        <div class="row">
+          <label>背景圖片／影片檔案（選填）
+            <input type="file" name="file" accept="image/*,video/mp4">
+          </label>
+          <label>或 YouTube／Vimeo 連結（選填）
+            <input type="text" name="embed_url" placeholder="https://youtu.be/...">
+          </label>
+        </div>
+        <div class="row">
+          <label>無背景素材時的預設漸層
+            <select name="fallback_gradient">
+              <option value="1">漸層 1（棕金）</option>
+              <option value="2">漸層 2（深灰）</option>
+              <option value="3">漸層 3（金棕亮）</option>
+            </select>
+          </label>
+          <label>排序
+            <input type="number" name="sort_order" value="0">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="published" value="1" checked> 發佈顯示
+          </label>
+        </div>
+        <button type="submit">新增輪播頁</button>
+        <p id="add-slide-status" class="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>輪播頁列表</h2>
+      <div id="slide-list"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="hero"></script>
+</body>
+</html>

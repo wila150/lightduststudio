@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>編輯頁面｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html" class="active">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <a href="pages.html" class="back-link">← 回頁面列表</a>
+
+    <section class="panel">
+      <h2>頁面設定</h2>
+      <form id="page-meta-form" class="add-form">
+        <div class="row">
+          <label>網址代稱（slug）
+            <input type="text" name="slug" pattern="[a-z0-9-]+" required>
+          </label>
+          <label>頁面標題
+            <input type="text" name="title" required>
+          </label>
+        </div>
+        <div class="row">
+          <label>SEO 標題
+            <input type="text" name="seo_title">
+          </label>
+          <label>SEO 描述
+            <input type="text" name="seo_description">
+          </label>
+        </div>
+        <div class="row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="published" value="1"> 發佈中
+          </label>
+          <label>排定發佈時間
+            <input type="datetime-local" name="publish_at">
+          </label>
+        </div>
+        <button type="submit">儲存頁面設定</button>
+        <p id="meta-status" class="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>新增內容區塊</h2>
+      <div class="row">
+        <label>區塊類型
+          <select id="block-type-select">
+            <option value="heading">標題文字</option>
+            <option value="text_image">圖文並排</option>
+            <option value="button">按鈕</option>
+            <option value="video">影片</option>
+            <option value="gallery">圖片相簿</option>
+            <option value="contact_form">聯絡表單</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="block-fields-heading" class="block-fields">
+        <div class="row">
+          <label>標題文字<input type="text" data-f="text"></label>
+          <label>副標文字（選填）<input type="text" data-f="subtitle"></label>
+        </div>
+      </div>
+
+      <div id="block-fields-text_image" class="block-fields" hidden>
+        <div class="row">
+          <label>標題（選填）<input type="text" data-f="title"></label>
+          <label>圖片位置
+            <select data-f="position"><option value="left">圖片在左</option><option value="right">圖片在右</option></select>
+          </label>
+        </div>
+        <div class="row">
+          <label>內文<textarea data-f="text" rows="3"></textarea></label>
+        </div>
+        <div class="row">
+          <label>圖片<input type="file" accept="image/*" data-upload="image_url"></label>
+        </div>
+      </div>
+
+      <div id="block-fields-button" class="block-fields" hidden>
+        <div class="row">
+          <label>按鈕文字<input type="text" data-f="text"></label>
+          <label>連結網址<input type="text" data-f="url" placeholder="contact.html"></label>
+        </div>
+      </div>
+
+      <div id="block-fields-video" class="block-fields" hidden>
+        <div class="row">
+          <label>影片來源
+            <select data-f="media_type" id="video-media-type"><option value="upload">上傳 MP4</option><option value="embed">YouTube／Vimeo 連結</option></select>
+          </label>
+        </div>
+        <div class="row" id="video-upload-row">
+          <label>上傳影片檔案<input type="file" accept="video/mp4" data-upload="media_url"></label>
+        </div>
+        <div class="row" id="video-embed-row" hidden>
+          <label>影片連結<input type="text" data-f="media_url" placeholder="https://youtu.be/..."></label>
+        </div>
+      </div>
+
+      <div id="block-fields-gallery" class="block-fields" hidden>
+        <p class="hint">先建立空的相簿區塊，建立後可以在下方區塊清單裡逐張新增圖片。</p>
+      </div>
+
+      <div id="block-fields-contact_form" class="block-fields" hidden>
+        <p class="hint">這個區塊會直接顯示聯絡表單，不需要額外設定。</p>
+      </div>
+
+      <button type="button" id="add-block-btn">新增區塊到頁面下方</button>
+      <p id="add-block-status" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>目前的內容區塊</h2>
+      <div id="block-list"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="page-edit"></script>
+</body>
+</html>

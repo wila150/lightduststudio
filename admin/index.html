@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作品集後台｜LightDust Studio</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="icon" type="image/png" href="../images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="index.html" class="active">作品集</a>
+      <a href="settings.html">網站設定</a>
+      <a href="nav.html">導覽選單</a>
+      <a href="hero.html">首頁 Hero</a>
+      <a href="pages.html">自訂頁面</a>
+      <a href="messages.html">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="media.html">媒體庫</a>
+      <a href="accounts.html" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="panel">
+      <h2>新增作品</h2>
+      <form id="add-form" class="add-form">
+        <div class="row">
+          <label>分類群組
+            <select name="group_key" id="group-select" required>
+              <option value="photography">Photography 攝影</option>
+              <option value="film">Film 影片</option>
+              <option value="design">Design 設計</option>
+            </select>
+          </label>
+          <label>子分類
+            <select name="category_key" id="category-select" required></select>
+          </label>
+          <label>類型
+            <select name="media_type" required>
+              <option value="image">圖片</option>
+              <option value="video">影片（顯示播放圖示）</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>標籤文字（顯示於卡片小標，如「商業攝影」）
+            <input type="text" name="tag" required>
+          </label>
+          <label>作品標題
+            <input type="text" name="title" required>
+          </label>
+          <label>排序（數字越小越前面）
+            <input type="number" name="sort_order" value="0">
+          </label>
+        </div>
+        <div class="row">
+          <label>檔案（圖片：JPG/PNG/WEBP/GIF；影片縮圖請上傳一張封面 JPG/PNG）
+            <input type="file" name="file" accept="image/*,video/mp4" required>
+          </label>
+        </div>
+        <button type="submit">上傳作品</button>
+        <p id="add-status" class="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>作品清單</h2>
+      <div id="item-groups"></div>
+    </section>
+  </main>
+
+  <script src="admin.js" data-page="dashboard"></script>
+</body>
+</html>
