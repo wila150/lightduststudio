@@ -1,12 +1,10 @@
 require('dotenv').config();
+require('express-async-errors'); // Express 4 doesn't auto-catch async route rejections — this patches that.
 
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const { init } = require('./db');
-const { UPLOAD_DIR } = require('./paths');
-
-init();
 
 const authRoutes = require('./routes/auth');
 const portfolioRoutes = require('./routes/portfolio');
@@ -32,7 +30,6 @@ app.use(session({
   cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 * 8 }
 }));
 
-app.use('/uploads', express.static(UPLOAD_DIR));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 app.use('/api/auth', authRoutes);
@@ -59,7 +56,14 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`LIGHTDU STUDIO server running at http://localhost:${PORT}`);
-  console.log(`Admin panel at http://localhost:${PORT}/admin/login.html`);
-});
+init()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`LIGHTDU STUDIO server running at http://localhost:${PORT}`);
+      console.log(`Admin panel at http://localhost:${PORT}/admin/login.html`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });

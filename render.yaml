@@ -2,24 +2,26 @@ services:
   - type: web
     name: lightduststudio
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
-      - key: NODE_VERSION
-        value: 22.11.0
-      - key: PORT
-        value: "10000"
       - key: SESSION_SECRET
         generateValue: true
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
         sync: false
-      - key: DATA_DIR
-        value: /var/data/db
-      - key: UPLOAD_DIR
-        value: /var/data/uploads
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -32,7 +34,3 @@ services:
         sync: false
       - key: CONTACT_TO_EMAIL
         sync: false
-    disk:
-      name: lightduststudio-data
-      mountPath: /var/data
-      sizeGB: 1

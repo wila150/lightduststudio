@@ -5,9 +5,9 @@ const requireAuth = require('../middleware/requireAuth');
 const router = express.Router();
 
 // Public: nested nav tree (top-level items with their children, in order)
-router.get('/', (req, res) => {
-  const parents = db.prepare('SELECT * FROM nav_items WHERE parent_id IS NULL ORDER BY sort_order ASC, id ASC').all();
-  const children = db.prepare('SELECT * FROM nav_items WHERE parent_id IS NOT NULL ORDER BY sort_order ASC, id ASC').all();
+router.get('/', async (req, res) => {
+  const parents = await db.prepare('SELECT * FROM nav_items WHERE parent_id IS NULL ORDER BY sort_order ASC, id ASC').all();
+  const children = await db.prepare('SELECT * FROM nav_items WHERE parent_id IS NOT NULL ORDER BY sort_order ASC, id ASC').all();
 
   const tree = parents.map((p) => ({
     ...p,
@@ -17,16 +17,16 @@ router.get('/', (req, res) => {
 });
 
 // Admin: flat list (for the editor UI)
-router.get('/flat', requireAuth, (req, res) => {
-  const items = db.prepare('SELECT * FROM nav_items ORDER BY parent_id IS NOT NULL, sort_order ASC, id ASC').all();
+router.get('/flat', requireAuth, async (req, res) => {
+  const items = await db.prepare('SELECT * FROM nav_items ORDER BY parent_id IS NOT NULL, sort_order ASC, id ASC').all();
   res.json(items);
 });
 
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const { parent_id, label, url, sort_order } = req.body || {};
   if (!label || !String(label).trim()) return res.status(400).json({ error: '請輸入名稱' });
 
-  const info = db.prepare('INSERT INTO nav_items (parent_id, label, url, sort_order) VALUES (?, ?, ?, ?)').run(
+  const info = await db.prepare('INSERT INTO nav_items (parent_id, label, url, sort_order) VALUES (?, ?, ?, ?)').run(
     parent_id || null,
     String(label).trim(),
     String(url || '').trim(),
@@ -35,12 +35,12 @@ router.post('/', requireAuth, (req, res) => {
   res.json({ id: info.lastInsertRowid });
 });
 
-router.put('/:id', requireAuth, (req, res) => {
-  const existing = db.prepare('SELECT * FROM nav_items WHERE id = ?').get(req.params.id);
+router.put('/:id', requireAuth, async (req, res) => {
+  const existing = await db.prepare('SELECT * FROM nav_items WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'not found' });
 
   const { label, url, sort_order } = req.body || {};
-  db.prepare('UPDATE nav_items SET label = ?, url = ?, sort_order = ? WHERE id = ?').run(
+  await db.prepare('UPDATE nav_items SET label = ?, url = ?, sort_order = ? WHERE id = ?').run(
     label !== undefined ? String(label).trim() : existing.label,
     url !== undefined ? String(url).trim() : existing.url,
     sort_order !== undefined ? Number(sort_order) || 0 : existing.sort_order,
@@ -49,10 +49,10 @@ router.put('/:id', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete('/:id', requireAuth, (req, res) => {
-  const existing = db.prepare('SELECT * FROM nav_items WHERE id = ?').get(req.params.id);
+router.delete('/:id', requireAuth, async (req, res) => {
+  const existing = await db.prepare('SELECT * FROM nav_items WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'not found' });
-  db.prepare('DELETE FROM nav_items WHERE id = ?').run(req.params.id);
+  await db.prepare('DELETE FROM nav_items WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
 

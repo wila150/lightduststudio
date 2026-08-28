@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: '請填寫姓名、Email 與需求內容' });
   }
 
-  db.prepare('INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)').run(
+  await db.prepare('INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)').run(
     name, email, phone || '', message
   );
 
