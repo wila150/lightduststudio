@@ -30,7 +30,18 @@ app.use(session({
   cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 * 8 }
 }));
 
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
+// Clean URLs for the admin panel (/admin/settings instead of
+// /admin/settings.html), with 301s from the old .html paths.
+const ADMIN_DIR = path.join(__dirname, 'admin');
+app.get('/admin', (req, res) => res.sendFile(path.join(ADMIN_DIR, 'index.html')));
+app.get('/admin/index.html', (req, res) => res.redirect(301, '/admin'));
+const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'messages', 'media', 'accounts'];
+ADMIN_PAGES.forEach((name) => {
+  app.get('/admin/' + name, (req, res) => res.sendFile(path.join(ADMIN_DIR, name + '.html')));
+  app.get('/admin/' + name + '.html', (req, res) => res.redirect(301, '/admin/' + name));
+});
+
+app.use('/admin', express.static(ADMIN_DIR));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/portfolio', portfolioRoutes);
@@ -69,7 +80,7 @@ init()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`LIGHTDU STUDIO server running at http://localhost:${PORT}`);
-      console.log(`Admin panel at http://localhost:${PORT}/admin/login.html`);
+      console.log(`Admin panel at http://localhost:${PORT}/admin/login`);
     });
   })
   .catch((err) => {

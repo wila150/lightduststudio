@@ -21,7 +21,7 @@
     fetch('/api/auth/me')
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data.loggedIn) { window.location.href = 'login.html'; return; }
+        if (!data.loggedIn) { window.location.href = '/admin/login'; return; }
         onReady(data);
         var badge = document.getElementById('unread-badge');
         if (badge) {
@@ -37,7 +37,7 @@
     if (logoutBtn) {
       logoutBtn.addEventListener('click', function () {
         fetch('/api/auth/logout', { method: 'POST' }).then(function () {
-          window.location.href = 'login.html';
+          window.location.href = '/admin/login';
         });
       });
     }
@@ -61,7 +61,7 @@
         .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
         .then(function (res) {
           if (!res.ok) throw new Error(res.data.error || '登入失敗');
-          window.location.href = 'index.html';
+          window.location.href = '/admin';
         })
         .catch(function (err) { errorEl.textContent = err.message; });
     });
@@ -69,7 +69,7 @@
     fetch('/api/auth/me')
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (data.loggedIn) { window.location.href = 'index.html'; return; }
+        if (data.loggedIn) { window.location.href = '/admin'; return; }
         if (!data.googleClientId) return;
 
         var tries = 0;
@@ -89,7 +89,7 @@
                   .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
                   .then(function (res) {
                     if (!res.ok) throw new Error(res.data.error || 'Google 登入失敗');
-                    window.location.href = 'index.html';
+                    window.location.href = '/admin';
                   })
                   .catch(function (err) { errorEl.textContent = err.message; });
               }
@@ -564,7 +564,7 @@
                     '<div class="cat">/pages/' + escapeHtml(p.slug) + (p.published ? '' : '（未發佈）') + '</div>' +
                   '</div>' +
                   '<div style="display:flex;gap:10px;">' +
-                    '<a class="ghost-btn" href="page-edit.html?id=' + p.id + '">編輯</a>' +
+                    '<a class="ghost-btn" href="/admin/page-edit?id=' + p.id + '">編輯</a>' +
                     '<button class="ghost-btn del-page-btn" data-id="' + p.id + '">刪除</button>' +
                   '</div>' +
                 '</div>'
@@ -625,7 +625,7 @@
 
     function initPageEdit() {
       var pageId = new URLSearchParams(location.search).get('id');
-      if (!pageId) { window.location.href = 'pages.html'; return; }
+      if (!pageId) { window.location.href = '/admin/pages'; return; }
 
       var metaForm = document.getElementById('page-meta-form');
       var metaStatus = document.getElementById('meta-status');
