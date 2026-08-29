@@ -129,13 +129,15 @@ button{font-family:inherit;}
   display:flex;gap:12px;align-items:center;flex-wrap:wrap;
   padding:14px 16px;background:#f8f7f4;border-bottom:1px solid var(--border);
 }
-.nav-parent-row input{
+.nav-parent-row input,.nav-parent-row select{
   padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:.85rem;color:var(--text);
   transition:border-color var(--ease),box-shadow var(--ease);
 }
-.nav-parent-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.nav-parent-row input:focus,.nav-parent-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.nav-parent-row input:disabled{opacity:.5;background:#f3f2ee;}
 .nav-parent-row .label-input{flex:1 1 160px;}
 .nav-parent-row .url-input{flex:1 1 200px;}
+.nav-parent-row .page-select{flex:1 1 220px;}
 .nav-parent-row .order-input{width:64px;}
 .nav-parent-row button{
   padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-size:.8rem;color:var(--soft);
@@ -146,13 +148,15 @@ button{font-family:inherit;}
 
 .nav-children{padding:10px 16px 16px;display:flex;flex-direction:column;gap:8px;}
 .nav-child-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-left:20px;}
-.nav-child-row input{
+.nav-child-row input,.nav-child-row select{
   padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;font-size:.82rem;color:var(--text);
   transition:border-color var(--ease),box-shadow var(--ease);
 }
-.nav-child-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.nav-child-row input:focus,.nav-child-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.nav-child-row input:disabled{opacity:.5;}
 .nav-child-row .label-input{flex:1 1 120px;}
 .nav-child-row .url-input{flex:1 1 200px;}
+.nav-child-row .page-select{flex:1 1 200px;}
 .nav-child-row .order-input{width:56px;}
 .nav-child-row button{
   padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-size:.76rem;color:var(--soft);
@@ -164,13 +168,15 @@ button{font-family:inherit;}
 .add-child-row{
   display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-left:20px;margin-top:4px;
 }
-.add-child-row input{
+.add-child-row input,.add-child-row select{
   padding:7px 9px;border:1px dashed var(--border);border-radius:var(--radius-sm);background:transparent;font-size:.82rem;color:var(--text);
   transition:border-color var(--ease),box-shadow var(--ease);
 }
-.add-child-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.add-child-row input:focus,.add-child-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none;}
+.add-child-row input:disabled{opacity:.5;}
 .add-child-row .label-input{flex:1 1 120px;}
 .add-child-row .url-input{flex:1 1 200px;}
+.add-child-row .page-select{flex:1 1 200px;}
 .add-child-row .order-input{width:56px;}
 .add-child-row button{
   padding:6px 14px;border:1px solid var(--text);border-radius:var(--radius-sm);background:var(--text);color:#fff;cursor:pointer;font-size:.76rem;

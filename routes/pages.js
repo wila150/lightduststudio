@@ -96,6 +96,9 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await cleanupUrl(content.image_url);
     for (const img of content.images || []) await cleanupUrl(img.url);
   }
+  // Any nav item pointing at this page would otherwise keep a dangling
+  // page_id and resolve to a dead link once the page is gone.
+  await db.prepare('UPDATE nav_items SET page_id = NULL WHERE page_id = ?').run(req.params.id);
   await db.prepare('DELETE FROM pages WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });

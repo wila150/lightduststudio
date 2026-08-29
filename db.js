@@ -170,6 +170,13 @@ async function init() {
     await db.exec("ALTER TABLE hero_slides ADD COLUMN media_public_id TEXT NOT NULL DEFAULT ''");
   }
 
+  // Lets a nav item point at a custom page (by id) instead of a hand-typed
+  // URL, so renaming the page's slug later doesn't silently break the link.
+  const navCols = (await db.prepare('PRAGMA table_info(nav_items)').all()).map((c) => c.name);
+  if (!navCols.includes('page_id')) {
+    await db.exec('ALTER TABLE nav_items ADD COLUMN page_id INTEGER');
+  }
+
   // Migrate admin_users created before role-based accounts existed.
   const adminCols = (await db.prepare('PRAGMA table_info(admin_users)').all()).map((c) => c.name);
   if (!adminCols.includes('role')) {

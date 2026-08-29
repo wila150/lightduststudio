@@ -277,6 +277,40 @@
       var treeWrap = document.getElementById('nav-tree');
       var addParentForm = document.getElementById('add-parent-form');
       var addParentStatus = document.getElementById('add-parent-status');
+      var addParentPageSelect = document.getElementById('add-parent-page-select');
+      var pagesCache = [];
+
+      // Builds the <option> list for a "point at this custom page instead of
+      // a hand-typed URL" dropdown, re-used across every row plus the add-
+      // parent form.
+      function pageOptionsHtml(selectedId) {
+        return '<option value="">— 不指定，使用左側網址 —</option>' + pagesCache.map(function (p) {
+          return '<option value="' + p.id + '"' + (selectedId === p.id ? ' selected' : '') + '>' + escapeHtml(p.title) + '（/pages/' + escapeHtml(p.slug) + '）</option>';
+        }).join('');
+      }
+
+      // A page-select and its paired url-input are mutually exclusive:
+      // picking a page clears the typed URL (and disables it), typing a URL
+      // resets the page-select back to "不指定".
+      function wireExclusivePair(urlInput, pageSelect) {
+        if (pageSelect.value) urlInput.disabled = true;
+        pageSelect.addEventListener('change', function () {
+          urlInput.disabled = !!pageSelect.value;
+          if (pageSelect.value) urlInput.value = '';
+        });
+        urlInput.addEventListener('input', function () {
+          if (urlInput.value) pageSelect.value = '';
+        });
+      }
+
+      function loadPages() {
+        return fetch('/api/pages')
+          .then(function (r) { return r.json(); })
+          .then(function (pages) {
+            pagesCache = pages;
+            addParentPageSelect.innerHTML = pageOptionsHtml(null);
+          });
+      }
 
       function load() {
         fetch('/api/nav')
@@ -291,6 +325,7 @@
               '<div class="nav-child-row" data-id="' + child.id + '">' +
                 '<input class="label-input" value="' + escapeHtml(child.label) + '" data-field="label">' +
                 '<input class="url-input" value="' + escapeHtml(child.url) + '" data-field="url">' +
+                '<select class="page-select" data-field="page_id">' + pageOptionsHtml(child.page_id) + '</select>' +
                 '<input class="order-input" type="number" value="' + child.sort_order + '" data-field="sort_order">' +
                 '<button class="save-btn" data-action="save-child" data-id="' + child.id + '">儲存</button>' +
                 '<button class="del-btn" data-action="del-child" data-id="' + child.id + '">刪除</button>' +
@@ -303,6 +338,7 @@
               '<div class="nav-parent-row">' +
                 '<input class="label-input" value="' + escapeHtml(parent.label) + '" data-field="label">' +
                 '<input class="url-input" value="' + escapeHtml(parent.url) + '" data-field="url" placeholder="無子選單時的連結">' +
+                '<select class="page-select" data-field="page_id">' + pageOptionsHtml(parent.page_id) + '</select>' +
                 '<input class="order-input" type="number" value="' + parent.sort_order + '" data-field="sort_order">' +
                 '<button class="save-btn" data-action="save-parent" data-id="' + parent.id + '">儲存</button>' +
                 '<button class="del-btn" data-action="del-parent" data-id="' + parent.id + '">刪除整組</button>' +
@@ -312,6 +348,7 @@
                 '<div class="add-child-row" data-parent-id="' + parent.id + '">' +
                   '<input class="label-input" placeholder="子選單名稱" data-field="label">' +
                   '<input class="url-input" placeholder="連結網址，如 photography.html#food" data-field="url">' +
+                  '<select class="page-select" data-field="page_id">' + pageOptionsHtml(null) + '</select>' +
                   '<input class="order-input" type="number" value="0" data-field="sort_order">' +
                   '<button data-action="add-child" data-parent-id="' + parent.id + '">新增子選單</button>' +
                 '</div>' +
@@ -319,6 +356,10 @@
             '</div>'
           );
         }).join('');
+
+        treeWrap.querySelectorAll('.nav-parent-row, .nav-child-row, .add-child-row').forEach(function (row) {
+          wireExclusivePair(row.querySelector('.url-input'), row.querySelector('.page-select'));
+        });
 
         wireTreeEvents();
       }
@@ -402,6 +443,7 @@
             addParentStatus.textContent = '新增成功！';
             addParentStatus.className = 'status ok';
             addParentForm.reset();
+            document.getElementById('add-parent-url').disabled = false;
             load();
           })
           .catch(function (err) {
@@ -410,7 +452,8 @@
           });
       });
 
-      load();
+      wireExclusivePair(document.getElementById('add-parent-url'), addParentPageSelect);
+      loadPages().then(load);
     }
   }
 
