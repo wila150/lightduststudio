@@ -48,6 +48,15 @@ app.get('/pages/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, 'page.html'));
 });
 
+// Clean URLs for the core static pages (/about instead of /about.html), with
+// 301s from the old .html paths so existing links/bookmarks keep working.
+const STATIC_PAGES = ['about', 'photography', 'film', 'design', 'contact'];
+STATIC_PAGES.forEach((name) => {
+  app.get('/' + name, (req, res) => res.sendFile(path.join(__dirname, name + '.html')));
+  app.get('/' + name + '.html', (req, res) => res.redirect(301, '/' + name));
+});
+app.get('/index.html', (req, res) => res.redirect(301, '/'));
+
 // Public static site (index.html, css/, js/, photography.html, etc.)
 app.use(express.static(path.join(__dirname)));
 

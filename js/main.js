@@ -118,14 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('/api/nav')
       .then(function (r) { return r.json(); })
       .then(function (items) {
-        var currentFile = location.pathname.split('/').pop() || 'index.html';
+        var currentPath = location.pathname.replace(/\/$/, '') || '/';
         navMenu.innerHTML = items.map(function (item) {
           var hasChildren = item.children && item.children.length > 0;
           var isActive = hasChildren && item.children.some(function (c) {
-            return c.url.split('#')[0] === currentFile;
+            return c.url.split('#')[0] === currentPath;
           });
           if (!hasChildren) {
-            var linkActive = item.url.split('#')[0] === currentFile;
+            var linkActive = item.url.split('#')[0] === currentPath;
             return '<li class="nav-item' + (linkActive ? ' active' : '') + '"><a href="' + item.url + '" class="nav-link"' + extAttrs(item.url) + '>' + escapeHtml(item.label) + '</a></li>';
           }
           var dropdown = item.children.map(function (c) {

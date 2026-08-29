@@ -210,31 +210,31 @@ async function init() {
     const insertChild = db.prepare('INSERT INTO nav_items (parent_id, label, url, sort_order) VALUES (?, ?, ?, ?)');
 
     const ourStory = (await insertParent.run('Our Story', '', 0)).lastInsertRowid;
-    await insertChild.run(ourStory, '關於我們', 'about.html', 0);
+    await insertChild.run(ourStory, '關於我們', '/about', 0);
 
     const photography = (await insertParent.run('Photography', '', 1)).lastInsertRowid;
     let i = 0;
     for (const [label, url] of [
-      ['商業攝影', 'photography.html#commercial'],
-      ['美食攝影', 'photography.html#food'],
-      ['空間攝影', 'photography.html#space'],
-      ['人像攝影', 'photography.html#portrait'],
-      ['婚禮紀錄', 'photography.html#wedding']
+      ['商業攝影', '/photography#commercial'],
+      ['美食攝影', '/photography#food'],
+      ['空間攝影', '/photography#space'],
+      ['人像攝影', '/photography#portrait'],
+      ['婚禮紀錄', '/photography#wedding']
     ]) { await insertChild.run(photography, label, url, i++); }
 
     const film = (await insertParent.run('Film', '', 2)).lastInsertRowid;
     i = 0;
     for (const [label, url] of [
-      ['影片製作', 'film.html#production'],
-      ['形象影片', 'film.html#brand'],
-      ['短影音', 'film.html#short']
+      ['影片製作', '/film#production'],
+      ['形象影片', '/film#brand'],
+      ['短影音', '/film#short']
     ]) { await insertChild.run(film, label, url, i++); }
 
     const design = (await insertParent.run('Design', '', 3)).lastInsertRowid;
     i = 0;
     for (const [label, url] of [
-      ['平面設計', 'design.html#graphic'],
-      ['整合行銷', 'design.html#marketing']
+      ['平面設計', '/design#graphic'],
+      ['整合行銷', '/design#marketing']
     ]) { await insertChild.run(design, label, url, i++); }
   }
 
