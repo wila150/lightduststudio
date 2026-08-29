@@ -1108,6 +1108,33 @@
     requireLogin(initAccounts);
 
     function initAccounts(me) {
+      var pwForm = document.getElementById('change-password-form');
+      var pwStatus = document.getElementById('change-password-status');
+      pwForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        pwStatus.textContent = '更改中…';
+        pwStatus.className = 'status';
+        fetch('/api/auth/password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            current_password: pwForm.current_password.value,
+            new_password: pwForm.new_password.value
+          })
+        })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.data.error || '更改失敗');
+            pwStatus.textContent = '密碼已更新！';
+            pwStatus.className = 'status ok';
+            pwForm.reset();
+          })
+          .catch(function (err) {
+            pwStatus.textContent = err.message;
+            pwStatus.className = 'status err';
+          });
+      });
+
       var emailStatus = document.getElementById('my-email-status');
       var emailInput = document.getElementById('my-email-input');
       var saveEmailBtn = document.getElementById('save-email-btn');

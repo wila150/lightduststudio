@@ -25,6 +25,22 @@
 
   <main class="admin-main">
     <section class="panel">
+      <h2>更改我的密碼</h2>
+      <form id="change-password-form" class="add-form">
+        <div class="row">
+          <label>目前密碼
+            <input type="password" name="current_password" autocomplete="current-password" required>
+          </label>
+          <label>新密碼（至少 6 個字元）
+            <input type="password" name="new_password" autocomplete="new-password" required minlength="6">
+          </label>
+        </div>
+        <button type="submit">更改密碼</button>
+        <p id="change-password-status" class="status"></p>
+      </form>
+    </section>
+
+    <section class="panel">
       <h2>我的 Google 帳號</h2>
       <div class="google-panel">
         <p class="current-email" id="my-email-status">載入中…</p>

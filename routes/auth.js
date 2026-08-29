@@ -52,6 +52,20 @@ router.put('/email', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+router.put('/password', requireAuth, async (req, res) => {
+  const { current_password, new_password } = req.body || {};
+  if (!new_password || new_password.length < 6) {
+    return res.status(400).json({ error: '新密碼至少需要 6 個字元' });
+  }
+  const user = await db.prepare('SELECT * FROM admin_users WHERE id = ?').get(req.session.userId);
+  if (!user || !bcrypt.compareSync(current_password || '', user.password_hash)) {
+    return res.status(401).json({ error: '目前密碼不正確' });
+  }
+  const hash = bcrypt.hashSync(new_password, 10);
+  await db.prepare('UPDATE admin_users SET password_hash = ? WHERE id = ?').run(hash, req.session.userId);
+  res.json({ ok: true });
+});
+
 router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
