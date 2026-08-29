@@ -65,6 +65,46 @@
         })
         .catch(function (err) { errorEl.textContent = err.message; });
     });
+
+    fetch('/api/auth/me')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.loggedIn) { window.location.href = 'index.html'; return; }
+        if (!data.googleClientId) return;
+
+        var tries = 0;
+        var poll = setInterval(function () {
+          tries++;
+          if (window.google && window.google.accounts && window.google.accounts.id) {
+            clearInterval(poll);
+            window.google.accounts.id.initialize({
+              client_id: data.googleClientId,
+              callback: function (response) {
+                errorEl.textContent = '';
+                fetch('/api/auth/google', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ credential: response.credential })
+                })
+                  .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                  .then(function (res) {
+                    if (!res.ok) throw new Error(res.data.error || 'Google 登入失敗');
+                    window.location.href = 'index.html';
+                  })
+                  .catch(function (err) { errorEl.textContent = err.message; });
+              }
+            });
+            window.google.accounts.id.renderButton(
+              document.getElementById('google-signin-btn'),
+              { theme: 'outline', size: 'large', width: 280, text: 'signin_with' }
+            );
+            document.getElementById('google-divider').hidden = false;
+          } else if (tries > 50) {
+            clearInterval(poll);
+          }
+        }, 100);
+      })
+      .catch(function () {});
   }
 
   if (page === 'dashboard') {
@@ -1068,6 +1108,37 @@
     requireLogin(initAccounts);
 
     function initAccounts(me) {
+      var emailStatus = document.getElementById('my-email-status');
+      var emailInput = document.getElementById('my-email-input');
+      var saveEmailBtn = document.getElementById('save-email-btn');
+      var emailFormStatus = document.getElementById('my-email-form-status');
+
+      emailStatus.innerHTML = me.email
+        ? '目前綁定：<strong>' + escapeHtml(me.email) + '</strong>'
+        : '尚未綁定 Google 帳號，綁定後才能用 Google 登入。';
+      emailInput.value = me.email || '';
+
+      saveEmailBtn.addEventListener('click', function () {
+        emailFormStatus.textContent = '儲存中…';
+        emailFormStatus.className = 'status';
+        fetch('/api/auth/email', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.value.trim() })
+        })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.data.error || '儲存失敗');
+            emailFormStatus.textContent = '已儲存！';
+            emailFormStatus.className = 'status ok';
+            emailStatus.innerHTML = '目前綁定：<strong>' + escapeHtml(emailInput.value.trim()) + '</strong>';
+          })
+          .catch(function (err) {
+            emailFormStatus.textContent = err.message;
+            emailFormStatus.className = 'status err';
+          });
+      });
+
       if (me.role !== 'super_admin') {
         document.getElementById('not-super-admin-note').hidden = false;
         document.getElementById('accounts-app').hidden = true;
@@ -1093,7 +1164,7 @@
             '<div class="item-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;">' +
               '<div>' +
                 '<div class="title">' + escapeHtml(acc.username) + (isSelf ? '（目前登入）' : '') + '</div>' +
-                '<div class="cat">' + roleLabel + '</div>' +
+                '<div class="cat">' + roleLabel + (acc.email ? ' · ' + escapeHtml(acc.email) : ' · 未綁定 Google') + '</div>' +
               '</div>' +
               '<div style="display:flex;gap:10px;">' +
                 (isSelf ? '' : '<button class="ghost-btn del-account-btn" data-id="' + acc.id + '">刪除</button>') +

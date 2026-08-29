@@ -31,6 +31,14 @@ body{
 .login-card button:hover{background:var(--accent);}
 .error{color:var(--danger);font-size:.8rem;min-height:1.2em;text-align:center;margin:0;}
 
+.divider{display:flex;align-items:center;gap:12px;color:var(--soft);font-size:.78rem;margin:4px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.google-panel{border:1px solid var(--border);padding:18px 20px;margin-bottom:18px;}
+.google-panel .current-email{font-size:.85rem;color:var(--soft);margin-bottom:12px;}
+.google-panel .current-email strong{color:var(--text);}
+.google-panel .row{align-items:flex-end;}
+
 /* dashboard */
 .admin-header{
   display:flex;justify-content:space-between;align-items:center;gap:24px;

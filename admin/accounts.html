@@ -24,8 +24,23 @@
   </header>
 
   <main class="admin-main">
+    <section class="panel">
+      <h2>我的 Google 帳號</h2>
+      <div class="google-panel">
+        <p class="current-email" id="my-email-status">載入中…</p>
+        <div class="row">
+          <label style="flex:1 1 260px;">綁定 / 更改 Email
+            <input type="email" id="my-email-input" placeholder="you@gmail.com">
+          </label>
+          <button type="button" id="save-email-btn" style="align-self:flex-end;padding:10px 22px;border:none;background:var(--text);color:#fff;cursor:pointer;">儲存</button>
+        </div>
+        <p class="hint">綁定後，這個 Google 帳號登入時的 Email 要跟這裡填的完全一致，才能用「使用 Google 登入」進到後台。</p>
+        <p id="my-email-form-status" class="status"></p>
+      </div>
+    </section>
+
     <section class="panel" id="not-super-admin-note" hidden>
-      <p class="hint">只有最高管理員可以管理後台帳號。</p>
+      <p class="hint">只有最高管理員可以新增或刪除其他後台帳號。</p>
     </section>
 
     <div id="accounts-app" hidden>

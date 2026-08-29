@@ -70,6 +70,7 @@ async function init() {
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'admin',
+      email TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -176,6 +177,9 @@ async function init() {
   }
   if (!adminCols.includes('created_at')) {
     await db.exec("ALTER TABLE admin_users ADD COLUMN created_at TEXT NOT NULL DEFAULT ''");
+  }
+  if (!adminCols.includes('email')) {
+    await db.exec("ALTER TABLE admin_users ADD COLUMN email TEXT NOT NULL DEFAULT ''");
   }
 
   const { c } = await db.prepare('SELECT COUNT(*) AS c FROM admin_users').get();

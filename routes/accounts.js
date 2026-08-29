@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(requireAuth, requireSuperAdmin);
 
 router.get('/', async (req, res) => {
-  const accounts = await db.prepare('SELECT id, username, role, created_at FROM admin_users ORDER BY created_at ASC, id ASC').all();
+  const accounts = await db.prepare('SELECT id, username, role, email, created_at FROM admin_users ORDER BY created_at ASC, id ASC').all();
   res.json(accounts);
 });
 
