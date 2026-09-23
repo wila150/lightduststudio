@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .catch(function () {
         var titleEl = document.getElementById('page-title');
         if (titleEl) titleEl.textContent = '找不到這個頁面';
-        pageContent.innerHTML = '<div class="container" style="padding:80px 0;text-align:center;color:var(--color-text-soft);">此頁面不存在或尚未發佈。</div>';
+        pageContent.innerHTML = '<div class="container" style="padding-top:80px;padding-bottom:80px;text-align:center;color:var(--color-text-soft);">此頁面不存在或尚未發佈。</div>';
       });
   }
 
@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '</section>'
         );
       case 'button':
-        return '<div class="container" style="text-align:center;padding:30px 0;"><a href="' + (c.url || '#') + '" class="btn"' + extAttrs(c.url) + '>' + escapeHtml(c.text || '') + '</a></div>';
+        return '<div class="container" style="text-align:center;padding-top:30px;padding-bottom:30px;"><a href="' + (c.url || '#') + '" class="btn"' + extAttrs(c.url) + '>' + escapeHtml(c.text || '') + '</a></div>';
       case 'video':
         return (
           '<section class="block-video container">' +
