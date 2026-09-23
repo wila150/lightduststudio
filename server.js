@@ -13,6 +13,7 @@ const settingsRoutes = require('./routes/settings');
 const navRoutes = require('./routes/nav');
 const heroRoutes = require('./routes/hero');
 const pagesRoutes = require('./routes/pages');
+const homeBlocksRoutes = require('./routes/home-blocks');
 const messagesRoutes = require('./routes/messages');
 const mediaRoutes = require('./routes/media');
 const accountsRoutes = require('./routes/accounts');
@@ -35,7 +36,7 @@ app.use(session({
 const ADMIN_DIR = path.join(__dirname, 'admin');
 app.get('/admin', (req, res) => res.sendFile(path.join(ADMIN_DIR, 'index.html')));
 app.get('/admin/index.html', (req, res) => res.redirect(301, '/admin'));
-const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'messages', 'media', 'accounts'];
+const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'messages', 'media', 'accounts'];
 ADMIN_PAGES.forEach((name) => {
   app.get('/admin/' + name, (req, res) => res.sendFile(path.join(ADMIN_DIR, name + '.html')));
   app.get('/admin/' + name + '.html', (req, res) => res.redirect(301, '/admin/' + name));
@@ -50,6 +51,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/nav', navRoutes);
 app.use('/api/hero', heroRoutes);
 app.use('/api/pages', pagesRoutes);
+app.use('/api/home-blocks', homeBlocksRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/accounts', accountsRoutes);

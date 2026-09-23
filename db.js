@@ -157,6 +157,13 @@ async function init() {
       sort_order INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS home_blocks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      block_type TEXT NOT NULL,
+      content TEXT NOT NULL DEFAULT '{}',
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS hero_slides (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       eyebrow TEXT NOT NULL DEFAULT '',

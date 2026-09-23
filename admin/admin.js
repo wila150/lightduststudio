@@ -1068,6 +1068,251 @@
     }
   }
 
+  if (page === 'home-blocks') {
+    requireLogin(initHomeBlocks);
+
+    var HOME_BLOCK_LABELS = {
+      heading: '標題文字', text_image: '圖文並排', button: '按鈕',
+      video: '影片', gallery: '圖片相簿'
+    };
+
+    function initHomeBlocks() {
+      var blockTypeSelect = document.getElementById('block-type-select');
+      var addBlockBtn = document.getElementById('add-block-btn');
+      var addBlockStatus = document.getElementById('add-block-status');
+      var blockListWrap = document.getElementById('block-list');
+      var videoMediaType = document.getElementById('video-media-type');
+
+      function load() {
+        fetch('/api/home-blocks')
+          .then(function (r) { return r.json(); })
+          .then(renderBlockList);
+      }
+
+      blockTypeSelect.addEventListener('change', function () {
+        document.querySelectorAll('.block-fields').forEach(function (el) { el.hidden = true; });
+        document.getElementById('block-fields-' + blockTypeSelect.value).hidden = false;
+      });
+
+      if (videoMediaType) {
+        videoMediaType.addEventListener('change', function () {
+          document.getElementById('video-upload-row').hidden = videoMediaType.value !== 'upload';
+          document.getElementById('video-embed-row').hidden = videoMediaType.value !== 'embed';
+        });
+      }
+
+      document.querySelectorAll('[data-upload]').forEach(function (input) {
+        input.addEventListener('change', function () {
+          var file = input.files[0];
+          if (!file) return;
+          var fd = new FormData();
+          fd.append('file', file);
+          input.disabled = true;
+          fetch('/api/home-blocks/upload', { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              input.setAttribute('data-uploaded-url', data.url);
+              input.disabled = false;
+            })
+            .catch(function () { input.disabled = false; });
+        });
+      });
+
+      function collectFields(container) {
+        var content = {};
+        container.querySelectorAll('[data-f]').forEach(function (el) {
+          content[el.getAttribute('data-f')] = el.value;
+        });
+        container.querySelectorAll('[data-upload]').forEach(function (el) {
+          var url = el.getAttribute('data-uploaded-url');
+          if (url) content[el.getAttribute('data-upload')] = url;
+        });
+        return content;
+      }
+
+      addBlockBtn.addEventListener('click', function () {
+        var type = blockTypeSelect.value;
+        var container = document.getElementById('block-fields-' + type);
+        var content = collectFields(container);
+
+        addBlockStatus.textContent = '新增中…';
+        addBlockStatus.className = 'status';
+        fetch('/api/home-blocks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ block_type: type, content: content, sort_order: Date.now() })
+        })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.data.error || '新增失敗');
+            addBlockStatus.textContent = '新增成功！';
+            addBlockStatus.className = 'status ok';
+            container.querySelectorAll('input,textarea,select').forEach(function (el) {
+              if (el.type === 'file') { el.value = ''; el.removeAttribute('data-uploaded-url'); }
+              else if (el.tagName !== 'SELECT') el.value = '';
+            });
+            load();
+          })
+          .catch(function (err) {
+            addBlockStatus.textContent = err.message;
+            addBlockStatus.className = 'status err';
+          });
+      });
+
+      function blockCardBody(block) {
+        var c = block.content;
+        switch (block.block_type) {
+          case 'heading':
+            return '<div class="row">' +
+              '<label>標題文字<input type="text" data-f="text" value="' + escapeHtml(c.text || '') + '"></label>' +
+              '<label>副標文字<input type="text" data-f="subtitle" value="' + escapeHtml(c.subtitle || '') + '"></label>' +
+            '</div>';
+          case 'text_image':
+            return '<div class="row">' +
+                '<label>標題<input type="text" data-f="title" value="' + escapeHtml(c.title || '') + '"></label>' +
+                '<label>圖片位置<select data-f="position"><option value="left"' + (c.position !== 'right' ? ' selected' : '') + '>圖片在左</option><option value="right"' + (c.position === 'right' ? ' selected' : '') + '>圖片在右</option></select></label>' +
+              '</div>' +
+              '<div class="row"><label>內文<textarea data-f="text" rows="3">' + escapeHtml(c.text || '') + '</textarea></label></div>' +
+              (c.image_url ? '<div class="slide-thumb" style="background-image:url(' + c.image_url + ');max-width:200px;"></div>' : '') +
+              '<div class="row"><label>更換圖片<input type="file" accept="image/*" data-upload="image_url"></label></div>';
+          case 'button':
+            return '<div class="row">' +
+              '<label>按鈕文字<input type="text" data-f="text" value="' + escapeHtml(c.text || '') + '"></label>' +
+              '<label>連結網址<input type="text" data-f="url" value="' + escapeHtml(c.url || '') + '"></label>' +
+            '</div>';
+          case 'video':
+            return '<div class="row"><label>目前來源<input type="text" value="' + escapeHtml(c.media_type === 'embed' ? c.media_url : (c.media_url || '（尚未設定）')) + '" disabled></label></div>' +
+              '<div class="row">' +
+                '<label>上傳新影片檔案<input type="file" accept="video/mp4" data-upload="media_url"></label>' +
+                '<label>或改用連結<input type="text" data-f="media_url" placeholder="https://youtu.be/..."></label>' +
+              '</div>' +
+              '<p class="hint">若填了連結，儲存時會以連結為主；若上傳新檔案，儲存時會以上傳檔案為主。</p>';
+          case 'gallery':
+            var thumbs = (c.images || []).map(function (img, i) {
+              return '<div class="thumb"><img src="' + img.url + '"><button class="rm" data-gallery-remove="' + i + '">&times;</button></div>';
+            }).join('');
+            return '<div class="gallery-thumbs">' + thumbs + '</div>' +
+              '<div class="row" style="margin-top:12px;">' +
+                '<label>新增圖片<input type="file" accept="image/*" class="gallery-add-input"></label>' +
+                '<label>圖說（選填）<input type="text" class="gallery-caption-input"></label>' +
+                '<button type="button" class="gallery-add-btn" style="align-self:flex-end;padding:10px 18px;border:1px solid var(--border);background:transparent;cursor:pointer;">新增</button>' +
+              '</div>';
+          default:
+            return '';
+        }
+      }
+
+      function renderBlockList(blocks) {
+        blockListWrap.innerHTML = blocks.length ? blocks.map(function (block) {
+          return (
+            '<div class="block-card" data-id="' + block.id + '" data-type="' + block.block_type + '">' +
+              '<div class="block-card-head"><span>' + (HOME_BLOCK_LABELS[block.block_type] || block.block_type) + ' #' + block.id + '</span>' +
+                '<button class="del-btn" data-del-block="' + block.id + '">刪除區塊</button>' +
+              '</div>' +
+              blockCardBody(block) +
+              '<div class="row" style="margin-top:10px;">' +
+                '<label style="max-width:120px;">排序<input type="number" data-f="__sort_order" value="' + block.sort_order + '"></label>' +
+                '<button type="button" class="save-block-btn" data-id="' + block.id + '" style="align-self:flex-end;padding:10px 24px;border:none;background:var(--text);color:#fff;cursor:pointer;">儲存這個區塊</button>' +
+              '</div>' +
+              '<p class="status"></p>' +
+            '</div>'
+          );
+        }).join('') : '<p class="empty-note">尚無內容區塊，請在上方新增。</p>';
+
+        wireBlockCardEvents();
+      }
+
+      function wireBlockCardEvents() {
+        blockListWrap.querySelectorAll('[data-upload]').forEach(function (input) {
+          input.addEventListener('change', function () {
+            var file = input.files[0];
+            if (!file) return;
+            var fd = new FormData();
+            fd.append('file', file);
+            input.disabled = true;
+            fetch('/api/home-blocks/upload', { method: 'POST', body: fd })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                input.setAttribute('data-uploaded-url', data.url);
+                input.disabled = false;
+              })
+              .catch(function () { input.disabled = false; });
+          });
+        });
+
+        blockListWrap.querySelectorAll('.save-block-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var card = btn.closest('.block-card');
+            var statusEl = card.querySelector('.status');
+            var content = collectFields(card);
+            var sortOrder = content.__sort_order;
+            delete content.__sort_order;
+
+            if (card.getAttribute('data-type') === 'video') {
+              if (content.media_url && content.media_url.indexOf('http') === 0) {
+                content.media_type = 'embed';
+              } else if (card.querySelector('[data-upload]').getAttribute('data-uploaded-url')) {
+                content.media_type = 'upload';
+              }
+            }
+
+            statusEl.textContent = '儲存中…';
+            statusEl.className = 'status';
+            fetch('/api/home-blocks/' + btn.getAttribute('data-id'), {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content: content, sort_order: Number(sortOrder) || 0 })
+            })
+              .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+              .then(function (res) {
+                if (!res.ok) throw new Error(res.data.error || '儲存失敗');
+                statusEl.textContent = '已儲存！';
+                statusEl.className = 'status ok';
+                load();
+              })
+              .catch(function (err) {
+                statusEl.textContent = err.message;
+                statusEl.className = 'status err';
+              });
+          });
+        });
+
+        blockListWrap.querySelectorAll('[data-del-block]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            if (!confirm('確定要刪除這個區塊嗎？')) return;
+            fetch('/api/home-blocks/' + btn.getAttribute('data-del-block'), { method: 'DELETE' }).then(load);
+          });
+        });
+
+        blockListWrap.querySelectorAll('.gallery-add-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var card = btn.closest('.block-card');
+            var fileInput = card.querySelector('.gallery-add-input');
+            var captionInput = card.querySelector('.gallery-caption-input');
+            if (!fileInput.files[0]) return;
+            var fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+            fd.append('caption', captionInput.value || '');
+            fetch('/api/home-blocks/' + card.getAttribute('data-id') + '/gallery-image', { method: 'POST', body: fd })
+              .then(function (r) { return r.json(); })
+              .then(load);
+          });
+        });
+
+        blockListWrap.querySelectorAll('[data-gallery-remove]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var card = btn.closest('.block-card');
+            fetch('/api/home-blocks/' + card.getAttribute('data-id') + '/gallery-image/' + btn.getAttribute('data-gallery-remove'), { method: 'DELETE' })
+              .then(function (r) { return r.json(); })
+              .then(load);
+          });
+        });
+      }
+
+      load();
+    }
+  }
+
   if (page === 'messages') {
     requireLogin(initMessages);
 

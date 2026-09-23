@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>編輯頁面｜LightDust Studio</title>
+<title>首頁模組｜LightDust Studio</title>
 <link rel="stylesheet" href="/admin/admin.css">
 <link rel="icon" type="image/png" href="/images/favicon-32.png">
 </head>
@@ -15,8 +15,8 @@
       <a href="/admin/settings">網站設定</a>
       <a href="/admin/nav">導覽選單</a>
       <a href="/admin/hero">首頁 Hero</a>
-      <a href="/admin/home-blocks">首頁模組</a>
-      <a href="/admin/pages" class="active">自訂頁面</a>
+      <a href="/admin/home-blocks" class="active">首頁模組</a>
+      <a href="/admin/pages">自訂頁面</a>
       <a href="/admin/messages">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
       <a href="/admin/media">媒體庫</a>
       <a href="/admin/accounts" id="accounts-nav-link" hidden>帳號管理</a>
@@ -25,38 +25,9 @@
   </header>
 
   <main class="admin-main">
-    <a href="/admin/pages" class="back-link">← 回頁面列表</a>
-
     <section class="panel">
-      <h2>頁面設定</h2>
-      <form id="page-meta-form" class="add-form">
-        <div class="row">
-          <label>網址代稱（slug）
-            <input type="text" name="slug" pattern="[a-z0-9-]+" required>
-          </label>
-          <label>頁面標題
-            <input type="text" name="title" required>
-          </label>
-        </div>
-        <div class="row">
-          <label>SEO 標題
-            <input type="text" name="seo_title">
-          </label>
-          <label>SEO 描述
-            <input type="text" name="seo_description">
-          </label>
-        </div>
-        <div class="row">
-          <label class="checkbox-label">
-            <input type="checkbox" name="published" value="1"> 發佈中
-          </label>
-          <label>排定發佈時間
-            <input type="datetime-local" name="publish_at">
-          </label>
-        </div>
-        <button type="submit">儲存頁面設定</button>
-        <p id="meta-status" class="status"></p>
-      </form>
+      <h2>首頁模組</h2>
+      <p class="hint">這裡新增的模組會依「排序」數字（越小越前面）顯示在首頁 Hero、分類區塊與關於我們之後、頁尾之前。</p>
     </section>
 
     <section class="panel">
@@ -69,7 +40,6 @@
             <option value="button">按鈕</option>
             <option value="video">影片</option>
             <option value="gallery">圖片相簿</option>
-            <option value="contact_form">聯絡表單</option>
           </select>
         </label>
       </div>
@@ -99,7 +69,7 @@
       <div id="block-fields-button" class="block-fields" hidden>
         <div class="row">
           <label>按鈕文字<input type="text" data-f="text"></label>
-          <label>連結網址<input type="text" data-f="url" placeholder="contact.html"></label>
+          <label>連結網址<input type="text" data-f="url" placeholder="/contact"></label>
         </div>
       </div>
 
@@ -121,11 +91,7 @@
         <p class="hint">先建立空的相簿區塊，建立後可以在下方區塊清單裡逐張新增圖片。</p>
       </div>
 
-      <div id="block-fields-contact_form" class="block-fields" hidden>
-        <p class="hint">這個區塊會直接顯示聯絡表單，不需要額外設定。</p>
-      </div>
-
-      <button type="button" id="add-block-btn">新增區塊到頁面下方</button>
+      <button type="button" id="add-block-btn">新增區塊到首頁下方</button>
       <p id="add-block-status" class="status"></p>
     </section>
 
@@ -135,6 +101,6 @@
     </section>
   </main>
 
-  <script src="/admin/admin.js" data-page="page-edit"></script>
+  <script src="/admin/admin.js" data-page="home-blocks"></script>
 </body>
 </html>

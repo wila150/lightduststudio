@@ -498,6 +498,21 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
+  /* -------------------------------------------------------------- */
+  /* Homepage: render addable/reorderable content modules below the */
+  /* fixed hero / category-grid / about-teaser sections              */
+  /* -------------------------------------------------------------- */
+  var homeBlocksMount = document.getElementById('home-blocks');
+  if (homeBlocksMount) {
+    fetch('/api/home-blocks')
+      .then(function (r) { return r.json(); })
+      .then(function (blocks) {
+        homeBlocksMount.innerHTML = blocks.map(renderPageBlock).join('');
+        initContactForm();
+      })
+      .catch(function () {});
+  }
+
   function renderPageBlock(block) {
     var c = block.content || {};
     switch (block.block_type) {
