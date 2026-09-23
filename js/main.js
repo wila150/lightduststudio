@@ -461,16 +461,4 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* -------------------------------------------------------------- */
-  /* Floating contact widget                                         */
-  /* -------------------------------------------------------------- */
-  var widget = document.querySelector('.contact-widget');
-  if (widget) {
-    var toggleBtn = widget.querySelector('.contact-toggle');
-    toggleBtn.addEventListener('click', function () {
-      widget.classList.toggle('open');
-    });
-    document.addEventListener('click', function (e) {
-      if (!widget.contains(e.target)) widget.classList.remove('open');
-    });
-  }
 });

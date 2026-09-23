@@ -453,17 +453,14 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
 }
 .contact-options a{
   display:flex;align-items:center;gap:10px;
-  transform:translateY(12px) scale(.8);opacity:0;pointer-events:none;
-  transition:transform .28s ease, opacity .28s ease;
 }
-.contact-widget.open .contact-options a{transform:translateY(0) scale(1);opacity:1;pointer-events:auto;}
-.contact-options a:nth-child(1){transition-delay:.02s;}
-.contact-options a:nth-child(2){transition-delay:.07s;}
-.contact-options a:nth-child(3){transition-delay:.12s;}
 .contact-options .tip{
   background:rgba(17,17,17,.85);color:#fff;font-size:.78rem;padding:6px 12px;
   white-space:nowrap;letter-spacing:.05em;
+  opacity:0;transform:translateX(6px);pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
 }
+.contact-options a:hover .tip{opacity:1;transform:translateX(0);}
 .contact-circle{
   width:52px;height:52px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -474,17 +471,6 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
 .contact-options a.line .contact-circle{background:#06C755;color:#fff;}
 .contact-options a.phone .contact-circle{background:#111;color:#fff;}
 .contact-options a.mail .contact-circle{background:var(--color-accent);color:#fff;}
-.contact-toggle{
-  width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
-  background:var(--color-dark);color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 22px rgba(0,0,0,.28);
-  position:relative;
-}
-.contact-toggle svg{transition:opacity .2s ease, transform .2s ease;position:absolute;}
-.contact-toggle .icon-close{opacity:0;transform:rotate(-45deg) scale(.6);}
-.contact-widget.open .contact-toggle .icon-open{opacity:0;transform:rotate(45deg) scale(.6);}
-.contact-widget.open .contact-toggle .icon-close{opacity:1;transform:rotate(0) scale(1);}
 
 /* ---------------------------------------------------------------------- */
 /* Responsive nav (mobile)                                                */
