@@ -1055,14 +1055,97 @@
       var fileInput = document.getElementById('file-input');
       var uploadStatus = document.getElementById('upload-status');
       var grid = document.getElementById('media-grid');
+      var folderGrid = document.getElementById('folder-grid');
+      var breadcrumb = document.getElementById('breadcrumb');
+      var newFolderBtn = document.getElementById('new-folder-btn');
+      var newFolderForm = document.getElementById('new-folder-form');
+      var newFolderName = document.getElementById('new-folder-name');
+      var saveNewFolderBtn = document.getElementById('save-new-folder-btn');
+      var folderStatus = document.getElementById('folder-status');
 
-      function load() {
-        fetch('/api/media')
-          .then(function (r) { return r.json(); })
-          .then(renderGrid);
+      var currentFolderId = null;
+      var allFoldersFlat = [];
+
+      var FOLDER_ICON = '<svg class="folder-icon" viewBox="0 0 24 20" fill="currentColor"><path d="M2 2h7l2 3h11v13H2z"/></svg>';
+
+      function loadFoldersFlat() {
+        return fetch('/api/media/folders/all').then(function (r) { return r.json(); }).then(function (list) {
+          allFoldersFlat = list;
+        });
       }
 
-      function renderGrid(items) {
+      function moveSelectHtml(item) {
+        var options = ['<option value="">（根目錄）</option>'].concat(
+          allFoldersFlat.map(function (f) {
+            return '<option value="' + f.id + '"' + (item.folder_id === f.id ? ' selected' : '') + '>' + escapeHtml(f.path) + '</option>';
+          })
+        );
+        if (!item.folder_id) options[0] = '<option value="" selected>（根目錄）</option>';
+        return '<select class="move-select" data-id="' + item.id + '">' + options.join('') + '</select>';
+      }
+
+      function load() {
+        var qs = currentFolderId ? ('?folder_id=' + currentFolderId) : '';
+        fetch('/api/media' + qs)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            renderBreadcrumb(data.trail);
+            renderFolders(data.folders);
+            renderFiles(data.items);
+          });
+      }
+
+      function renderBreadcrumb(trail) {
+        var parts = ['<a href="#" data-folder-id="">媒體庫</a>'];
+        trail.forEach(function (f, i) {
+          parts.push('<span class="sep">/</span>');
+          if (i === trail.length - 1) parts.push('<span class="current">' + escapeHtml(f.name) + '</span>');
+          else parts.push('<a href="#" data-folder-id="' + f.id + '">' + escapeHtml(f.name) + '</a>');
+        });
+        breadcrumb.innerHTML = parts.join('');
+        breadcrumb.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            var id = a.getAttribute('data-folder-id');
+            currentFolderId = id ? Number(id) : null;
+            load();
+          });
+        });
+      }
+
+      function renderFolders(folders) {
+        folderGrid.innerHTML = folders.map(function (f) {
+          return (
+            '<div class="folder-tile" data-id="' + f.id + '">' +
+              '<button class="del-folder-btn" data-id="' + f.id + '" title="刪除資料夾">&times;</button>' +
+              FOLDER_ICON +
+              '<span class="folder-name">' + escapeHtml(f.name) + '</span>' +
+            '</div>'
+          );
+        }).join('');
+
+        folderGrid.querySelectorAll('.folder-tile').forEach(function (tile) {
+          tile.addEventListener('click', function (e) {
+            if (e.target.closest('.del-folder-btn')) return;
+            currentFolderId = Number(tile.getAttribute('data-id'));
+            load();
+          });
+        });
+        folderGrid.querySelectorAll('.del-folder-btn').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!confirm('確定要刪除這個資料夾嗎？資料夾必須是空的才能刪除。')) return;
+            fetch('/api/media/folders/' + btn.getAttribute('data-id'), { method: 'DELETE' })
+              .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+              .then(function (res) {
+                if (!res.ok) { alert(res.data.error || '刪除失敗'); return; }
+                loadFoldersFlat().then(load);
+              });
+          });
+        });
+      }
+
+      function renderFiles(items) {
         grid.innerHTML = items.length ? items.map(function (item) {
           var thumb = item.media_type === 'video'
             ? '<div class="thumb"><video src="' + item.url + '" muted></video></div>'
@@ -1074,10 +1157,11 @@
                 '<span class="name">' + escapeHtml(item.original_name || item.filename) + '</span>' +
                 '<button class="copy-btn" data-url="' + item.url + '">複製網址</button>' +
                 '<button class="del-media-btn" data-id="' + item.id + '">刪除</button>' +
+                moveSelectHtml(item) +
               '</div>' +
             '</div>'
           );
-        }).join('') : '<p class="empty-note">尚無媒體檔案</p>';
+        }).join('') : '<p class="empty-note">這個資料夾裡還沒有檔案</p>';
 
         grid.querySelectorAll('.copy-btn').forEach(function (btn) {
           btn.addEventListener('click', function () {
@@ -1102,7 +1186,46 @@
               });
           });
         });
+
+        grid.querySelectorAll('.move-select').forEach(function (select) {
+          select.addEventListener('change', function () {
+            fetch('/api/media/' + select.getAttribute('data-id') + '/move', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ folder_id: select.value || null })
+            }).then(function () { load(); });
+          });
+        });
       }
+
+      newFolderBtn.addEventListener('click', function () {
+        newFolderForm.hidden = !newFolderForm.hidden;
+        if (!newFolderForm.hidden) newFolderName.focus();
+      });
+
+      saveNewFolderBtn.addEventListener('click', function () {
+        var name = newFolderName.value.trim();
+        if (!name) return;
+        folderStatus.textContent = '建立中…';
+        folderStatus.className = 'status';
+        fetch('/api/media/folders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, parent_id: currentFolderId })
+        })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.data.error || '建立失敗');
+            folderStatus.textContent = '';
+            newFolderName.value = '';
+            newFolderForm.hidden = true;
+            loadFoldersFlat().then(load);
+          })
+          .catch(function (err) {
+            folderStatus.textContent = err.message;
+            folderStatus.className = 'status err';
+          });
+      });
 
       function uploadFiles(files) {
         if (!files || !files.length) return;
@@ -1110,13 +1233,14 @@
         uploadStatus.className = 'status';
         var fd = new FormData();
         Array.prototype.forEach.call(files, function (f) { fd.append('files', f); });
+        if (currentFolderId) fd.append('folder_id', currentFolderId);
         fetch('/api/media/upload', { method: 'POST', body: fd })
           .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
           .then(function (res) {
             if (!res.ok) throw new Error(res.data.error || '上傳失敗');
             uploadStatus.textContent = '上傳成功！';
             uploadStatus.className = 'status ok';
-            load();
+            loadFoldersFlat().then(load);
           })
           .catch(function (err) {
             uploadStatus.textContent = err.message;
@@ -1143,7 +1267,7 @@
         uploadFiles(e.dataTransfer.files);
       });
 
-      load();
+      loadFoldersFlat().then(load);
     }
   }
 

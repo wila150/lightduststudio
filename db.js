@@ -100,12 +100,20 @@ async function init() {
       sort_order INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS media_folders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      parent_id INTEGER REFERENCES media_folders(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS media (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       filename TEXT NOT NULL,
       url TEXT UNIQUE NOT NULL,
       media_type TEXT NOT NULL DEFAULT 'image',
       original_name TEXT NOT NULL DEFAULT '',
+      folder_id INTEGER REFERENCES media_folders(id) ON DELETE SET NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -168,6 +176,12 @@ async function init() {
   const heroCols = (await db.prepare('PRAGMA table_info(hero_slides)').all()).map((c) => c.name);
   if (!heroCols.includes('media_public_id')) {
     await db.exec("ALTER TABLE hero_slides ADD COLUMN media_public_id TEXT NOT NULL DEFAULT ''");
+  }
+
+  // Migrate media created before folders existed.
+  const mediaCols = (await db.prepare('PRAGMA table_info(media)').all()).map((c) => c.name);
+  if (!mediaCols.includes('folder_id')) {
+    await db.exec('ALTER TABLE media ADD COLUMN folder_id INTEGER REFERENCES media_folders(id) ON DELETE SET NULL');
   }
 
   // Lets a nav item point at a custom page (by id) instead of a hand-typed

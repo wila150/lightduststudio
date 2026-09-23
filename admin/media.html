@@ -25,8 +25,20 @@
 
   <main class="admin-main">
     <section class="panel">
+      <div class="media-toolbar">
+        <nav id="breadcrumb" class="breadcrumb"></nav>
+        <button type="button" id="new-folder-btn" class="ghost-btn">＋ 新增資料夾</button>
+      </div>
+      <div id="new-folder-form" class="add-child-row" hidden>
+        <input type="text" id="new-folder-name" placeholder="資料夾名稱" class="label-input">
+        <button type="button" id="save-new-folder-btn">建立</button>
+      </div>
+      <p id="folder-status" class="status"></p>
+    </section>
+
+    <section class="panel">
       <h2>上傳檔案</h2>
-      <p class="hint">支援 JPG / PNG / WEBP / GIF 圖片與 MP4 影片，可一次選取多個檔案，或直接拖放到下方區域。上傳後會取得一個可重複使用的網址。</p>
+      <p class="hint">會上傳到目前瀏覽的資料夾。支援 JPG / PNG / WEBP / GIF 圖片與 MP4 影片，可一次選取多個檔案，或直接拖放到下方區域。</p>
       <div id="dropzone" class="dropzone">
         <p>將檔案拖放到這裡，或點擊選擇檔案</p>
         <input type="file" id="file-input" multiple accept="image/*,video/mp4" hidden>
@@ -35,7 +47,8 @@
     </section>
 
     <section class="panel">
-      <h2>所有媒體檔案</h2>
+      <h2>資料夾內容</h2>
+      <div id="folder-grid" class="media-grid"></div>
       <div id="media-grid" class="media-grid"></div>
     </section>
   </main>

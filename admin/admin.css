@@ -293,3 +293,31 @@ button{font-family:inherit;}
   transition:border-color var(--ease),color var(--ease);
 }
 .media-item .meta .del-media-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+.media-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+.breadcrumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.85rem;}
+.breadcrumb a,.breadcrumb span.current{color:var(--soft);cursor:pointer;}
+.breadcrumb a:hover{color:var(--accent);}
+.breadcrumb span.current{color:var(--text);font-weight:600;}
+.breadcrumb .sep{color:var(--border);}
+
+.folder-tile{
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);
+  cursor:pointer;transition:box-shadow var(--ease),transform var(--ease);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  aspect-ratio:1/1;gap:8px;padding:12px;position:relative;
+}
+.folder-tile:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.folder-tile .folder-icon{width:40px;height:32px;color:var(--accent);}
+.folder-tile .folder-name{font-size:.8rem;text-align:center;word-break:break-all;}
+.folder-tile .del-folder-btn{
+  position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;
+  border:1px solid var(--border);background:var(--card);color:var(--soft);
+  font-size:.75rem;line-height:1;cursor:pointer;
+}
+.folder-tile .del-folder-btn:hover{border-color:var(--danger);color:var(--danger);}
+
+.media-item .meta select.move-select{
+  width:100%;margin-top:6px;font-size:.72rem;padding:4px 6px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--soft);background:var(--card);
+}
