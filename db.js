@@ -52,17 +52,28 @@ const db = { prepare, exec };
 
 async function init() {
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS portfolio_items (
+    CREATE TABLE IF NOT EXISTS portfolio_projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       group_key TEXT NOT NULL,
       category_key TEXT NOT NULL,
       tag TEXT NOT NULL,
       title TEXT NOT NULL,
       media_type TEXT NOT NULL DEFAULT 'image',
-      filename TEXT NOT NULL,
-      url TEXT NOT NULL DEFAULT '',
+      cover_url TEXT NOT NULL DEFAULT '',
+      cover_filename TEXT NOT NULL DEFAULT '',
+      video_url TEXT NOT NULL DEFAULT '',
+      video_filename TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS portfolio_photos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL REFERENCES portfolio_projects(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      caption TEXT NOT NULL DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS admin_users (
@@ -167,10 +178,34 @@ async function init() {
   }
   await client.execute('PRAGMA foreign_keys = ON');
 
-  // Migrate portfolio_items created before Cloudinary storage (absolute URLs).
-  const portfolioCols = (await db.prepare('PRAGMA table_info(portfolio_items)').all()).map((c) => c.name);
-  if (!portfolioCols.includes('url')) {
-    await db.exec("ALTER TABLE portfolio_items ADD COLUMN url TEXT NOT NULL DEFAULT ''");
+  // One-time migration: the old portfolio_items table (one row per photo)
+  // predates the album model (one project, many photos). Fold each old row
+  // into a single-photo project, then retire the table.
+  const oldTable = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'portfolio_items'").get();
+  if (oldTable) {
+    const { c: projectCount } = await db.prepare('SELECT COUNT(*) AS c FROM portfolio_projects').get();
+    if (projectCount === 0) {
+      const oldItems = await db.prepare('SELECT * FROM portfolio_items ORDER BY id ASC').all();
+      for (const item of oldItems) {
+        if (item.media_type === 'video') {
+          const info = await db.prepare(`
+            INSERT INTO portfolio_projects (group_key, category_key, tag, title, media_type, video_url, video_filename, sort_order, created_at)
+            VALUES (?, ?, ?, ?, 'video', ?, ?, ?, ?)
+          `).run(item.group_key, item.category_key, item.tag, item.title, item.url, item.filename, item.sort_order, item.created_at);
+          void info;
+        } else {
+          const info = await db.prepare(`
+            INSERT INTO portfolio_projects (group_key, category_key, tag, title, media_type, cover_url, cover_filename, sort_order, created_at)
+            VALUES (?, ?, ?, ?, 'image', ?, ?, ?, ?)
+          `).run(item.group_key, item.category_key, item.tag, item.title, item.url, item.filename, item.sort_order, item.created_at);
+          await db.prepare('INSERT INTO portfolio_photos (project_id, url, filename, sort_order) VALUES (?, ?, ?, 0)').run(
+            info.lastInsertRowid, item.url, item.filename
+          );
+        }
+      }
+      console.log(`[migrate] Folded ${oldItems.length} portfolio_items row(s) into portfolio_projects albums.`);
+    }
+    await db.exec('DROP TABLE portfolio_items');
   }
 
   const heroCols = (await db.prepare('PRAGMA table_info(hero_slides)').all()).map((c) => c.name);

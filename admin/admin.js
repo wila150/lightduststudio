@@ -113,6 +113,8 @@
     function init() {
       var groupSelect = document.getElementById('group-select');
       var categorySelect = document.getElementById('category-select');
+      var mediaTypeSelect = document.getElementById('media-type-select');
+      var videoFileRow = document.getElementById('video-file-row');
 
       function populateCategories() {
         var opts = CATEGORIES[groupSelect.value];
@@ -123,21 +125,26 @@
       groupSelect.addEventListener('change', populateCategories);
       populateCategories();
 
+      mediaTypeSelect.addEventListener('change', function () {
+        videoFileRow.hidden = mediaTypeSelect.value !== 'video';
+      });
+
       var addForm = document.getElementById('add-form');
       var addStatus = document.getElementById('add-status');
       addForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        addStatus.textContent = '上傳中…';
+        addStatus.textContent = '建立中…';
         addStatus.className = 'status';
         var formData = new FormData(addForm);
         fetch('/api/portfolio', { method: 'POST', body: formData })
           .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
           .then(function (res) {
-            if (!res.ok) throw new Error(res.data.error || '上傳失敗');
-            addStatus.textContent = '新增成功！';
+            if (!res.ok) throw new Error(res.data.error || '建立失敗');
+            addStatus.textContent = '建立成功！';
             addStatus.className = 'status ok';
             addForm.reset();
             populateCategories();
+            videoFileRow.hidden = true;
             loadItems();
           })
           .catch(function (err) {
@@ -155,42 +162,153 @@
         .then(renderGroups);
     }
 
-    function renderGroups(items) {
+    function renderGroups(projects) {
       var wrap = document.getElementById('item-groups');
       var byGroup = { photography: [], film: [], design: [] };
-      items.forEach(function (item) {
-        if (byGroup[item.group_key]) byGroup[item.group_key].push(item);
+      projects.forEach(function (p) {
+        if (byGroup[p.group_key]) byGroup[p.group_key].push(p);
       });
 
       wrap.innerHTML = Object.keys(byGroup).map(function (group) {
         var groupItems = byGroup[group];
         var body = groupItems.length
-          ? '<div class="item-grid">' + groupItems.map(renderCard).join('') + '</div>'
+          ? groupItems.map(renderProjectCard).join('')
           : '<p class="empty-note">尚無作品</p>';
         return '<div class="group-block"><h3>' + GROUP_LABELS[group] + '</h3>' + body + '</div>';
       }).join('');
 
-      wrap.querySelectorAll('.del-btn').forEach(function (btn) {
+      wireProjectCards();
+    }
+
+    function renderProjectCard(p) {
+      var isVideo = p.media_type === 'video';
+      var body;
+      if (isVideo) {
+        body = (
+          (p.video_url ? '<video class="project-video-preview" src="' + p.video_url + '" controls></video>' : '<p class="empty-note">尚未上傳影片</p>') +
+          '<div class="add-photo-row">' +
+            '<label>更換影片檔案<input type="file" accept="video/mp4" class="replace-video-input" data-id="' + p.id + '"></label>' +
+          '</div>'
+        );
+      } else {
+        body = '<div class="gallery-thumbs" data-project-id="' + p.id + '">載入照片中…</div>' +
+          '<div class="add-photo-row">' +
+            '<input type="file" accept="image/*" class="add-photo-input" data-id="' + p.id + '">' +
+            '<input type="text" class="add-photo-caption" data-id="' + p.id + '" placeholder="圖說（選填）">' +
+            '<button type="button" class="add-photo-btn" data-id="' + p.id + '">新增照片</button>' +
+          '</div>';
+      }
+
+      return (
+        '<div class="project-card" data-id="' + p.id + '">' +
+          '<div class="project-card-head">' +
+            '<div>' +
+              '<span class="cat">' + escapeHtml(p.tag) + '</span>' +
+              '<span class="title">' + escapeHtml(p.title) + '<span class="type-badge">' + (isVideo ? '影片' : (p.photo_count || 0) + ' 張照片') + '</span></span>' +
+            '</div>' +
+            '<div class="project-card-actions">' +
+              '<input type="number" class="order-input" value="' + p.sort_order + '" data-id="' + p.id + '">' +
+              '<button type="button" class="save-btn" data-id="' + p.id + '">儲存排序</button>' +
+              '<button type="button" class="del-btn" data-id="' + p.id + '">刪除整個作品</button>' +
+            '</div>' +
+          '</div>' +
+          body +
+        '</div>'
+      );
+    }
+
+    function loadPhotosInto(projectId) {
+      var wrap = document.querySelector('.gallery-thumbs[data-project-id="' + projectId + '"]');
+      if (!wrap) return;
+      fetch('/api/portfolio/project/' + projectId)
+        .then(function (r) { return r.json(); })
+        .then(function (project) {
+          wrap.innerHTML = project.photos.length ? project.photos.map(function (photo) {
+            var isCover = photo.url === project.cover_url;
+            return '<div class="thumb' + (isCover ? ' is-cover' : '') + '"><img src="' + photo.url + '"><button class="rm" data-photo-id="' + photo.id + '">&times;</button></div>';
+          }).join('') : '<p class="empty-note">這個相簿還沒有照片</p>';
+
+          wrap.querySelectorAll('.rm').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              if (!confirm('確定要刪除這張照片嗎？')) return;
+              fetch('/api/portfolio/photos/' + btn.getAttribute('data-photo-id'), { method: 'DELETE' })
+                .then(function (r) { return r.json(); })
+                .then(function () { loadPhotosInto(projectId); refreshPhotoCountBadge(projectId); });
+            });
+          });
+        });
+    }
+
+    function refreshPhotoCountBadge(projectId) {
+      fetch('/api/portfolio/project/' + projectId)
+        .then(function (r) { return r.json(); })
+        .then(function (project) {
+          var card = document.querySelector('.project-card[data-id="' + projectId + '"]');
+          if (!card) return;
+          var badge = card.querySelector('.type-badge');
+          if (badge) badge.textContent = project.photos.length + ' 張照片';
+        });
+    }
+
+    function wireProjectCards() {
+      document.querySelectorAll('.gallery-thumbs[data-project-id]').forEach(function (wrap) {
+        loadPhotosInto(wrap.getAttribute('data-project-id'));
+      });
+
+      document.querySelectorAll('.save-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          if (!confirm('確定要刪除這個作品嗎？')) return;
+          var id = btn.getAttribute('data-id');
+          var input = document.querySelector('.order-input[data-id="' + id + '"]');
+          fetch('/api/portfolio/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sort_order: Number(input.value) || 0 })
+          }).then(function () { loadItems(); });
+        });
+      });
+
+      document.querySelectorAll('.del-btn[data-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!confirm('確定要刪除整個作品（含所有照片）嗎？')) return;
           fetch('/api/portfolio/' + btn.getAttribute('data-id'), { method: 'DELETE' })
             .then(function (r) { return r.json(); })
             .then(function () { loadItems(); });
         });
       });
-    }
 
-    function renderCard(item) {
-      return (
-        '<div class="item-card">' +
-          '<button class="del-btn" data-id="' + item.id + '" title="刪除">&times;</button>' +
-          '<div class="thumb" style="background-image:url(' + item.url + ')"></div>' +
-          '<div class="meta">' +
-            '<span class="cat">' + escapeHtml(item.tag) + '</span>' +
-            '<span class="title">' + escapeHtml(item.title) + '</span>' +
-          '</div>' +
-        '</div>'
-      );
+      document.querySelectorAll('.add-photo-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-id');
+          var fileInput = document.querySelector('.add-photo-input[data-id="' + id + '"]');
+          var captionInput = document.querySelector('.add-photo-caption[data-id="' + id + '"]');
+          if (!fileInput.files[0]) return;
+          var fd = new FormData();
+          fd.append('file', fileInput.files[0]);
+          fd.append('caption', captionInput.value || '');
+          btn.disabled = true;
+          fetch('/api/portfolio/' + id + '/photos', { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function () {
+              fileInput.value = '';
+              captionInput.value = '';
+              btn.disabled = false;
+              loadPhotosInto(id);
+              refreshPhotoCountBadge(id);
+            });
+        });
+      });
+
+      document.querySelectorAll('.replace-video-input').forEach(function (input) {
+        input.addEventListener('change', function () {
+          if (!input.files[0]) return;
+          var id = input.getAttribute('data-id');
+          var fd = new FormData();
+          fd.append('file', input.files[0]);
+          fetch('/api/portfolio/' + id, { method: 'PUT', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function () { loadItems(); });
+        });
+      });
     }
   }
 

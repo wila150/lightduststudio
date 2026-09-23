@@ -223,14 +223,40 @@ button{font-family:inherit;}
 }
 .block-card .del-btn{border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;padding:5px 12px;cursor:pointer;font-size:.76rem;color:var(--soft);transition:border-color var(--ease),color var(--ease);}
 .block-card .del-btn:hover{border-color:var(--danger);color:var(--danger);}
-.block-card .gallery-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
-.block-card .gallery-thumbs .thumb{position:relative;width:90px;height:70px;border-radius:var(--radius-sm);overflow:hidden;}
-.block-card .gallery-thumbs img{width:100%;height:100%;object-fit:cover;}
-.block-card .gallery-thumbs .rm{
+.block-card .gallery-thumbs,.project-card .gallery-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.block-card .gallery-thumbs .thumb,.project-card .gallery-thumbs .thumb{position:relative;width:90px;height:70px;border-radius:var(--radius-sm);overflow:hidden;}
+.block-card .gallery-thumbs img,.project-card .gallery-thumbs img{width:100%;height:100%;object-fit:cover;}
+.block-card .gallery-thumbs .rm,.project-card .gallery-thumbs .rm{
   position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;
   background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;cursor:pointer;transition:background var(--ease);
 }
-.block-card .gallery-thumbs .rm:hover{background:var(--danger);}
+.block-card .gallery-thumbs .rm:hover,.project-card .gallery-thumbs .rm:hover{background:var(--danger);}
+.gallery-thumbs .thumb.is-cover::after{
+  content:'封面';position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);color:#fff;
+  font-size:.6rem;text-align:center;padding:2px 0;letter-spacing:.05em;
+}
+
+.project-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;background:var(--card);box-shadow:var(--shadow-sm);}
+.project-card-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px;}
+.project-card-head .cat{font-size:.7rem;color:var(--accent);letter-spacing:.08em;display:block;}
+.project-card-head .title{font-size:.95rem;font-weight:600;}
+.project-card-head .type-badge{
+  font-size:.68rem;color:var(--soft);border:1px solid var(--border);border-radius:20px;
+  padding:2px 10px;margin-left:8px;letter-spacing:.05em;
+}
+.project-card-actions{display:flex;gap:8px;align-items:center;}
+.project-card-actions input{width:64px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;}
+.project-card-actions button{
+  padding:7px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-size:.78rem;color:var(--soft);
+  transition:border-color var(--ease),color var(--ease);
+}
+.project-card-actions button.save-btn:hover{border-color:#2f7a3f;color:#2f7a3f;}
+.project-card-actions button.del-btn:hover{border-color:var(--danger);color:var(--danger);}
+.project-card .project-video-preview{width:100%;max-width:360px;aspect-ratio:16/9;background:#111;border-radius:var(--radius-sm);}
+.project-card .add-photo-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.project-card .add-photo-row input[type="text"]{
+  flex:1 1 160px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;
+}
 
 .gallery-add-input,.gallery-caption-input{
   padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;font-size:.82rem;color:var(--text);

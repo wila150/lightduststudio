@@ -25,7 +25,8 @@
 
   <main class="admin-main">
     <section class="panel">
-      <h2>新增作品</h2>
+      <h2>新增作品（相簿）</h2>
+      <p class="hint">圖片類型會先建立一個空相簿，建立後在下方清單裡逐張新增照片；影片類型請直接上傳影片檔案。</p>
       <form id="add-form" class="add-form">
         <div class="row">
           <label>分類群組
@@ -39,9 +40,9 @@
             <select name="category_key" id="category-select" required></select>
           </label>
           <label>類型
-            <select name="media_type" required>
-              <option value="image">圖片</option>
-              <option value="video">影片（顯示播放圖示）</option>
+            <select name="media_type" id="media-type-select" required>
+              <option value="image">圖片相簿</option>
+              <option value="video">影片</option>
             </select>
           </label>
         </div>
@@ -56,12 +57,12 @@
             <input type="number" name="sort_order" value="0">
           </label>
         </div>
-        <div class="row">
-          <label>檔案（圖片：JPG/PNG/WEBP/GIF；影片縮圖請上傳一張封面 JPG/PNG）
-            <input type="file" name="file" accept="image/*,video/mp4" required>
+        <div class="row" id="video-file-row" hidden>
+          <label>影片檔案（MP4）
+            <input type="file" name="file" accept="video/mp4">
           </label>
         </div>
-        <button type="submit">上傳作品</button>
+        <button type="submit">建立作品</button>
         <p id="add-status" class="status"></p>
       </form>
     </section>

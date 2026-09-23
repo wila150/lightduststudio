@@ -280,10 +280,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderGalleryItem(item) {
     var isFilm = item.media_type === 'video';
+    var bgUrl = isFilm ? (item.cover_url || '') : item.cover_url;
     return (
-      '<div class="gallery-item' + (isFilm ? ' is-film' : '') + '" data-category="' + escapeHtml(item.category_key) + '">' +
-        '<div class="bg" style="background-image:url(' + item.url + ')"></div>' +
+      '<div class="gallery-item' + (isFilm ? ' is-film' : '') + '" data-category="' + escapeHtml(item.category_key) + '" data-id="' + item.id + '">' +
+        (bgUrl ? '<div class="bg" style="background-image:url(' + bgUrl + ')"></div>' : '<div class="bg"></div>') +
         (isFilm ? '<span class="play-icon"></span>' : '') +
+        (!isFilm && item.photo_count > 1 ? '<span class="photo-count">' + item.photo_count + ' 張</span>' : '') +
         '<div class="caption"><span class="tag">' + escapeHtml(item.tag) + '</span><span class="title">' + escapeHtml(item.title) + '</span></div>' +
       '</div>'
     );
@@ -317,8 +319,103 @@ document.addEventListener('DOMContentLoaded', function () {
     applyFilter(matched ? hash : 'all');
   }
 
+  // Lightbox: a single reusable overlay for viewing an album's photos or a
+  // project's video, wherever a gallery grid is on the page.
+  function initLightbox() {
+    var lightbox = document.createElement('div');
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML =
+      '<button class="lightbox-close" aria-label="關閉">&times;</button>' +
+      '<button class="lightbox-prev" aria-label="上一張">&#10094;</button>' +
+      '<button class="lightbox-next" aria-label="下一張">&#10095;</button>' +
+      '<div class="lightbox-stage"></div>' +
+      '<div class="lightbox-info"><span class="lightbox-title"></span><span class="lightbox-counter"></span></div>';
+    document.body.appendChild(lightbox);
+
+    var stage = lightbox.querySelector('.lightbox-stage');
+    var titleEl = lightbox.querySelector('.lightbox-title');
+    var counterEl = lightbox.querySelector('.lightbox-counter');
+    var prevBtn = lightbox.querySelector('.lightbox-prev');
+    var nextBtn = lightbox.querySelector('.lightbox-next');
+    var state = { photos: [], index: 0 };
+
+    function renderStage() {
+      var photo = state.photos[state.index];
+      stage.innerHTML = '<img src="' + photo.url + '" alt="">';
+      counterEl.textContent = state.photos.length > 1 ? (state.index + 1) + ' / ' + state.photos.length : '';
+      var multi = state.photos.length > 1;
+      prevBtn.style.visibility = multi ? 'visible' : 'hidden';
+      nextBtn.style.visibility = multi ? 'visible' : 'hidden';
+    }
+
+    function open() {
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      lightbox.classList.remove('open');
+      stage.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    function openPhotos(photos, title, startIndex) {
+      if (!photos || !photos.length) return;
+      state.photos = photos;
+      state.index = startIndex || 0;
+      titleEl.textContent = title || '';
+      renderStage();
+      open();
+    }
+
+    function openVideo(url, title) {
+      if (!url) return;
+      stage.innerHTML = '<video src="' + url + '" controls autoplay playsinline></video>';
+      titleEl.textContent = title || '';
+      counterEl.textContent = '';
+      prevBtn.style.visibility = 'hidden';
+      nextBtn.style.visibility = 'hidden';
+      open();
+    }
+
+    prevBtn.addEventListener('click', function () {
+      state.index = (state.index - 1 + state.photos.length) % state.photos.length;
+      renderStage();
+    });
+    nextBtn.addEventListener('click', function () {
+      state.index = (state.index + 1) % state.photos.length;
+      renderStage();
+    });
+    lightbox.querySelector('.lightbox-close').addEventListener('click', close);
+    lightbox.addEventListener('click', function (e) { if (e.target === lightbox) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') prevBtn.click();
+      else if (e.key === 'ArrowRight') nextBtn.click();
+    });
+
+    return { openPhotos: openPhotos, openVideo: openVideo };
+  }
+
   if (galleryGrid) {
     var group = galleryGrid.getAttribute('data-group');
+    var lightboxApi = initLightbox();
+    var projectsById = {};
+
+    galleryGrid.addEventListener('click', function (e) {
+      var tile = e.target.closest('.gallery-item');
+      if (!tile) return;
+      var project = projectsById[tile.getAttribute('data-id')];
+      if (!project) return;
+      if (project.media_type === 'video') {
+        lightboxApi.openVideo(project.video_url, project.title);
+      } else {
+        fetch('/api/portfolio/detail/' + project.id)
+          .then(function (r) { return r.json(); })
+          .then(function (detail) { lightboxApi.openPhotos(detail.photos, detail.title, 0); });
+      }
+    });
+
     galleryGrid.innerHTML = '<p class="gallery-loading">載入作品中…</p>';
     fetch('/api/portfolio/' + group)
       .then(function (r) { return r.json(); })
@@ -327,6 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
           galleryGrid.innerHTML = '<p class="gallery-loading">目前尚無作品，請至後台新增。</p>';
           return;
         }
+        items.forEach(function (item) { projectsById[item.id] = item; });
         galleryGrid.innerHTML = items.map(renderGalleryItem).join('');
         initGalleryFilters();
       })
