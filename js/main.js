@@ -487,6 +487,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (page.seo_title) document.title = page.seo_title + '｜LightDust Studio';
         var metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc && page.seo_description) metaDesc.content = page.seo_description;
+        var ogTitle = document.querySelector('meta[property="og:title"]');
+        if (ogTitle) ogTitle.content = (page.seo_title || page.title) + '｜LightDust Studio';
+        var ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogDesc && page.seo_description) ogDesc.content = page.seo_description;
+        var ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.content = location.href;
+        else {
+          var m = document.createElement('meta');
+          m.setAttribute('property', 'og:url');
+          m.setAttribute('content', location.href);
+          document.head.appendChild(m);
+        }
 
         pageContent.innerHTML = page.blocks.map(renderPageBlock).join('');
         initContactForm();
