@@ -332,7 +332,12 @@ document.addEventListener('DOMContentLoaded', function () {
       '<button class="lightbox-prev" aria-label="上一張">&#10094;</button>' +
       '<button class="lightbox-next" aria-label="下一張">&#10095;</button>' +
       '<div class="lightbox-stage"></div>' +
-      '<div class="lightbox-info"><span class="lightbox-title"></span><span class="lightbox-counter"></span></div>';
+      '<div class="lightbox-info"><span class="lightbox-title"></span><span class="lightbox-counter"></span></div>' +
+      '<div class="lightbox-grid-wrap">' +
+        '<div class="lightbox-grid-title"></div>' +
+        '<div class="lightbox-grid-count"></div>' +
+        '<div class="lightbox-grid"></div>' +
+      '</div>';
     document.body.appendChild(lightbox);
 
     var stage = lightbox.querySelector('.lightbox-stage');
@@ -340,7 +345,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var counterEl = lightbox.querySelector('.lightbox-counter');
     var prevBtn = lightbox.querySelector('.lightbox-prev');
     var nextBtn = lightbox.querySelector('.lightbox-next');
-    var state = { photos: [], index: 0 };
+    var gridTitleEl = lightbox.querySelector('.lightbox-grid-title');
+    var gridCountEl = lightbox.querySelector('.lightbox-grid-count');
+    var gridEl = lightbox.querySelector('.lightbox-grid');
+    var state = { photos: [], index: 0, title: '', cameFromGrid: false };
 
     function renderStage() {
       var photo = state.photos[state.index];
@@ -351,22 +359,55 @@ document.addEventListener('DOMContentLoaded', function () {
       nextBtn.style.visibility = multi ? 'visible' : 'hidden';
     }
 
+    function renderGrid() {
+      gridTitleEl.textContent = state.title;
+      gridCountEl.textContent = state.photos.length + ' 張照片';
+      gridEl.innerHTML = state.photos.map(function (photo, i) {
+        return '<div class="lightbox-grid-item" data-index="' + i + '"><img src="' + photo.url + '" alt="" loading="lazy"></div>';
+      }).join('');
+    }
+
     function open() {
       lightbox.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
     function close() {
-      lightbox.classList.remove('open');
+      // Stepping back from a zoomed photo that was opened from the grid
+      // returns to the grid instead of closing the whole viewer.
+      if (lightbox.classList.contains('mode-single') && state.cameFromGrid) {
+        lightbox.classList.remove('mode-single');
+        lightbox.classList.add('mode-grid');
+        stage.innerHTML = '';
+        return;
+      }
+      lightbox.classList.remove('open', 'mode-grid', 'mode-single');
       stage.innerHTML = '';
       document.body.style.overflow = '';
     }
 
-    function openPhotos(photos, title, startIndex) {
+    // Browse every photo in an album as a grid; click one to zoom in.
+    function openAlbum(photos, title) {
+      if (!photos || !photos.length) return;
+      if (photos.length === 1) { openPhotos(photos, title, 0, false); return; }
+      state.photos = photos;
+      state.title = title || '';
+      state.cameFromGrid = false;
+      renderGrid();
+      lightbox.classList.remove('mode-single');
+      lightbox.classList.add('mode-grid');
+      open();
+    }
+
+    function openPhotos(photos, title, startIndex, fromGrid) {
       if (!photos || !photos.length) return;
       state.photos = photos;
       state.index = startIndex || 0;
-      titleEl.textContent = title || '';
+      state.title = title || '';
+      state.cameFromGrid = !!fromGrid;
+      titleEl.textContent = state.title;
       renderStage();
+      lightbox.classList.remove('mode-grid');
+      lightbox.classList.add('mode-single');
       open();
     }
 
@@ -377,9 +418,17 @@ document.addEventListener('DOMContentLoaded', function () {
       counterEl.textContent = '';
       prevBtn.style.visibility = 'hidden';
       nextBtn.style.visibility = 'hidden';
+      state.cameFromGrid = false;
+      lightbox.classList.remove('mode-grid');
+      lightbox.classList.add('mode-single');
       open();
     }
 
+    gridEl.addEventListener('click', function (e) {
+      var item = e.target.closest('.lightbox-grid-item');
+      if (!item) return;
+      openPhotos(state.photos, state.title, Number(item.getAttribute('data-index')), true);
+    });
     prevBtn.addEventListener('click', function () {
       state.index = (state.index - 1 + state.photos.length) % state.photos.length;
       renderStage();
@@ -393,11 +442,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', function (e) {
       if (!lightbox.classList.contains('open')) return;
       if (e.key === 'Escape') close();
-      else if (e.key === 'ArrowLeft') prevBtn.click();
-      else if (e.key === 'ArrowRight') nextBtn.click();
+      else if (e.key === 'ArrowLeft' && lightbox.classList.contains('mode-single')) prevBtn.click();
+      else if (e.key === 'ArrowRight' && lightbox.classList.contains('mode-single')) nextBtn.click();
     });
 
-    return { openPhotos: openPhotos, openVideo: openVideo };
+    return { openAlbum: openAlbum, openPhotos: openPhotos, openVideo: openVideo };
   }
 
   if (galleryGrid) {
@@ -415,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
       } else {
         fetch('/api/portfolio/detail/' + project.id)
           .then(function (r) { return r.json(); })
-          .then(function (detail) { lightboxApi.openPhotos(detail.photos, detail.title, 0); });
+          .then(function (detail) { lightboxApi.openAlbum(detail.photos, detail.title); });
       }
     });
 
