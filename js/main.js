@@ -62,6 +62,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (s.accent_color) {
         document.documentElement.style.setProperty('--color-accent', s.accent_color);
       }
+      if (s.font_theme) {
+        document.documentElement.setAttribute('data-font-theme', s.font_theme);
+      }
     })
     .catch(function () { /* settings API unavailable — keep static defaults */ });
 

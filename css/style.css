@@ -2,8 +2,6 @@
    LIGHTDU STUDIO — shared stylesheet
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-
 :root{
   --color-bg:#faf9f7;
   --color-text:#1a1a1a;
@@ -17,6 +15,13 @@
   --nav-height:84px;
   --max-width:1400px;
 }
+
+/* Display-font presets, picked in 網站設定 → font_theme. Body copy stays on
+   Noto Sans TC in every preset for readability; only --font-en (headings,
+   English, labels) changes. */
+:root[data-font-theme="modern-sans"]{--font-en:'Jost', 'Noto Sans TC', sans-serif;}
+:root[data-font-theme="classic-mincho"]{--font-en:'Playfair Display', 'Noto Serif TC', serif;}
+:root[data-font-theme="soft-rounded"]{--font-en:'Quicksand', 'Noto Sans TC', sans-serif;}
 
 *,*::before,*::after{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
