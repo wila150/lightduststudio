@@ -1,5 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
   /* -------------------------------------------------------------- */
+  /* Visitor tracking (feeds the admin's real-time stats) and the    */
+  /* admin live-preview mode (?preview=1 inside the editor's iframe) */
+  /* -------------------------------------------------------------- */
+  var PREVIEW = window.parent !== window && /[?&]preview=1(&|$)/.test(location.search);
+  var visitorId = null;
+  var canTrack = !PREVIEW;
+  try {
+    if (localStorage.getItem('ld_no_track') === '1') canTrack = false;
+    visitorId = localStorage.getItem('ld_vid');
+    if (!visitorId) {
+      visitorId = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('ld_vid', visitorId);
+    }
+  } catch (e) { canTrack = false; }
+
+  function track(payload) {
+    if (!canTrack) return;
+    payload.vid = visitorId;
+    payload.path = location.pathname;
+    var body = JSON.stringify(payload);
+    try {
+      if (navigator.sendBeacon) navigator.sendBeacon('/api/track', new Blob([body], { type: 'application/json' }));
+      else fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: true });
+    } catch (e) {}
+  }
+  track({ type: 'view' });
+  setInterval(function () { if (!document.hidden) track({ type: 'ping' }); }, 30000);
+
+  if (PREVIEW) {
+    // Never let the preview submit forms or navigate away from the page being edited.
+    document.addEventListener('submit', function (e) { e.preventDefault(); }, true);
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a');
+      if (a && a.getAttribute('href') && a.getAttribute('href').charAt(0) !== '#') e.preventDefault();
+    }, true);
+  }
+
+  /* -------------------------------------------------------------- */
   /* Site settings: brand, favicon, footer, contact info, SEO        */
   /* -------------------------------------------------------------- */
   fetch('/api/settings')
@@ -459,6 +497,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!tile) return;
       var project = projectsById[tile.getAttribute('data-id')];
       if (!project) return;
+      track({ type: 'album', id: project.id });
       if (project.media_type === 'video') {
         lightboxApi.openVideo(project.video_url, project.title);
       } else {
@@ -575,6 +614,28 @@ document.addEventListener('DOMContentLoaded', function () {
         initContactForm();
       })
       .catch(function () {});
+  }
+
+  /* -------------------------------------------------------------- */
+  /* Live preview: the admin editor posts its unsaved blocks here     */
+  /* -------------------------------------------------------------- */
+  if (PREVIEW) {
+    window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin || !e.data || e.data.type !== 'ld-preview') return;
+      var blocks = e.data.blocks || [];
+      var html = blocks.map(renderPageBlock).join('');
+      var home = document.getElementById('home-blocks');
+      if (home) {
+        home.innerHTML = html;
+        if (!window.__ldPreviewScrolled) { window.__ldPreviewScrolled = true; home.scrollIntoView(); }
+      }
+      if (pageContent) {
+        pageContent.innerHTML = html;
+        var t = document.getElementById('page-title');
+        if (t && e.data.title) t.textContent = e.data.title;
+      }
+    });
+    window.parent.postMessage({ type: 'ld-preview-ready' }, location.origin);
   }
 
   function renderPageBlock(block) {

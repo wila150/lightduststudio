@@ -17,12 +17,226 @@
     });
   }
 
+  var PATH_LABELS = {
+    '/': '首頁', '/about': '關於我們', '/photography': 'Photography 攝影',
+    '/film': 'Film 影片', '/design': 'Design 設計', '/contact': '聯絡我們'
+  };
+  function pathLabel(path) {
+    return PATH_LABELS[path] || path;
+  }
+
+  // --- Real-time channel (SSE): unread badge, toasts, and events for pages ---
+  var liveStarted = false;
+  var baseTitle = document.title;
+
+  function setBadge(count) {
+    var badge = document.getElementById('unread-badge');
+    if (!badge) return;
+    if (count > 0) { badge.textContent = count; badge.hidden = false; }
+    else badge.hidden = true;
+    document.title = (count > 0 ? '(' + count + ') ' : '') + baseTitle;
+  }
+
+  function showToast(title, body, href) {
+    var stack = document.querySelector('.toast-stack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.className = 'toast-stack';
+      document.body.appendChild(stack);
+    }
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = '<strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(body) + '</span>';
+    el.addEventListener('click', function () { if (href) window.location.href = href; el.remove(); });
+    stack.appendChild(el);
+    setTimeout(function () { el.remove(); }, 9000);
+  }
+
+  function initLive() {
+    if (liveStarted || !window.EventSource) return;
+    liveStarted = true;
+
+    var logoutBtn = document.getElementById('logout-btn');
+    var dot = document.createElement('span');
+    dot.className = 'live-dot';
+    dot.title = '即時連線中斷';
+    if (logoutBtn) {
+      var tools = document.createElement('div');
+      tools.className = 'header-tools';
+      logoutBtn.parentNode.insertBefore(tools, logoutBtn);
+      tools.appendChild(dot);
+      if ('Notification' in window && Notification.permission === 'default') {
+        var notifyBtn = document.createElement('button');
+        notifyBtn.className = 'ghost-btn';
+        notifyBtn.textContent = '開啟桌面通知';
+        notifyBtn.addEventListener('click', function () {
+          Notification.requestPermission().then(function () { notifyBtn.remove(); });
+        });
+        tools.appendChild(notifyBtn);
+      }
+      tools.appendChild(logoutBtn);
+    }
+
+    var es = new EventSource('/api/live/stream');
+    es.onopen = function () { dot.classList.add('on'); dot.title = '即時連線中'; };
+    es.onerror = function () {
+      dot.classList.remove('on');
+      dot.title = '即時連線中斷，重新連線中…';
+      if (es.readyState === EventSource.CLOSED) dot.title = '即時連線已關閉，請重新整理頁面';
+    };
+
+    function emit(type, data) {
+      window.dispatchEvent(new CustomEvent('ld:live', { detail: { type: type, data: data } }));
+    }
+    ['hello', 'visitors', 'view'].forEach(function (type) {
+      es.addEventListener(type, function (e) {
+        var data = JSON.parse(e.data);
+        if (type === 'hello') setBadge(data.unread);
+        emit(type, data);
+      });
+    });
+    es.addEventListener('message', function (e) {
+      var data = JSON.parse(e.data);
+      setBadge(data.unread);
+      showToast('新訊息：' + data.name, data.preview, '/admin/messages');
+      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+        new Notification('新訊息：' + data.name, { body: data.preview });
+      }
+      emit('message', data);
+    });
+  }
+
+  // --- Block editors: merge unsaved edits over the stored content ---
+  // Saving used to replace a block's content with only the visible form
+  // fields, which dropped image_url / gallery images / video URLs that have no
+  // form field of their own. Always layer edits over what is stored.
+  function mergedBlockContent(card, serverContent, collect) {
+    var fields = collect(card);
+    delete fields.__sort_order;
+    var merged = Object.assign({}, serverContent || {});
+    if (card.getAttribute('data-type') === 'video') {
+      var typedInput = card.querySelector('input[data-f="media_url"]');
+      var uploadInput = card.querySelector('input[data-upload="media_url"]');
+      var typed = typedInput ? typedInput.value.trim() : '';
+      var uploaded = uploadInput ? uploadInput.getAttribute('data-uploaded-url') : '';
+      delete fields.media_url;
+      delete fields.media_type;
+      if (typed) { merged.media_url = typed; merged.media_type = 'embed'; }
+      else if (uploaded) { merged.media_url = uploaded; merged.media_type = 'upload'; }
+    }
+    return Object.assign(merged, fields);
+  }
+
+  function buildPreviewBlocks(listWrap, storedBlocks, collect, draft) {
+    var blocks = [];
+    listWrap.querySelectorAll('.block-card').forEach(function (card) {
+      var id = Number(card.getAttribute('data-id'));
+      var stored = storedBlocks.filter(function (b) { return b.id === id; })[0];
+      blocks.push({
+        id: id,
+        block_type: card.getAttribute('data-type'),
+        content: mergedBlockContent(card, stored ? stored.content : {}, collect),
+        sort_order: Number(collect(card).__sort_order) || 0
+      });
+    });
+    if (draft) blocks.push({ id: Infinity, block_type: draft.block_type, content: draft.content, sort_order: Infinity });
+    blocks.sort(function (a, b) { return a.sort_order - b.sort_order || a.id - b.id; });
+    return blocks;
+  }
+
+  // The not-yet-added block in the "新增內容區塊" form, so it shows up in the
+  // preview while it is being typed.
+  function draftFromAddForm(type, container, collect) {
+    var c = collect(container);
+    if (type === 'video') {
+      var typed = container.querySelector('input[data-f="media_url"]');
+      var up = container.querySelector('input[data-upload="media_url"]');
+      var url = (typed && typed.value.trim()) || (up && up.getAttribute('data-uploaded-url')) || '';
+      if (!url) return null;
+      return { block_type: 'video', content: { media_url: url, media_type: typed && typed.value.trim() ? 'embed' : 'upload' } };
+    }
+    var hasContent = ['text', 'subtitle', 'title', 'image_url'].some(function (k) { return c[k]; });
+    if (type === 'button') hasContent = !!c.text;
+    if (type === 'gallery' || !hasContent) return null;
+    return { block_type: type, content: c };
+  }
+
+  // Side-by-side preview of the real public page, fed the editor's unsaved state.
+  function initLivePreview(opts) {
+    var panel = document.createElement('aside');
+    panel.className = 'preview-panel';
+    panel.innerHTML =
+      '<div class="preview-bar"><h3><span class="live-dot on"></span>即時預覽</h3>' +
+      '<button type="button" data-w="390">手機</button>' +
+      '<button type="button" data-w="820">平板</button>' +
+      '<button type="button" data-w="1280" class="active">桌面</button>' +
+      '<button type="button" data-close>關閉</button></div>' +
+      '<div class="preview-stage"><iframe title="即時預覽"></iframe></div>';
+    document.body.appendChild(panel);
+
+    var iframe = panel.querySelector('iframe');
+    var stage = panel.querySelector('.preview-stage');
+    var width = 1280;
+    var ready = false;
+    var timer = null;
+
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'ghost-btn preview-toggle';
+    toggle.textContent = '開啟即時預覽';
+    opts.mount.insertBefore(toggle, opts.mount.firstChild);
+
+    function fit() {
+      var scale = Math.min(1, stage.clientWidth / width);
+      iframe.style.width = width + 'px';
+      iframe.style.height = (stage.clientHeight / scale) + 'px';
+      iframe.style.transform = 'scale(' + scale + ')';
+      iframe.style.left = Math.max(0, (stage.clientWidth - width * scale) / 2) + 'px';
+    }
+    function push() {
+      if (!ready || !iframe.contentWindow) return;
+      iframe.contentWindow.postMessage(Object.assign({ type: 'ld-preview' }, opts.getState()), location.origin);
+    }
+    function schedule() {
+      clearTimeout(timer);
+      timer = setTimeout(push, 200);
+    }
+
+    window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin || e.source !== iframe.contentWindow) return;
+      if (e.data && e.data.type === 'ld-preview-ready') { ready = true; push(); }
+    });
+    window.addEventListener('resize', fit);
+
+    function setOpen(open) {
+      document.body.classList.toggle('preview-open', open);
+      toggle.textContent = open ? '關閉即時預覽' : '開啟即時預覽';
+      if (open) {
+        if (!iframe.getAttribute('src') && opts.getUrl()) iframe.src = opts.getUrl();
+        fit();
+      }
+    }
+    toggle.addEventListener('click', function () { setOpen(!document.body.classList.contains('preview-open')); });
+    panel.querySelector('[data-close]').addEventListener('click', function () { setOpen(false); });
+    panel.querySelectorAll('[data-w]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        width = Number(btn.getAttribute('data-w'));
+        panel.querySelectorAll('[data-w]').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        fit();
+      });
+    });
+
+    return { schedule: schedule };
+  }
+
   function requireLogin(onReady) {
     fetch('/api/auth/me')
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (!data.loggedIn) { window.location.href = '/admin/login'; return; }
+        try { localStorage.setItem('ld_no_track', '1'); } catch (e) {}
         onReady(data);
+        initLive();
         var badge = document.getElementById('unread-badge');
         if (badge) {
           fetch('/api/messages').then(function (r) { return r.json(); }).then(function (data) {
@@ -795,6 +1009,20 @@
       var addBlockStatus = document.getElementById('add-block-status');
       var blockListWrap = document.getElementById('block-list');
       var videoMediaType = document.getElementById('video-media-type');
+      var storedBlocks = [];
+      var currentSlug = '';
+      var mainEl = document.querySelector('.admin-main');
+      var preview = initLivePreview({
+        mount: mainEl,
+        getUrl: function () { return currentSlug ? '/pages/' + encodeURIComponent(currentSlug) + '?preview=1' : ''; },
+        getState: function () {
+          var type = blockTypeSelect.value;
+          var draft = draftFromAddForm(type, document.getElementById('block-fields-' + type), collectFields);
+          return { title: metaForm.title.value, blocks: buildPreviewBlocks(blockListWrap, storedBlocks, collectFields, draft) };
+        }
+      });
+      mainEl.addEventListener('input', preview.schedule);
+      mainEl.addEventListener('change', preview.schedule);
 
       function load() {
         fetch('/api/pages/id/' + pageId)
@@ -806,6 +1034,7 @@
             metaForm.seo_description.value = p.seo_description;
             metaForm.published.checked = !!p.published;
             metaForm.publish_at.value = toDatetimeLocal(p.publish_at);
+            currentSlug = p.slug;
             renderBlockList(p.blocks);
           });
       }
@@ -863,6 +1092,7 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
               input.setAttribute('data-uploaded-url', data.url);
+              if (preview) preview.schedule();
               input.disabled = false;
             })
             .catch(function () { input.disabled = false; });
@@ -957,6 +1187,7 @@
       }
 
       function renderBlockList(blocks) {
+        storedBlocks = blocks;
         blockListWrap.innerHTML = blocks.length ? blocks.map(function (block) {
           return (
             '<div class="block-card" data-id="' + block.id + '" data-type="' + block.block_type + '">' +
@@ -974,6 +1205,7 @@
         }).join('') : '<p class="empty-note">尚無內容區塊，請在上方新增。</p>';
 
         wireBlockCardEvents();
+        preview.schedule();
       }
 
       function wireBlockCardEvents() {
@@ -988,6 +1220,7 @@
               .then(function (r) { return r.json(); })
               .then(function (data) {
                 input.setAttribute('data-uploaded-url', data.url);
+              if (preview) preview.schedule();
                 input.disabled = false;
               })
               .catch(function () { input.disabled = false; });
@@ -998,18 +1231,9 @@
           btn.addEventListener('click', function () {
             var card = btn.closest('.block-card');
             var statusEl = card.querySelector('.status');
-            var content = collectFields(card);
-            var sortOrder = content.__sort_order;
-            delete content.__sort_order;
-
-            // video: if a URL was typed, prefer embed; otherwise keep upload type
-            if (card.getAttribute('data-type') === 'video') {
-              if (content.media_url && content.media_url.indexOf('http') === 0) {
-                content.media_type = 'embed';
-              } else if (card.querySelector('[data-upload]').getAttribute('data-uploaded-url')) {
-                content.media_type = 'upload';
-              }
-            }
+            var sortOrder = collectFields(card).__sort_order;
+            var stored = storedBlocks.filter(function (b) { return b.id === Number(card.getAttribute('data-id')); })[0];
+            var content = mergedBlockContent(card, stored ? stored.content : {}, collectFields);
 
             statusEl.textContent = '儲存中…';
             statusEl.className = 'status';
@@ -1082,6 +1306,19 @@
       var addBlockStatus = document.getElementById('add-block-status');
       var blockListWrap = document.getElementById('block-list');
       var videoMediaType = document.getElementById('video-media-type');
+      var storedBlocks = [];
+      var mainEl = document.querySelector('.admin-main');
+      var preview = initLivePreview({
+        mount: mainEl,
+        getUrl: function () { return '/?preview=1'; },
+        getState: function () {
+          var type = blockTypeSelect.value;
+          var draft = draftFromAddForm(type, document.getElementById('block-fields-' + type), collectFields);
+          return { blocks: buildPreviewBlocks(blockListWrap, storedBlocks, collectFields, draft) };
+        }
+      });
+      mainEl.addEventListener('input', preview.schedule);
+      mainEl.addEventListener('change', preview.schedule);
 
       function load() {
         fetch('/api/home-blocks')
@@ -1112,6 +1349,7 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
               input.setAttribute('data-uploaded-url', data.url);
+              if (preview) preview.schedule();
               input.disabled = false;
             })
             .catch(function () { input.disabled = false; });
@@ -1203,6 +1441,7 @@
       }
 
       function renderBlockList(blocks) {
+        storedBlocks = blocks;
         blockListWrap.innerHTML = blocks.length ? blocks.map(function (block) {
           return (
             '<div class="block-card" data-id="' + block.id + '" data-type="' + block.block_type + '">' +
@@ -1220,6 +1459,7 @@
         }).join('') : '<p class="empty-note">尚無內容區塊，請在上方新增。</p>';
 
         wireBlockCardEvents();
+        preview.schedule();
       }
 
       function wireBlockCardEvents() {
@@ -1234,6 +1474,7 @@
               .then(function (r) { return r.json(); })
               .then(function (data) {
                 input.setAttribute('data-uploaded-url', data.url);
+              if (preview) preview.schedule();
                 input.disabled = false;
               })
               .catch(function () { input.disabled = false; });
@@ -1244,17 +1485,9 @@
           btn.addEventListener('click', function () {
             var card = btn.closest('.block-card');
             var statusEl = card.querySelector('.status');
-            var content = collectFields(card);
-            var sortOrder = content.__sort_order;
-            delete content.__sort_order;
-
-            if (card.getAttribute('data-type') === 'video') {
-              if (content.media_url && content.media_url.indexOf('http') === 0) {
-                content.media_type = 'embed';
-              } else if (card.querySelector('[data-upload]').getAttribute('data-uploaded-url')) {
-                content.media_type = 'upload';
-              }
-            }
+            var sortOrder = collectFields(card).__sort_order;
+            var stored = storedBlocks.filter(function (b) { return b.id === Number(card.getAttribute('data-id')); })[0];
+            var content = mergedBlockContent(card, stored ? stored.content : {}, collectFields);
 
             statusEl.textContent = '儲存中…';
             statusEl.className = 'status';
@@ -1313,6 +1546,111 @@
     }
   }
 
+  if (page === 'analytics') {
+    requireLogin(initAnalytics);
+
+    function initAnalytics() {
+      var dot = document.getElementById('stat-dot');
+      var chartEl = document.getElementById('chart');
+      var axisEl = document.getElementById('chart-axis');
+      var wrap = document.getElementById('chart-wrap');
+      var tip = document.getElementById('chart-tip');
+      var feed = document.getElementById('live-feed');
+      var todayViews = 0;
+
+      function fmtDay(iso) { return iso.slice(5).replace('-', '/'); }
+      function clock(ts) {
+        return new Date(ts).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      }
+
+      function renderLive(live) {
+        document.getElementById('stat-online').textContent = live.online;
+        dot.classList.toggle('on', live.online > 0);
+        var list = document.getElementById('live-pages');
+        list.innerHTML = live.pages.length
+          ? live.pages.map(function (p) {
+              return '<li><span>' + escapeHtml(pathLabel(p.path)) + '</span><span class="n">' + p.count + ' 人</span></li>';
+            }).join('')
+          : '<li class="empty-feed">目前沒有訪客在線上</li>';
+      }
+
+      function renderRank(id, rows, labelFn, valueKey, unit) {
+        document.getElementById(id).innerHTML = rows.length
+          ? rows.map(function (r) {
+              return '<li><span>' + escapeHtml(labelFn(r)) + '</span><span class="n">' + r[valueKey] + ' ' + unit + '</span></li>';
+            }).join('')
+          : '<li class="empty-feed">還沒有資料</li>';
+      }
+
+      function renderChart(days) {
+        var max = Math.max.apply(null, days.map(function (d) { return d.views; }).concat([1]));
+        chartEl.innerHTML = days.map(function (d) {
+          var h = Math.round(d.views / max * 84);
+          return '<div class="col" tabindex="0" data-date="' + d.date + '" data-views="' + d.views + '" data-visitors="' + d.visitors + '" ' +
+            'aria-label="' + fmtDay(d.date) + '：' + d.views + ' 次瀏覽，' + d.visitors + ' 位訪客">' +
+            '<span class="val">' + d.views + '</span><div class="bar" style="height:' + h + '%"></div></div>';
+        }).join('');
+        axisEl.innerHTML = days.map(function (d) { return '<span>' + fmtDay(d.date) + '</span>'; }).join('');
+        wrap.querySelector('tbody').innerHTML = days.map(function (d) {
+          return '<tr><td>' + d.date + '</td><td>' + d.views + '</td><td>' + d.visitors + '</td></tr>';
+        }).join('');
+      }
+
+      chartEl.addEventListener('mouseover', showTip);
+      chartEl.addEventListener('focusin', showTip);
+      chartEl.addEventListener('mouseleave', function () { wrap.classList.remove('show-tip'); });
+      chartEl.addEventListener('focusout', function () { wrap.classList.remove('show-tip'); });
+      function showTip(e) {
+        var col = e.target.closest('.col');
+        if (!col) return;
+        var bar = col.querySelector('.bar');
+        tip.textContent = fmtDay(col.getAttribute('data-date')) + '  ' + col.getAttribute('data-views') + ' 次瀏覽 / ' + col.getAttribute('data-visitors') + ' 位訪客';
+        tip.style.left = (col.offsetLeft + col.offsetWidth / 2) + 'px';
+        tip.style.top = (col.offsetTop + col.offsetHeight - bar.offsetHeight - 22) + 'px';
+        wrap.classList.add('show-tip');
+      }
+      document.getElementById('chart-table-toggle').addEventListener('click', function (e) {
+        var on = wrap.classList.toggle('table-view');
+        e.target.textContent = on ? '圖表檢視' : '表格檢視';
+      });
+
+      function load() {
+        fetch('/api/analytics/summary')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            todayViews = d.today.views;
+            document.getElementById('stat-today-views').textContent = todayViews;
+            document.getElementById('stat-today-visitors').textContent = d.today.visitors + ' 位訪客';
+            document.getElementById('stat-week-views').textContent = d.week.views;
+            document.getElementById('stat-week-visitors').textContent = d.week.visitors + ' 位訪客';
+            renderLive(d.live);
+            renderChart(d.last7);
+            renderRank('top-pages', d.topPages, function (r) { return pathLabel(r.path); }, 'views', '次');
+            renderRank('top-albums', d.topAlbums, function (r) { return r.title; }, 'opens', '次');
+          });
+      }
+      load();
+      setInterval(load, 60000);
+
+      window.addEventListener('ld:live', function (e) {
+        var type = e.detail.type;
+        var data = e.detail.data;
+        if (type === 'hello' || type === 'visitors') renderLive(data);
+        if (type === 'view' || type === 'message') {
+          var text;
+          if (type === 'message') text = '收到新訊息：' + data.name;
+          else if (data.kind === 'album') text = '開啟相簿「' + data.title + '」';
+          else { text = '瀏覽 ' + pathLabel(data.path); todayViews++; document.getElementById('stat-today-views').textContent = todayViews; }
+          var li = document.createElement('li');
+          li.innerHTML = '<span class="t">' + clock(data.ts || Date.now()) + '</span><span>' + escapeHtml(text) + '</span>';
+          if (feed.querySelector('.empty-feed')) feed.innerHTML = '';
+          feed.insertBefore(li, feed.firstChild);
+          while (feed.children.length > 30) feed.removeChild(feed.lastChild);
+        }
+      });
+    }
+  }
+
   if (page === 'messages') {
     requireLogin(initMessages);
 
@@ -1321,6 +1659,9 @@
       var filterBtns = document.querySelectorAll('.msg-filter-btn');
       var bulkDeleteBtn = document.getElementById('bulk-delete-btn');
       var currentFilter = 'all';
+      window.addEventListener('ld:live', function (e) {
+        if (e.detail.type === 'message') load();
+      });
 
       function fmtTime(iso) {
         var d = new Date(iso + 'Z');

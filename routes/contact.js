@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const { db } = require('../db');
+const live = require('../lib/live');
 
 const router = express.Router();
 
@@ -22,9 +23,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: '請填寫姓名、Email 與需求內容' });
   }
 
-  await db.prepare('INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)').run(
+  const info = await db.prepare('INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)').run(
     name, email, phone || '', message
   );
+  const { unread } = await db.prepare('SELECT COUNT(*) AS unread FROM messages WHERE is_read = 0').get();
+  live.broadcast('message', { id: info.lastInsertRowid, name, preview: String(message).slice(0, 80), unread });
 
   const transport = buildTransport();
   if (!transport) {

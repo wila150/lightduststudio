@@ -17,6 +17,9 @@ const homeBlocksRoutes = require('./routes/home-blocks');
 const messagesRoutes = require('./routes/messages');
 const mediaRoutes = require('./routes/media');
 const accountsRoutes = require('./routes/accounts');
+const liveRoutes = require('./routes/live');
+const trackRoutes = require('./routes/track');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,7 +39,7 @@ app.use(session({
 const ADMIN_DIR = path.join(__dirname, 'admin');
 app.get('/admin', (req, res) => res.sendFile(path.join(ADMIN_DIR, 'index.html')));
 app.get('/admin/index.html', (req, res) => res.redirect(301, '/admin'));
-const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'messages', 'media', 'accounts'];
+const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'analytics', 'messages', 'media', 'accounts'];
 ADMIN_PAGES.forEach((name) => {
   app.get('/admin/' + name, (req, res) => res.sendFile(path.join(ADMIN_DIR, name + '.html')));
   app.get('/admin/' + name + '.html', (req, res) => res.redirect(301, '/admin/' + name));
@@ -55,6 +58,9 @@ app.use('/api/home-blocks', homeBlocksRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/accounts', accountsRoutes);
+app.use('/api/live', liveRoutes);
+app.use('/api/track', trackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Custom pages built in the admin page editor render through this shared template
 app.get('/pages/:slug', (req, res) => {

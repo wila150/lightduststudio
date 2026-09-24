@@ -158,6 +158,16 @@ async function init() {
       sort_order INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS page_views (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      visitor_id TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'view',
+      path TEXT NOT NULL DEFAULT '',
+      ref_id INTEGER,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at);
+
     CREATE TABLE IF NOT EXISTS home_blocks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       block_type TEXT NOT NULL,
@@ -185,6 +195,9 @@ async function init() {
     await client.execute('PRAGMA journal_mode = WAL');
   }
   await client.execute('PRAGMA foreign_keys = ON');
+
+  // Keep the analytics table from growing without bound on the free DB tier.
+  await db.prepare("DELETE FROM page_views WHERE created_at < datetime('now', '-120 days')").run();
 
   // One-time migration: the old portfolio_items table (one row per photo)
   // predates the album model (one project, many photos). Fold each old row

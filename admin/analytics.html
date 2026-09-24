@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>即時統計｜LightDust Studio</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<link rel="icon" type="image/png" href="/images/favicon-32.png">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="brand">LightDust <span>Studio</span></div>
+    <nav class="admin-nav">
+      <a href="/admin">作品集</a>
+      <a href="/admin/settings">網站設定</a>
+      <a href="/admin/nav">導覽選單</a>
+      <a href="/admin/hero">首頁 Hero</a>
+      <a href="/admin/home-blocks">首頁模組</a>
+      <a href="/admin/analytics" class="active">即時統計</a>
+      <a href="/admin/pages">自訂頁面</a>
+      <a href="/admin/messages">訊息中心<span id="unread-badge" class="badge" hidden></span></a>
+      <a href="/admin/media">媒體庫</a>
+      <a href="/admin/accounts" id="accounts-nav-link" hidden>帳號管理</a>
+    </nav>
+    <button id="logout-btn" class="ghost-btn">登出</button>
+  </header>
+
+  <main class="admin-main">
+    <section class="stat-tiles">
+      <div class="stat-tile">
+        <div class="label"><span class="live-dot" id="stat-dot"></span>目前在線</div>
+        <div class="value" id="stat-online">0</div>
+        <div class="sub">最近 70 秒內有活動的訪客</div>
+      </div>
+      <div class="stat-tile">
+        <div class="label">今日瀏覽</div>
+        <div class="value" id="stat-today-views">0</div>
+        <div class="sub" id="stat-today-visitors">0 位訪客</div>
+      </div>
+      <div class="stat-tile">
+        <div class="label">近 7 天瀏覽</div>
+        <div class="value" id="stat-week-views">0</div>
+        <div class="sub" id="stat-week-visitors">0 位訪客</div>
+      </div>
+    </section>
+
+    <div class="split">
+      <section class="panel">
+        <h2>目前正在看的頁面</h2>
+        <ul class="rank-list" id="live-pages"><li class="empty-feed">目前沒有訪客在線上</li></ul>
+      </section>
+      <section class="panel">
+        <h2>即時動態</h2>
+        <ul class="feed" id="live-feed"><li class="empty-feed">等待訪客動態…</li></ul>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2 style="display:flex;justify-content:space-between;align-items:center;">
+        近 7 天瀏覽量
+        <button type="button" class="ghost-btn" id="chart-table-toggle">表格檢視</button>
+      </h2>
+      <div class="chart-wrap" id="chart-wrap">
+        <div class="chart-tip" id="chart-tip"></div>
+        <div class="chart" id="chart" role="img" aria-label="近 7 天每日瀏覽量長條圖"></div>
+        <div class="chart-axis" id="chart-axis"></div>
+        <table class="chart-table" id="chart-table">
+          <thead><tr><th>日期</th><th>瀏覽</th><th>訪客</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="split">
+      <section class="panel">
+        <h2>熱門頁面（近 7 天）</h2>
+        <ul class="rank-list" id="top-pages"></ul>
+      </section>
+      <section class="panel">
+        <h2>熱門作品相簿（近 7 天開啟次數）</h2>
+        <ul class="rank-list" id="top-albums"></ul>
+      </section>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js" data-page="analytics"></script>
+</body>
+</html>

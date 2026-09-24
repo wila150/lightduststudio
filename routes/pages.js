@@ -43,7 +43,9 @@ router.get('/id/:id', requireAuth, async (req, res) => {
 // Public: single published page with blocks, by slug
 router.get('/slug/:slug', async (req, res) => {
   const page = await db.prepare('SELECT * FROM pages WHERE slug = ?').get(req.params.slug);
-  if (!page || !isVisible(page)) return res.status(404).json({ error: 'not found' });
+  // Logged-in admins can open unpublished/scheduled pages (used by the live preview).
+  const isAdmin = !!(req.session && req.session.userId);
+  if (!page || (!isAdmin && !isVisible(page))) return res.status(404).json({ error: 'not found' });
   res.json(await withBlocks(page));
 });
 
