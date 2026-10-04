@@ -487,24 +487,28 @@ document.addEventListener('DOMContentLoaded', function () {
     return { openAlbum: openAlbum, openPhotos: openPhotos, openVideo: openVideo };
   }
 
+  var lightboxApi = null;
+  function openProject(project) {
+    if (!lightboxApi) lightboxApi = initLightbox();
+    track({ type: 'album', id: project.id });
+    if (project.media_type === 'video') {
+      lightboxApi.openVideo(project.video_url, project.title);
+    } else {
+      fetch('/api/portfolio/detail/' + project.id)
+        .then(function (r) { return r.json(); })
+        .then(function (detail) { lightboxApi.openAlbum(detail.photos, detail.title); });
+    }
+  }
+
   if (galleryGrid) {
     var group = galleryGrid.getAttribute('data-group');
-    var lightboxApi = initLightbox();
     var projectsById = {};
 
     galleryGrid.addEventListener('click', function (e) {
       var tile = e.target.closest('.gallery-item');
       if (!tile) return;
       var project = projectsById[tile.getAttribute('data-id')];
-      if (!project) return;
-      track({ type: 'album', id: project.id });
-      if (project.media_type === 'video') {
-        lightboxApi.openVideo(project.video_url, project.title);
-      } else {
-        fetch('/api/portfolio/detail/' + project.id)
-          .then(function (r) { return r.json(); })
-          .then(function (detail) { lightboxApi.openAlbum(detail.photos, detail.title); });
-      }
+      if (project) openProject(project);
     });
 
     galleryGrid.innerHTML = '<p class="gallery-loading">載入作品中…</p>';
@@ -522,6 +526,70 @@ document.addEventListener('DOMContentLoaded', function () {
       .catch(function () {
         galleryGrid.innerHTML = '<p class="gallery-loading">作品載入失敗，請確認後端伺服器已啟動（npm start）。</p>';
       });
+  }
+
+  /* -------------------------------------------------------------- */
+  /* Homepage showcase: a grid of covers per photography category,   */
+  /* in admin sort order; empty categories are skipped               */
+  /* -------------------------------------------------------------- */
+  var showcase = document.getElementById('showcase');
+  var SHOWCASE_CATEGORIES = [
+    ['commercial', '商業攝影', 'Commercial'], ['food', '美食攝影', 'Food'],
+    ['space', '空間攝影', 'Interior'], ['portrait', '人像攝影', 'Portrait'],
+    ['wedding', '婚禮紀錄', 'Wedding']
+  ];
+  var SHOWCASE_LIMIT = 8;
+
+  // Ask Cloudinary for a resized, auto-format thumbnail instead of the original upload.
+  function thumbUrl(url) {
+    return url.indexOf('res.cloudinary.com') !== -1 ? url.replace('/upload/', '/upload/f_auto,q_auto,w_900/') : url;
+  }
+
+  if (showcase) {
+    var showcaseById = {};
+
+    fetch('/api/portfolio/photography')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        var html = SHOWCASE_CATEGORIES.map(function (cat) {
+          var picks = items.filter(function (p) { return p.category_key === cat[0] && p.cover_url; }).slice(0, SHOWCASE_LIMIT);
+          if (!picks.length) return '';
+          var href = '/photography#' + cat[0];
+          return (
+            '<div class="showcase-cat">' +
+              '<div class="showcase-head">' +
+                '<a href="' + href + '"><span class="en">' + cat[2] + '</span><h3>' + cat[1] + '</h3></a>' +
+                '<a class="showcase-more" href="' + href + '">查看全部 →</a>' +
+              '</div>' +
+              '<div class="showcase-row">' +
+                picks.map(function (p) {
+                  showcaseById[p.id] = p;
+                  return (
+                    '<a class="showcase-item" href="' + href + '" data-id="' + p.id + '">' +
+                      '<span class="frame"><img src="' + thumbUrl(p.cover_url) + '" alt="' + escapeHtml(p.title) + '" loading="lazy"></span>' +
+                      '<span class="showcase-title">' + escapeHtml(p.title) + '</span>' +
+                    '</a>'
+                  );
+                }).join('') +
+              '</div>' +
+            '</div>'
+          );
+        }).join('');
+        if (!html) return;
+
+        document.getElementById('showcase-cats').innerHTML = html;
+        showcase.hidden = false;
+      })
+      .catch(function () { /* portfolio API unavailable: leave the section hidden */ });
+
+    showcase.addEventListener('click', function (e) {
+      var tile = e.target.closest('.showcase-item');
+      if (!tile) return;
+      var project = showcaseById[tile.getAttribute('data-id')];
+      if (!project) return;
+      e.preventDefault();
+      openProject(project);
+    });
   }
 
   /* -------------------------------------------------------------- */
