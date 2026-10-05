@@ -651,9 +651,7 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
     border-bottom:1px solid var(--color-border);
   }
   .nav-link{padding:18px 0;width:100%;font-size:1.2rem;}
-  /* Shown/hidden with display rather than a max-height transition: inside the
-     fixed, scrollable menu panel iOS Safari would reserve the expanded space
-     but never paint the links. The fade-in is a fresh animation each open. */
+  /* Shown/hidden with display; the fade-in is a fresh animation each open. */
   .nav-dropdown{
     display:none;position:static;transform:none;opacity:1;visibility:visible;
     background:transparent;color:var(--color-text);
@@ -661,6 +659,9 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
     transition:none;
   }
   .nav-item.open .nav-dropdown{display:block;animation:nav-sub-in .25s ease;}
+  /* Touch browsers keep :hover on the last tapped item, which would apply the
+     desktop rule's translate(-50%) and push this submenu's links off-screen. */
+  .nav-item:hover .nav-dropdown{transform:none;}
   @keyframes nav-sub-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
   .nav-dropdown a{padding:8px 0;color:var(--color-text-soft);}
   .nav-dropdown a:hover{background:transparent;color:var(--color-accent);}
