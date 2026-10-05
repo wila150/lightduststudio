@@ -159,13 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.addEventListener('click', function (e) {
         if (window.innerWidth <= 900) {
           e.preventDefault();
-          var item = btn.closest('.nav-item');
-          item.classList.toggle('open');
-          // Force an immediate reflow — without this, Safari sometimes
-          // defers repainting the max-height transition until the next
-          // unrelated layout change (e.g. tapping a different item),
-          // making the tapped dropdown appear to not open until later.
-          void item.offsetHeight;
+          btn.closest('.nav-item').classList.toggle('open');
         }
       });
     });

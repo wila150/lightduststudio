@@ -651,13 +651,17 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
     border-bottom:1px solid var(--color-border);
   }
   .nav-link{padding:18px 0;width:100%;font-size:1.2rem;}
+  /* Shown/hidden with display rather than a max-height transition: inside the
+     fixed, scrollable menu panel iOS Safari would reserve the expanded space
+     but never paint the links. The fade-in is a fresh animation each open. */
   .nav-dropdown{
-    position:static;transform:none;opacity:1;visibility:visible;
-    max-height:0;overflow:hidden;background:transparent;color:var(--color-text);
-    border-top:none;padding:0;text-align:left;width:100%;
-    transition:max-height .35s ease, padding .35s ease;
+    display:none;position:static;transform:none;opacity:1;visibility:visible;
+    background:transparent;color:var(--color-text);
+    border-top:none;padding:0 0 14px;text-align:left;width:100%;
+    transition:none;
   }
-  .nav-item.open .nav-dropdown{max-height:400px;padding:0 0 14px;}
+  .nav-item.open .nav-dropdown{display:block;animation:nav-sub-in .25s ease;}
+  @keyframes nav-sub-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
   .nav-dropdown a{padding:8px 0;color:var(--color-text-soft);}
   .nav-dropdown a:hover{background:transparent;color:var(--color-accent);}
   .nav-item.has-children .nav-link{padding-right:56px;}
