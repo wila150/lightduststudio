@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (navToggle && header) {
     navToggle.addEventListener('click', function () {
       var isOpen = header.classList.toggle('menu-open');
+      document.body.classList.toggle('nav-open', isOpen);
       // Lock background scroll while the mobile menu is open — without this,
       // iOS Safari can render scrolled page content bleeding through the
       // fixed-position menu panel (nested position:fixed rendering quirk).
