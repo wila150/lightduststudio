@@ -12,6 +12,7 @@ const GROUPS = {
   film: ['production', 'brand', 'short'],
   design: ['graphic', 'marketing']
 };
+const LAYOUTS = ['masonry', 'grid'];
 
 async function withPhotos(project) {
   const photos = await db.prepare('SELECT * FROM portfolio_photos WHERE project_id = ? ORDER BY sort_order ASC, id ASC').all(project.id);
@@ -79,7 +80,8 @@ router.post('/', requireAuth, upload.single('file'), async (req, res) => {
 router.put('/:id', requireAuth, upload.single('file'), async (req, res) => {
   const existing = await db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'not found' });
-  const { tag, title, category_key, sort_order } = req.body || {};
+  const { tag, title, category_key, sort_order, description, layout } = req.body || {};
+  if (layout !== undefined && !LAYOUTS.includes(layout)) return res.status(400).json({ error: '版型錯誤' });
 
   let videoUrl = existing.video_url;
   let videoFilename = existing.video_filename;
@@ -92,13 +94,15 @@ router.put('/:id', requireAuth, upload.single('file'), async (req, res) => {
   }
 
   await db.prepare(`
-    UPDATE portfolio_projects SET tag = ?, title = ?, category_key = ?, sort_order = ?, video_url = ?, video_filename = ?
+    UPDATE portfolio_projects SET tag = ?, title = ?, category_key = ?, sort_order = ?, description = ?, layout = ?, video_url = ?, video_filename = ?
     WHERE id = ?
   `).run(
     tag !== undefined ? tag.trim() : existing.tag,
     title !== undefined ? title.trim() : existing.title,
     category_key !== undefined ? category_key : existing.category_key,
     sort_order !== undefined ? Number(sort_order) || 0 : existing.sort_order,
+    description !== undefined ? String(description).trim() : existing.description,
+    layout !== undefined ? layout : existing.layout,
     videoUrl, videoFilename,
     req.params.id
   );

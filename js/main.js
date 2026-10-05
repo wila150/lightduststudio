@@ -155,11 +155,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function bindNavDropdownToggles() {
-    document.querySelectorAll('.nav-item.has-children > .nav-link').forEach(function (link) {
-      link.addEventListener('click', function (e) {
+    document.querySelectorAll('.nav-item.has-children > .nav-sub-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
         if (window.innerWidth <= 900) {
           e.preventDefault();
-          var item = link.closest('.nav-item');
+          var item = btn.closest('.nav-item');
           item.classList.toggle('open');
           // Force an immediate reflow — without this, Safari sometimes
           // defers repainting the max-height transition until the next
@@ -196,9 +196,13 @@ document.addEventListener('DOMContentLoaded', function () {
           var dropdown = item.children.map(function (c) {
             return '<a href="' + c.url + '"' + extAttrs(c.url) + '>' + escapeHtml(c.label) + '</a>';
           }).join('');
+          // Parents are clickable too: their own URL if one is set in the admin,
+          // otherwise the page their first submenu item points to.
+          var parentUrl = item.url || item.children[0].url.split('#')[0];
           return (
             '<li class="nav-item has-children' + (isActive ? ' active' : '') + '">' +
-              '<span class="nav-link">' + escapeHtml(item.label) + '</span>' +
+              '<a href="' + parentUrl + '" class="nav-link"' + extAttrs(parentUrl) + '>' + escapeHtml(item.label) + '</a>' +
+              '<button type="button" class="nav-sub-toggle" aria-label="展開' + escapeHtml(item.label) + '子選單">+</button>' +
               '<div class="nav-dropdown">' + dropdown + '</div>' +
             '</li>'
           );
@@ -323,12 +327,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var isFilm = item.media_type === 'video';
     var bgUrl = isFilm ? (item.cover_url || '') : item.cover_url;
     return (
-      '<div class="gallery-item' + (isFilm ? ' is-film' : '') + '" data-category="' + escapeHtml(item.category_key) + '" data-id="' + item.id + '">' +
+      '<a class="gallery-item' + (isFilm ? ' is-film' : '') + '" href="/work/' + item.id + '" data-category="' + escapeHtml(item.category_key) + '">' +
         (bgUrl ? '<div class="bg" style="background-image:url(' + bgUrl + ')"></div>' : '<div class="bg"></div>') +
         (isFilm ? '<span class="play-icon"></span>' : '') +
         (!isFilm && item.photo_count > 1 ? '<span class="photo-count">' + item.photo_count + ' 張</span>' : '') +
         '<div class="caption"><span class="tag">' + escapeHtml(item.tag) + '</span><span class="title">' + escapeHtml(item.title) + '</span></div>' +
-      '</div>'
+      '</a>'
     );
   }
 
@@ -487,29 +491,8 @@ document.addEventListener('DOMContentLoaded', function () {
     return { openAlbum: openAlbum, openPhotos: openPhotos, openVideo: openVideo };
   }
 
-  var lightboxApi = null;
-  function openProject(project) {
-    if (!lightboxApi) lightboxApi = initLightbox();
-    track({ type: 'album', id: project.id });
-    if (project.media_type === 'video') {
-      lightboxApi.openVideo(project.video_url, project.title);
-    } else {
-      fetch('/api/portfolio/detail/' + project.id)
-        .then(function (r) { return r.json(); })
-        .then(function (detail) { lightboxApi.openAlbum(detail.photos, detail.title); });
-    }
-  }
-
   if (galleryGrid) {
     var group = galleryGrid.getAttribute('data-group');
-    var projectsById = {};
-
-    galleryGrid.addEventListener('click', function (e) {
-      var tile = e.target.closest('.gallery-item');
-      if (!tile) return;
-      var project = projectsById[tile.getAttribute('data-id')];
-      if (project) openProject(project);
-    });
 
     galleryGrid.innerHTML = '<p class="gallery-loading">載入作品中…</p>';
     fetch('/api/portfolio/' + group)
@@ -519,7 +502,6 @@ document.addEventListener('DOMContentLoaded', function () {
           galleryGrid.innerHTML = '<p class="gallery-loading">目前尚無作品，請至後台新增。</p>';
           return;
         }
-        items.forEach(function (item) { projectsById[item.id] = item; });
         galleryGrid.innerHTML = items.map(renderGalleryItem).join('');
         initGalleryFilters();
       })
@@ -546,8 +528,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (showcase) {
-    var showcaseById = {};
-
     fetch('/api/portfolio/photography')
       .then(function (r) { return r.json(); })
       .then(function (items) {
@@ -563,9 +543,8 @@ document.addEventListener('DOMContentLoaded', function () {
               '</div>' +
               '<div class="showcase-row">' +
                 picks.map(function (p) {
-                  showcaseById[p.id] = p;
                   return (
-                    '<a class="showcase-item" href="' + href + '" data-id="' + p.id + '">' +
+                    '<a class="showcase-item" href="/work/' + p.id + '">' +
                       '<span class="frame"><img src="' + thumbUrl(p.cover_url) + '" alt="' + escapeHtml(p.title) + '" loading="lazy"></span>' +
                       '<span class="showcase-title">' + escapeHtml(p.title) + '</span>' +
                     '</a>'
@@ -581,15 +560,86 @@ document.addEventListener('DOMContentLoaded', function () {
         showcase.hidden = false;
       })
       .catch(function () { /* portfolio API unavailable: leave the section hidden */ });
+  }
 
-    showcase.addEventListener('click', function (e) {
-      var tile = e.target.closest('.showcase-item');
-      if (!tile) return;
-      var project = showcaseById[tile.getAttribute('data-id')];
-      if (!project) return;
-      e.preventDefault();
-      openProject(project);
-    });
+  /* -------------------------------------------------------------- */
+  /* Album page (/work/:id): breadcrumb, intro, then every photo of   */
+  /* the project; a photo opens full-screen with prev/next            */
+  /* -------------------------------------------------------------- */
+  var workPage = document.getElementById('work-page');
+  var WORK_GROUPS = {
+    photography: ['攝影作品', '/photography'], film: ['影片作品', '/film'], design: ['設計作品', '/design']
+  };
+  var WORK_CATEGORIES = {
+    commercial: '商業攝影', food: '美食攝影', space: '空間攝影', portrait: '人像攝影', wedding: '婚禮紀錄',
+    production: '影片製作', brand: '形象影片', short: '短影音', graphic: '平面設計', marketing: '整合行銷'
+  };
+
+  if (workPage) {
+    var workId = location.pathname.split('/').pop();
+    var mediaEl = document.getElementById('work-media');
+
+    fetch('/api/portfolio/detail/' + encodeURIComponent(workId))
+      .then(function (r) { if (!r.ok) throw new Error('not found'); return r.json(); })
+      .then(function (p) {
+        track({ type: 'album', id: p.id });
+        var groupInfo = WORK_GROUPS[p.group_key] || ['作品', '/'];
+        var catLabel = WORK_CATEGORIES[p.category_key] || '';
+        var catHref = groupInfo[1] + '#' + p.category_key;
+        var backLabel = '← 回到' + (catLabel || groupInfo[0]);
+
+        document.getElementById('work-breadcrumb').innerHTML =
+          '<a href="/">首頁</a><span>/</span>' +
+          '<a href="' + groupInfo[1] + '">' + groupInfo[0] + '</a><span>/</span>' +
+          (catLabel ? '<a href="' + catHref + '">' + catLabel + '</a><span>/</span>' : '') +
+          '<span class="current">' + escapeHtml(p.title) + '</span>';
+        ['work-back-top', 'work-back-bottom'].forEach(function (id) {
+          var a = document.getElementById(id);
+          a.href = catHref;
+          a.textContent = backLabel;
+        });
+        document.getElementById('work-title').textContent = p.title;
+        document.getElementById('work-tags').innerHTML =
+          (catLabel ? '<span class="work-tag is-cat">' + catLabel + '</span>' : '') +
+          (p.tag && p.tag !== catLabel ? '<span class="work-tag">' + escapeHtml(p.tag) + '</span>' : '') +
+          '<span class="work-tag">' + (p.media_type === 'video' ? '影片' : p.photos.length + ' 張照片') + '</span>';
+        if (p.description) {
+          var intro = document.getElementById('work-intro');
+          intro.innerHTML = escapeHtml(p.description).replace(/\n/g, '<br>');
+          intro.hidden = false;
+        }
+
+        if (p.media_type === 'video') {
+          mediaEl.innerHTML = p.video_url
+            ? '<video class="work-video" src="' + p.video_url + '" controls playsinline' + (p.cover_url ? ' poster="' + p.cover_url + '"' : '') + '></video>'
+            : '<p class="gallery-loading">影片尚未上傳。</p>';
+          return;
+        }
+        if (!p.photos.length) {
+          mediaEl.innerHTML = '<p class="gallery-loading">這個作品還沒有照片。</p>';
+          return;
+        }
+        mediaEl.innerHTML =
+          '<div class="work-photos" data-layout="' + (p.layout === 'grid' ? 'grid' : 'masonry') + '">' +
+            p.photos.map(function (photo, i) {
+              return (
+                '<button type="button" class="work-photo" data-index="' + i + '" aria-label="檢視大圖">' +
+                  '<img src="' + thumbUrl(photo.url) + '" alt="' + escapeHtml(photo.caption || p.title) + '" loading="lazy">' +
+                '</button>'
+              );
+            }).join('') +
+          '</div>';
+
+        var viewer = initLightbox();
+        mediaEl.addEventListener('click', function (e) {
+          var btn = e.target.closest('.work-photo');
+          if (btn) viewer.openPhotos(p.photos, p.title, Number(btn.getAttribute('data-index')), false);
+        });
+      })
+      .catch(function () {
+        document.getElementById('work-title').textContent = '找不到這個作品';
+        mediaEl.innerHTML = '';
+      });
   }
 
   /* -------------------------------------------------------------- */

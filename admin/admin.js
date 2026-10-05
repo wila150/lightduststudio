@@ -426,6 +426,23 @@
               '<button type="button" class="del-btn" data-id="' + p.id + '">刪除整個作品</button>' +
             '</div>' +
           '</div>' +
+          '<div class="project-meta" data-id="' + p.id + '">' +
+            '<label>介紹文字（顯示在作品頁標題下方，選填）' +
+              '<textarea class="meta-desc" rows="2">' + escapeHtml(p.description || '') + '</textarea>' +
+            '</label>' +
+            '<div class="project-meta-row">' +
+              (isVideo ? '' :
+                '<label>照片排列' +
+                  '<select class="meta-layout">' +
+                    '<option value="masonry"' + (p.layout !== 'grid' ? ' selected' : '') + '>瀑布流：直式、橫式都完整顯示（不裁切）</option>' +
+                    '<option value="grid"' + (p.layout === 'grid' ? ' selected' : '') + '>整齊格子：統一裁成 3:2</option>' +
+                  '</select>' +
+                '</label>') +
+              '<button type="button" class="meta-save-btn">儲存作品頁設定</button>' +
+              '<a class="meta-view" href="/work/' + p.id + '" target="_blank" rel="noopener">查看作品頁 ↗</a>' +
+              '<span class="status meta-status"></span>' +
+            '</div>' +
+          '</div>' +
           body +
         '</div>'
       );
@@ -478,6 +495,25 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sort_order: Number(input.value) || 0 })
           }).then(function () { loadItems(); });
+        });
+      });
+
+      document.querySelectorAll('.project-meta').forEach(function (meta) {
+        var btn = meta.querySelector('.meta-save-btn');
+        var status = meta.querySelector('.meta-status');
+        btn.addEventListener('click', function () {
+          var payload = { description: meta.querySelector('.meta-desc').value };
+          var layout = meta.querySelector('.meta-layout');
+          if (layout) payload.layout = layout.value;
+          status.textContent = '儲存中…';
+          status.className = 'status meta-status';
+          fetch('/api/portfolio/' + meta.getAttribute('data-id'), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { if (!r.ok) throw new Error(); status.textContent = '已儲存'; status.className = 'status meta-status ok'; })
+            .catch(function () { status.textContent = '儲存失敗'; status.className = 'status meta-status err'; });
         });
       });
 

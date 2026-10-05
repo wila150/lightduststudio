@@ -234,6 +234,16 @@ async function init() {
     await db.exec("ALTER TABLE site_settings ADD COLUMN font_theme TEXT NOT NULL DEFAULT 'elegant-serif'");
   }
 
+  // Album pages (/work/:id): intro text and how the photo wall handles mixed
+  // portrait/landscape shots ('masonry' keeps each photo's own ratio, 'grid' crops to 3:2).
+  const projectCols = (await db.prepare('PRAGMA table_info(portfolio_projects)').all()).map((c) => c.name);
+  if (!projectCols.includes('description')) {
+    await db.exec("ALTER TABLE portfolio_projects ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+  }
+  if (!projectCols.includes('layout')) {
+    await db.exec("ALTER TABLE portfolio_projects ADD COLUMN layout TEXT NOT NULL DEFAULT 'masonry'");
+  }
+
   const heroCols = (await db.prepare('PRAGMA table_info(hero_slides)').all()).map((c) => c.name);
   if (!heroCols.includes('media_public_id')) {
     await db.exec("ALTER TABLE hero_slides ADD COLUMN media_public_id TEXT NOT NULL DEFAULT ''");

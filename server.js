@@ -3,6 +3,7 @@ require('express-async-errors'); // Express 4 doesn't auto-catch async route rej
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const session = require('express-session');
 const { db, init } = require('./db');
 
@@ -67,6 +68,26 @@ app.get('/pages/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, 'page.html'));
 });
 
+// Portfolio album pages. The title/description/share image are filled in
+// server-side so search engines and link previews see the real album.
+const WORK_TEMPLATE = path.join(__dirname, 'work.html');
+const GROUP_NAMES = { photography: '攝影作品', film: '影片作品', design: '設計作品' };
+function escapeAttr(str) {
+  return String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+app.get('/work/:id', async (req, res, next) => {
+  const project = await db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
+  if (!project) return next();
+  const title = `${project.title}｜${GROUP_NAMES[project.group_key] || '作品'}｜LightDust Studio`;
+  const desc = (project.description || `LightDust Studio 光塵影像工作室作品「${project.title}」。`).replace(/\s+/g, ' ').slice(0, 150);
+  const html = (await fs.promises.readFile(WORK_TEMPLATE, 'utf8'))
+    .replace(/\{\{TITLE\}\}/g, escapeAttr(title))
+    .replace(/\{\{DESCRIPTION\}\}/g, escapeAttr(desc))
+    .replace(/\{\{IMAGE\}\}/g, escapeAttr(project.cover_url || `${SITE_ORIGIN}/images/icons/icon-512.png`))
+    .replace(/\{\{URL\}\}/g, `${SITE_ORIGIN}/work/${project.id}`);
+  res.type('html').send(html);
+});
+
 const SITE_ORIGIN = 'https://lightduststudio-q8qk.onrender.com';
 app.get('/sitemap.xml', async (req, res) => {
   const staticPaths = ['', 'about', 'photography', 'film', 'design', 'contact'];
@@ -74,8 +95,11 @@ app.get('/sitemap.xml', async (req, res) => {
     "SELECT slug FROM pages WHERE published = 1 AND (publish_at IS NULL OR publish_at <= datetime('now'))"
   ).all();
 
+  const works = await db.prepare('SELECT id FROM portfolio_projects ORDER BY id ASC').all();
+
   const urls = staticPaths.map((p) => `${SITE_ORIGIN}/${p}`)
-    .concat(pages.map((p) => `${SITE_ORIGIN}/pages/${p.slug}`));
+    .concat(pages.map((p) => `${SITE_ORIGIN}/pages/${p.slug}`))
+    .concat(works.map((w) => `${SITE_ORIGIN}/work/${w.id}`));
 
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
