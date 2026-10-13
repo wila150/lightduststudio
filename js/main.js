@@ -103,6 +103,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (s.font_theme) {
         document.documentElement.setAttribute('data-font-theme', s.font_theme);
       }
+      if (s.showcase_layout) {
+        document.documentElement.setAttribute('data-showcase-layout', s.showcase_layout);
+      }
     })
     .catch(function () { /* settings API unavailable — keep static defaults */ });
 
@@ -716,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* -------------------------------------------------------------- */
   /* Homepage: render addable/reorderable content modules below the */
-  /* fixed hero / category-grid / about-teaser sections              */
+  /* fixed hero / about-teaser sections                              */
   /* -------------------------------------------------------------- */
   var homeBlocksMount = document.getElementById('home-blocks');
   if (homeBlocksMount) {

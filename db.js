@@ -93,6 +93,7 @@ async function init() {
       favicon_url TEXT NOT NULL DEFAULT '/images/favicon-32.png',
       accent_color TEXT NOT NULL DEFAULT '#b08a5a',
       font_theme TEXT NOT NULL DEFAULT 'elegant-serif',
+      showcase_layout TEXT NOT NULL DEFAULT 'grid',
       seo_title TEXT NOT NULL DEFAULT 'LightDust Studio｜商業攝影 · 影片製作 · 平面設計',
       seo_description TEXT NOT NULL DEFAULT 'LightDust Studio 光塵影像工作室 — 提供商業攝影、美食攝影、空間攝影、人像攝影、婚禮紀錄、影片製作、形象影片、短影音、平面設計與整合行銷服務。',
       footer_tagline TEXT NOT NULL DEFAULT '光塵影像工作室 — 商業攝影、影片製作與平面設計整合服務，用影像為品牌說故事。',
@@ -232,6 +233,10 @@ async function init() {
   const settingsCols = (await db.prepare('PRAGMA table_info(site_settings)').all()).map((c) => c.name);
   if (!settingsCols.includes('font_theme')) {
     await db.exec("ALTER TABLE site_settings ADD COLUMN font_theme TEXT NOT NULL DEFAULT 'elegant-serif'");
+  }
+  // Homepage showcase layout: 'grid' | 'masonry' | 'featured' | 'carousel'
+  if (!settingsCols.includes('showcase_layout')) {
+    await db.exec("ALTER TABLE site_settings ADD COLUMN showcase_layout TEXT NOT NULL DEFAULT 'grid'");
   }
 
   // Album pages (/work/:id): intro text and how the photo wall handles mixed

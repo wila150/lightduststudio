@@ -8,7 +8,7 @@ const router = express.Router();
 const upload = makeUpload('settings', { allowVideo: false, maxSizeMB: 5 });
 
 const EDITABLE_FIELDS = [
-  'brand_name_zh', 'brand_name_en', 'accent_color', 'font_theme',
+  'brand_name_zh', 'brand_name_en', 'accent_color', 'font_theme', 'showcase_layout',
   'seo_title', 'seo_description', 'footer_tagline',
   'contact_phone', 'contact_email', 'contact_address',
   'social_line', 'social_instagram', 'social_facebook'
