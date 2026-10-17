@@ -21,6 +21,7 @@ const accountsRoutes = require('./routes/accounts');
 const liveRoutes = require('./routes/live');
 const trackRoutes = require('./routes/track');
 const analyticsRoutes = require('./routes/analytics');
+const equipmentRoutes = require('./routes/equipment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,7 +41,7 @@ app.use(session({
 const ADMIN_DIR = path.join(__dirname, 'admin');
 app.get('/admin', (req, res) => res.sendFile(path.join(ADMIN_DIR, 'index.html')));
 app.get('/admin/index.html', (req, res) => res.redirect(301, '/admin'));
-const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'analytics', 'messages', 'media', 'accounts'];
+const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'analytics', 'messages', 'media', 'accounts', 'equipment'];
 ADMIN_PAGES.forEach((name) => {
   app.get('/admin/' + name, (req, res) => res.sendFile(path.join(ADMIN_DIR, name + '.html')));
   app.get('/admin/' + name + '.html', (req, res) => res.redirect(301, '/admin/' + name));
@@ -62,6 +63,7 @@ app.use('/api/accounts', accountsRoutes);
 app.use('/api/live', liveRoutes);
 app.use('/api/track', trackRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/equipment', equipmentRoutes);
 
 // Custom pages built in the admin page editor render through this shared template
 app.get('/pages/:slug', (req, res) => {
@@ -90,7 +92,7 @@ app.get('/work/:id', async (req, res, next) => {
 
 const SITE_ORIGIN = 'https://lightduststudio-q8qk.onrender.com';
 app.get('/sitemap.xml', async (req, res) => {
-  const staticPaths = ['', 'about', 'photography', 'film', 'design', 'contact'];
+  const staticPaths = ['', 'about', 'photography', 'film', 'design', 'equipment', 'contact'];
   const pages = await db.prepare(
     "SELECT slug FROM pages WHERE published = 1 AND (publish_at IS NULL OR publish_at <= datetime('now'))"
   ).all();
@@ -111,7 +113,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
 // Clean URLs for the core static pages (/about instead of /about.html), with
 // 301s from the old .html paths so existing links/bookmarks keep working.
-const STATIC_PAGES = ['about', 'photography', 'film', 'design', 'contact'];
+const STATIC_PAGES = ['about', 'photography', 'film', 'design', 'equipment', 'contact'];
 STATIC_PAGES.forEach((name) => {
   app.get('/' + name, (req, res) => res.sendFile(path.join(__dirname, name + '.html')));
   app.get('/' + name + '.html', (req, res) => res.redirect(301, '/' + name));

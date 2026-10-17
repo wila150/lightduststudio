@@ -50,7 +50,7 @@ router.get('/slug/:slug', async (req, res) => {
 });
 
 router.post('/', requireAuth, async (req, res) => {
-  const { slug, title, seo_title, seo_description, published, publish_at } = req.body || {};
+  const { slug, title, title_en, seo_title, seo_description, published, publish_at } = req.body || {};
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
     return res.status(400).json({ error: 'slug 只能使用小寫英文、數字與連字號' });
   }
@@ -58,9 +58,9 @@ router.post('/', requireAuth, async (req, res) => {
 
   try {
     const info = await db.prepare(`
-      INSERT INTO pages (slug, title, seo_title, seo_description, published, publish_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(slug, title.trim(), seo_title || '', seo_description || '', published === false || published === '0' ? 0 : 1, publish_at || null);
+      INSERT INTO pages (slug, title, title_en, seo_title, seo_description, published, publish_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(slug, title.trim(), (title_en || '').trim(), seo_title || '', seo_description || '', published === false || published === '0' ? 0 : 1, publish_at || null);
     res.json({ id: info.lastInsertRowid });
   } catch (err) {
     if (String(err.message).includes('UNIQUE')) return res.status(400).json({ error: '這個網址代稱已經被使用了' });
@@ -74,11 +74,12 @@ router.put('/:id', requireAuth, async (req, res) => {
   const body = req.body || {};
 
   await db.prepare(`
-    UPDATE pages SET slug = ?, title = ?, seo_title = ?, seo_description = ?, published = ?, publish_at = ?
+    UPDATE pages SET slug = ?, title = ?, title_en = ?, seo_title = ?, seo_description = ?, published = ?, publish_at = ?
     WHERE id = ?
   `).run(
     body.slug !== undefined ? body.slug : existing.slug,
     body.title !== undefined ? body.title.trim() : existing.title,
+    body.title_en !== undefined ? String(body.title_en).trim() : existing.title_en,
     body.seo_title !== undefined ? body.seo_title : existing.seo_title,
     body.seo_description !== undefined ? body.seo_description : existing.seo_description,
     body.published !== undefined ? (body.published === false || body.published === '0' ? 0 : 1) : existing.published,

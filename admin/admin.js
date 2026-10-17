@@ -1066,6 +1066,7 @@
           .then(function (p) {
             metaForm.slug.value = p.slug;
             metaForm.title.value = p.title;
+            metaForm.title_en.value = p.title_en || '';
             metaForm.seo_title.value = p.seo_title;
             metaForm.seo_description.value = p.seo_description;
             metaForm.published.checked = !!p.published;
@@ -1082,6 +1083,7 @@
         var body = {
           slug: metaForm.slug.value.trim(),
           title: metaForm.title.value.trim(),
+          title_en: metaForm.title_en.value.trim(),
           seo_title: metaForm.seo_title.value,
           seo_description: metaForm.seo_description.value,
           published: metaForm.published.checked,
@@ -2146,6 +2148,145 @@
             addStatus.textContent = err.message;
             addStatus.className = 'status err';
           });
+      });
+
+      load();
+    }
+  }
+
+  if (page === 'equipment') {
+    requireLogin(initEquipment);
+
+    function initEquipment() {
+      var EQUIP_CATEGORIES = [
+        ['camera', '相機機身'], ['lens', '鏡頭'], ['drone', '空拍機'], ['stabilizer', '穩定器'],
+        ['lighting', '燈光'], ['audio', '收音'], ['other', '其他']
+      ];
+      function categoryOptions(selected) {
+        return EQUIP_CATEGORIES.map(function (c) {
+          return '<option value="' + c[0] + '"' + (c[0] === selected ? ' selected' : '') + '>' + c[1] + '</option>';
+        }).join('');
+      }
+
+      var addForm = document.getElementById('equip-add-form');
+      var addStatus = document.getElementById('equip-add-status');
+      var listEl = document.getElementById('equip-list');
+      var listStatus = document.getElementById('equip-list-status');
+      addForm.querySelector('.equip-category-select').innerHTML = categoryOptions('camera');
+
+      addForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        addStatus.textContent = '新增中…';
+        addStatus.className = 'status';
+        var fd = new FormData(addForm);
+        fd.set('featured', addForm.featured.checked ? '1' : '0');
+        fetch('/api/equipment', { method: 'POST', body: fd })
+          .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error(res.data.error || '新增失敗');
+            addStatus.textContent = '新增成功！';
+            addStatus.className = 'status ok';
+            addForm.reset();
+            addForm.querySelector('.equip-category-select').innerHTML = categoryOptions('camera');
+            load();
+          })
+          .catch(function (err) { addStatus.textContent = err.message; addStatus.className = 'status err'; });
+      });
+
+      function renderItem(item) {
+        return (
+          '<div class="equip-row" draggable="true" data-id="' + item.id + '">' +
+            '<span class="equip-handle" title="拖曳排序">⠿</span>' +
+            '<div class="equip-thumb">' + (item.photo_url ? '<img src="' + item.photo_url + '" alt="">' : '<span>無照片</span>') + '</div>' +
+            '<div class="equip-fields">' +
+              '<div class="equip-fields-row">' +
+                '<input type="text" class="f-name" value="' + escapeHtml(item.name) + '" placeholder="設備名稱">' +
+                '<input type="text" class="f-brand" value="' + escapeHtml(item.brand) + '" placeholder="品牌">' +
+                '<select class="f-category">' + categoryOptions(item.category) + '</select>' +
+              '</div>' +
+              '<input type="text" class="f-desc" value="' + escapeHtml(item.description) + '" placeholder="簡短說明（選填）">' +
+              '<div class="equip-fields-row">' +
+                '<label class="equip-featured"><input type="checkbox" class="f-featured"' + (item.featured ? ' checked' : '') + '> 顯示於首頁</label>' +
+                '<label class="equip-photo">更換照片<input type="file" class="f-file" accept="image/*"></label>' +
+                '<button type="button" class="equip-save">儲存</button>' +
+                '<button type="button" class="equip-del">刪除</button>' +
+                '<span class="status equip-status"></span>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      function load() {
+        fetch('/api/equipment')
+          .then(function (r) { return r.json(); })
+          .then(function (items) {
+            listEl.innerHTML = items.length ? items.map(renderItem).join('') : '<p class="empty-note">還沒有設備，從上方新增第一項。</p>';
+          });
+      }
+
+      listEl.addEventListener('click', function (e) {
+        var row = e.target.closest('.equip-row');
+        if (!row) return;
+        var id = row.getAttribute('data-id');
+        var status = row.querySelector('.equip-status');
+
+        if (e.target.closest('.equip-save')) {
+          var fd = new FormData();
+          fd.append('name', row.querySelector('.f-name').value);
+          fd.append('brand', row.querySelector('.f-brand').value);
+          fd.append('category', row.querySelector('.f-category').value);
+          fd.append('description', row.querySelector('.f-desc').value);
+          fd.append('featured', row.querySelector('.f-featured').checked ? '1' : '0');
+          var file = row.querySelector('.f-file').files[0];
+          if (file) fd.append('file', file);
+          status.textContent = '儲存中…';
+          status.className = 'status equip-status';
+          fetch('/api/equipment/' + id, { method: 'PUT', body: fd })
+            .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+            .then(function () {
+              if (file) { load(); return; }
+              status.textContent = '已儲存';
+              status.className = 'status equip-status ok';
+            })
+            .catch(function () { status.textContent = '儲存失敗'; status.className = 'status equip-status err'; });
+        } else if (e.target.closest('.equip-del')) {
+          if (!confirm('確定要刪除這項設備嗎？')) return;
+          fetch('/api/equipment/' + id, { method: 'DELETE' }).then(function () { load(); });
+        }
+      });
+
+      // Drag-and-drop reordering; the new order is saved as soon as the row is dropped.
+      var dragging = null;
+      listEl.addEventListener('dragstart', function (e) {
+        dragging = e.target.closest('.equip-row');
+        if (!dragging) return;
+        dragging.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      listEl.addEventListener('dragover', function (e) {
+        if (!dragging) return;
+        e.preventDefault();
+        var over = e.target.closest('.equip-row');
+        if (!over || over === dragging) return;
+        var rect = over.getBoundingClientRect();
+        var after = e.clientY > rect.top + rect.height / 2;
+        listEl.insertBefore(dragging, after ? over.nextSibling : over);
+      });
+      listEl.addEventListener('dragend', function () {
+        if (!dragging) return;
+        dragging.classList.remove('dragging');
+        dragging = null;
+        var ids = Array.prototype.map.call(listEl.querySelectorAll('.equip-row'), function (r) { return Number(r.getAttribute('data-id')); });
+        listStatus.textContent = '儲存順序中…';
+        listStatus.className = 'status';
+        fetch('/api/equipment/order', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: ids })
+        })
+          .then(function (r) { if (!r.ok) throw new Error(); listStatus.textContent = '順序已儲存'; listStatus.className = 'status ok'; })
+          .catch(function () { listStatus.textContent = '順序儲存失敗'; listStatus.className = 'status err'; });
       });
 
       load();

@@ -67,6 +67,19 @@ async function init() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS equipment (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      brand TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'other',
+      description TEXT NOT NULL DEFAULT '',
+      photo_url TEXT NOT NULL DEFAULT '',
+      photo_filename TEXT NOT NULL DEFAULT '',
+      featured INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS portfolio_photos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL REFERENCES portfolio_projects(id) ON DELETE CASCADE,
@@ -247,6 +260,12 @@ async function init() {
   }
   if (!projectCols.includes('layout')) {
     await db.exec("ALTER TABLE portfolio_projects ADD COLUMN layout TEXT NOT NULL DEFAULT 'masonry'");
+  }
+
+  // Custom pages show an English subtitle under their Chinese title.
+  const pageCols = (await db.prepare('PRAGMA table_info(pages)').all()).map((c) => c.name);
+  if (!pageCols.includes('title_en')) {
+    await db.exec("ALTER TABLE pages ADD COLUMN title_en TEXT NOT NULL DEFAULT ''");
   }
 
   const heroCols = (await db.prepare('PRAGMA table_info(hero_slides)').all()).map((c) => c.name);

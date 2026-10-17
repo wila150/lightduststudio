@@ -51,14 +51,16 @@ document.addEventListener('DOMContentLoaded', function () {
         img.alt = s.brand_name_zh + ' ' + s.brand_name_en;
       });
 
-      var nameParts = (s.brand_name_en || '').trim().split(' ');
-      var lastWord = nameParts.pop();
-      var brandHtml = nameParts.length
-        ? nameParts.join(' ') + ' <em>' + lastWord + '</em>'
-        : '<em>' + lastWord + '</em>';
-      document.querySelectorAll('.brand-text').forEach(function (el) {
-        el.innerHTML = brandHtml;
-      });
+      // Brand lockup: "光塵" large, "影像工作室" small beside it
+      var zhName = (s.brand_name_zh || '').trim();
+      if (zhName) {
+        var SUB = '影像工作室';
+        var main = zhName.slice(-SUB.length) === SUB && zhName.length > SUB.length ? zhName.slice(0, -SUB.length) : zhName;
+        var sub = main === zhName ? '' : SUB;
+        document.querySelectorAll('.brand-text').forEach(function (el) {
+          el.innerHTML = '<span class="brand-zh">' + escapeHtml(main) + '</span>' + (sub ? '<span class="brand-sub">' + sub + '</span>' : '');
+        });
+      }
 
       var tagline = document.querySelector('.footer-grid > div:first-child p');
       if (tagline && s.footer_tagline) tagline.textContent = s.footer_tagline;
@@ -81,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (widgetPhone) widgetPhone.href = 'tel:' + s.contact_phone.replace(/[^+\d]/g, '');
       var widgetLine = document.querySelector('.contact-widget a.line');
       if (widgetLine && s.social_line) widgetLine.href = s.social_line;
+      document.querySelectorAll('.cta-line').forEach(function (a) { if (s.social_line) a.href = s.social_line; });
 
       var infoEmail = document.getElementById('info-email');
       if (infoEmail) infoEmail.textContent = s.contact_email;
@@ -161,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function bindNavDropdownToggles() {
     document.querySelectorAll('.nav-item.has-children > .nav-sub-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
-        if (window.innerWidth <= 900) {
+        if (window.innerWidth <= 1099) {
           e.preventDefault();
           btn.closest('.nav-item').classList.toggle('open');
         }
@@ -251,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<span class="eyebrow">' + escapeHtml(slide.eyebrow) + '</span>' +
           '<h1>' + titleHtml + '</h1>' +
           '<p>' + escapeHtml(slide.subtitle) + '</p>' +
+          '<div class="hero-actions"><a class="btn btn-light" href="/photography">查看作品</a><a class="btn btn-ghost-light" href="/contact">聯絡我們</a></div>' +
         '</div>' +
         card +
       '</div>'
@@ -509,15 +513,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* -------------------------------------------------------------- */
-  /* Homepage showcase: a grid of covers per photography category,   */
-  /* in admin sort order; empty categories are skipped               */
+  /* Homepage showcases: one section per group (photography, film,   */
+  /* design), a row of covers per category in admin sort order.      */
+  /* Empty categories are skipped; an empty group says so.           */
   /* -------------------------------------------------------------- */
-  var showcase = document.getElementById('showcase');
-  var SHOWCASE_CATEGORIES = [
-    ['commercial', '商業攝影', 'Commercial'], ['food', '美食攝影', 'Food'],
-    ['space', '空間攝影', 'Interior'], ['portrait', '人像攝影', 'Portrait'],
-    ['wedding', '婚禮紀錄', 'Wedding']
-  ];
+  var SHOWCASE_CATEGORIES = {
+    photography: [['commercial', '商業攝影', 'Commercial'], ['food', '美食攝影', 'Food'],
+      ['space', '空間攝影', 'Interior'], ['portrait', '人像攝影', 'Portrait'], ['wedding', '婚禮紀錄', 'Wedding']],
+    film: [['production', '影片製作', 'Production'], ['brand', '形象影片', 'Brand Film'], ['short', '短影音', 'Short Video']],
+    design: [['graphic', '平面設計', 'Graphic'], ['marketing', '整合行銷', 'Marketing']]
+  };
   var SHOWCASE_LIMIT = 8;
 
   // Ask Cloudinary for a resized, auto-format thumbnail instead of the original upload.
@@ -525,39 +530,104 @@ document.addEventListener('DOMContentLoaded', function () {
     return url.indexOf('res.cloudinary.com') !== -1 ? url.replace('/upload/', '/upload/f_auto,q_auto,w_900/') : url;
   }
 
-  if (showcase) {
-    fetch('/api/portfolio/photography')
+  function renderShowcaseItem(p) {
+    var isVideo = p.media_type === 'video';
+    return (
+      '<a class="showcase-item' + (isVideo ? ' is-video' : '') + '" href="/work/' + p.id + '">' +
+        '<span class="frame">' +
+          (p.cover_url ? '<img src="' + thumbUrl(p.cover_url) + '" alt="' + escapeHtml(p.title) + '" loading="lazy">' : '') +
+          (isVideo ? '<span class="play-icon"></span>' : '') +
+        '</span>' +
+        '<span class="showcase-title">' + escapeHtml(p.title) + '</span>' +
+      '</a>'
+    );
+  }
+
+  document.querySelectorAll('.showcase[data-group]').forEach(function (section) {
+    var group = section.getAttribute('data-group');
+    var mount = section.querySelector('.showcase-cats');
+    var groupHref = '/' + group;
+    fetch('/api/portfolio/' + group)
       .then(function (r) { return r.json(); })
       .then(function (items) {
-        var html = SHOWCASE_CATEGORIES.map(function (cat) {
-          var picks = items.filter(function (p) { return p.category_key === cat[0] && p.cover_url; }).slice(0, SHOWCASE_LIMIT);
+        var html = (SHOWCASE_CATEGORIES[group] || []).map(function (cat) {
+          var picks = items.filter(function (p) {
+            return p.category_key === cat[0] && (p.cover_url || p.media_type === 'video');
+          }).slice(0, SHOWCASE_LIMIT);
           if (!picks.length) return '';
-          var href = '/photography#' + cat[0];
+          var href = groupHref + '#' + cat[0];
           return (
             '<div class="showcase-cat">' +
               '<div class="showcase-head">' +
-                '<a href="' + href + '"><span class="en">' + cat[2] + '</span><h3>' + cat[1] + '</h3></a>' +
+                '<a href="' + href + '"><h3>' + cat[1] + '</h3><span class="en">' + cat[2] + '</span></a>' +
                 '<a class="showcase-more" href="' + href + '">查看全部 →</a>' +
               '</div>' +
-              '<div class="showcase-row">' +
-                picks.map(function (p) {
-                  return (
-                    '<a class="showcase-item" href="/work/' + p.id + '">' +
-                      '<span class="frame"><img src="' + thumbUrl(p.cover_url) + '" alt="' + escapeHtml(p.title) + '" loading="lazy"></span>' +
-                      '<span class="showcase-title">' + escapeHtml(p.title) + '</span>' +
-                    '</a>'
-                  );
-                }).join('') +
-              '</div>' +
+              '<div class="showcase-row">' + picks.map(renderShowcaseItem).join('') + '</div>' +
             '</div>'
           );
         }).join('');
-        if (!html) return;
-
-        document.getElementById('showcase-cats').innerHTML = html;
-        showcase.hidden = false;
+        mount.innerHTML = html || '<p class="showcase-empty">作品陸續上架中，敬請期待。</p>';
       })
-      .catch(function () { /* portfolio API unavailable: leave the section hidden */ });
+      .catch(function () { mount.innerHTML = ''; });
+  });
+
+  /* -------------------------------------------------------------- */
+  /* Equipment: featured cards on the homepage, the full list grouped */
+  /* by category on /equipment                                        */
+  /* -------------------------------------------------------------- */
+  var EQUIP_CATEGORIES = [
+    ['camera', '相機機身', 'Camera'], ['lens', '鏡頭', 'Lens'], ['drone', '空拍機', 'Drone'],
+    ['stabilizer', '穩定器', 'Stabilizer'], ['lighting', '燈光', 'Lighting'], ['audio', '收音', 'Audio'],
+    ['other', '其他', 'Other']
+  ];
+  function equipCategoryLabel(key) {
+    var c = EQUIP_CATEGORIES.filter(function (x) { return x[0] === key; })[0];
+    return c ? c[1] : '';
+  }
+  function renderEquipCard(item) {
+    return (
+      '<div class="equip-card">' +
+        '<div class="equip-photo">' + (item.photo_url ? '<img src="' + thumbUrl(item.photo_url) + '" alt="' + escapeHtml(item.name) + '" loading="lazy">' : '') + '</div>' +
+        '<div class="equip-info">' +
+          '<span class="equip-cat">' + equipCategoryLabel(item.category) + '</span>' +
+          '<h3 class="equip-name">' + escapeHtml(item.name) + '</h3>' +
+          (item.brand ? '<span class="equip-brand">' + escapeHtml(item.brand) + '</span>' : '') +
+          (item.description ? '<p class="equip-desc">' + escapeHtml(item.description) + '</p>' : '') +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  var equipHome = document.getElementById('equip-home');
+  if (equipHome) {
+    fetch('/api/equipment?featured=1')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        if (!items.length) return; // nothing picked for the homepage yet: keep the section hidden
+        document.getElementById('equip-home-grid').innerHTML = items.slice(0, 6).map(renderEquipCard).join('');
+        equipHome.hidden = false;
+      })
+      .catch(function () {});
+  }
+
+  var equipPage = document.getElementById('equip-page');
+  if (equipPage) {
+    fetch('/api/equipment')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        var html = EQUIP_CATEGORIES.map(function (cat) {
+          var inCat = items.filter(function (i) { return i.category === cat[0]; });
+          if (!inCat.length) return '';
+          return (
+            '<div class="equip-group">' +
+              '<div class="showcase-head"><div><h3>' + cat[1] + '</h3><span class="en">' + cat[2] + '</span></div></div>' +
+              '<div class="equip-grid">' + inCat.map(renderEquipCard).join('') + '</div>' +
+            '</div>'
+          );
+        }).join('');
+        equipPage.innerHTML = html || '<p class="gallery-loading">設備清單整理中，敬請期待。</p>';
+      })
+      .catch(function () { equipPage.innerHTML = '<p class="gallery-loading">設備載入失敗，請稍後再試。</p>'; });
   }
 
   /* -------------------------------------------------------------- */
@@ -566,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
   /* -------------------------------------------------------------- */
   var workPage = document.getElementById('work-page');
   var WORK_GROUPS = {
-    photography: ['攝影作品', '/photography'], film: ['影片作品', '/film'], design: ['設計作品', '/design']
+    photography: ['攝影作品', '/photography', 'PHOTOGRAPHY'], film: ['影片作品', '/film', 'FILM'], design: ['設計作品', '/design', 'DESIGN']
   };
   var WORK_CATEGORIES = {
     commercial: '商業攝影', food: '美食攝影', space: '空間攝影', portrait: '人像攝影', wedding: '婚禮紀錄',
@@ -597,6 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
           a.textContent = backLabel;
         });
         document.getElementById('work-title').textContent = p.title;
+        document.getElementById('work-title-en').textContent = groupInfo[2] || '';
         document.getElementById('work-tags').innerHTML =
           (catLabel ? '<span class="work-tag is-cat">' + catLabel + '</span>' : '') +
           (p.tag && p.tag !== catLabel ? '<span class="work-tag">' + escapeHtml(p.tag) + '</span>' : '') +
@@ -689,8 +760,9 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function (page) {
         var eyebrowEl = document.getElementById('page-eyebrow');
         var titleEl = document.getElementById('page-title');
-        if (eyebrowEl) eyebrowEl.textContent = 'PAGE';
         if (titleEl) titleEl.textContent = page.title;
+        if (eyebrowEl && page.title_en) { eyebrowEl.textContent = page.title_en; eyebrowEl.hidden = false; }
+        renderPageBreadcrumb(page);
         if (page.seo_title) document.title = page.seo_title + '｜LightDust Studio';
         var metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc && page.seo_description) metaDesc.content = page.seo_description;
@@ -715,6 +787,26 @@ document.addEventListener('DOMContentLoaded', function () {
         if (titleEl) titleEl.textContent = '找不到這個頁面';
         pageContent.innerHTML = '<div class="container" style="padding-top:80px;padding-bottom:80px;text-align:center;color:var(--color-text-soft);">此頁面不存在或尚未發佈。</div>';
       });
+  }
+
+  // 首頁 › <nav parent of this page> › <page title>; the middle step is
+  // skipped when no dropdown in the nav points at this page.
+  function renderPageBreadcrumb(page) {
+    var el = document.getElementById('page-breadcrumb');
+    if (!el) return;
+    var here = '/pages/' + page.slug;
+    fetch('/api/nav')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        var parent = items.filter(function (item) {
+          return (item.children || []).some(function (c) { return c.url.split('#')[0] === here; });
+        })[0];
+        el.innerHTML = '<a href="/">首頁</a><span>›</span>' +
+          (parent ? '<a href="' + (parent.url || parent.children[0].url.split('#')[0]) + '">' + escapeHtml(parent.label) + '</a><span>›</span>' : '') +
+          '<span class="current">' + escapeHtml(page.title) + '</span>';
+        el.hidden = false;
+      })
+      .catch(function () {});
   }
 
   /* -------------------------------------------------------------- */
@@ -769,7 +861,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<section class="story-block container" style="flex-direction:' + (c.position === 'right' ? 'row-reverse' : 'row') + ' !important;">' +
             '<div class="media"' + (c.image_url ? ' style="background-image:url(' + c.image_url + ');background-size:cover;background-position:center;"' : '') + '></div>' +
             '<div class="text">' +
-              (c.title ? '<h2 class="section-title" style="text-align:left">' + escapeHtml(c.title) + '</h2>' : '') +
+              (c.title ? '<h2 class="section-title is-left">' + escapeHtml(c.title) + '</h2>' : '') +
               '<p>' + escapeHtml(c.text || '').replace(/\n/g, '<br>') + '</p>' +
             '</div>' +
           '</section>'

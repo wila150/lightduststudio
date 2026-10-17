@@ -24,7 +24,7 @@
 <body>
 
 <header class="site-header">
-  <a href="/" class="brand"><img src="images/logo-mark.png" alt="光塵影像工作室 LightDust Studio" class="brand-mark"><span class="brand-text">LightDust <em>Studio</em></span></a>
+  <a href="/" class="brand"><img src="images/logo-mark.png" alt="光塵影像工作室 LightDust Studio" class="brand-mark"><span class="brand-text"><span class="brand-zh">光塵</span><span class="brand-sub">影像工作室</span></span></a>
   <nav>
     <ul class="nav-menu" id="nav-menu"></ul>
   </nav>
@@ -36,28 +36,66 @@
   <div class="hero-scroll"><span>SCROLL</span><span class="line"></span></div>
 </section>
 
-<section class="intro container">
-  <h2 class="section-title"><small>ABOUT LightDust Studio</small>以光影記錄，讓故事被看見</h2>
-  <p>LightDust Studio 光塵影像工作室，專注於商業攝影、影片製作與平面設計整合服務。我們相信每一個品牌都值得被細緻地訴說，從靜態影像到動態敘事，從視覺設計到行銷整合，陪伴品牌走過每一次重要的呈現。</p>
+<section class="our-work">
+  <div class="container">
+    <h2 class="section-title"><span class="title-zh">作品分類</span><span class="title-en">OUR WORK</span></h2>
+  </div>
+  <div class="category-grid">
+  <a class="category-card" href="/photography">
+    <div class="bg" style="background-image:url(https://res.cloudinary.com/idsbjycq/image/upload/v1788017328/lightduststudio/portfolio/ym3sktadmhzu9lhvelzc.jpg);background-size:cover;background-position:center;"></div>
+    <div class="label"><span class="zh">攝影服務</span><span class="en">Photography</span></div>
+  </a>
+  <a class="category-card" href="/film">
+    <div class="bg" style="background:linear-gradient(160deg,#0f2426,#16383b);"></div>
+    <div class="label"><span class="zh">影片製作</span><span class="en">Film</span></div>
+  </a>
+  <a class="category-card" href="/design">
+    <div class="bg" style="background:linear-gradient(160deg,#2a1f14,#d18f56);"></div>
+    <div class="label"><span class="zh">平面設計</span><span class="en">Design</span></div>
+  </a>
+  <a class="category-card" href="/design#marketing">
+    <div class="bg" style="background:linear-gradient(160deg,#1c1c1c,#4a4038);"></div>
+    <div class="label"><span class="zh">整合行銷</span><span class="en">Marketing</span></div>
+  </a>
+  </div>
 </section>
 
-<section class="showcase container" id="showcase" hidden>
-  <h2 class="section-title"><small>SELECTED WORKS</small>精選作品</h2>
-  <div id="showcase-cats"></div>
+<section class="showcase container" data-group="photography">
+  <h2 class="section-title"><span class="title-zh">攝影服務</span><span class="title-en">PHOTOGRAPHY</span></h2>
+  <div class="showcase-cats"></div>
+  <div class="section-cta"><a class="btn" href="/photography">查看全部攝影服務作品</a></div>
+</section>
+
+<section class="showcase container" data-group="film">
+  <h2 class="section-title"><span class="title-zh">影片製作</span><span class="title-en">FILM</span></h2>
+  <div class="showcase-cats"></div>
+  <div class="section-cta"><a class="btn" href="/film">查看全部影片製作作品</a></div>
+</section>
+
+<section class="showcase container" data-group="design">
+  <h2 class="section-title"><span class="title-zh">平面設計</span><span class="title-en">DESIGN</span></h2>
+  <div class="showcase-cats"></div>
+  <div class="section-cta"><a class="btn" href="/design">查看全部平面設計作品</a></div>
 </section>
 
 <section class="about-teaser container">
   <div class="media" style="background-image:url(https://res.cloudinary.com/idsbjycq/image/upload/v1788017339/lightduststudio/portfolio/oacjotoxmjvjj6lj03am.jpg);background-size:cover;background-position:center;"></div>
   <div class="text">
-    <h2 class="section-title" style="text-align:left"><small>OUR STORY</small>關於 LightDust Studio</h2>
+    <h2 class="section-title is-left"><span class="title-zh">關於我們</span><span class="title-en">ABOUT US</span></h2>
     <p>我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。</p>
-    <a class="btn" href="/about">READ MORE</a>
+    <a class="btn" href="/about">了解更多</a>
   </div>
+</section>
+
+<section class="equip-home container" id="equip-home" hidden>
+  <h2 class="section-title"><span class="title-zh">我的設備</span><span class="title-en">EQUIPMENT</span></h2>
+  <div class="equip-grid" id="equip-home-grid"></div>
+  <div class="section-cta"><a class="btn" href="/equipment">查看全部設備</a></div>
 </section>
 
 <section class="process">
   <div class="container">
-    <h2 class="section-title"><small>OUR PROCESS</small>合作流程：從訪談到交件</h2>
+    <h2 class="section-title"><span class="title-zh">合作流程</span><span class="title-en">PROCESS</span></h2>
     <p class="process-lead">每個案子都走完這 5 個步驟，讓成品準確對上品牌調性</p>
     <ol class="process-grid">
       <li class="process-step">
@@ -91,17 +129,27 @@
         <p>雲端交付高解析檔案</p>
       </li>
     </ol>
-    <div class="process-cta"><a class="btn" href="/contact">預約諮詢 →</a></div>
   </div>
 </section>
 
 <div id="home-blocks"></div>
 
+<section class="cta-band">
+  <div class="container">
+    <h2 class="section-title"><span class="title-zh">聯絡我們</span><span class="title-en">CONTACT</span></h2>
+    <p>有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>
+    <div class="cta-actions">
+      <a class="btn btn-solid" href="/contact">填寫需求表單</a>
+      <a class="btn cta-line" href="https://line.me/ti/p/~lightduststudio" target="_blank" rel="noopener">LINE 諮詢</a>
+    </div>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="brand"><img src="images/logo-mark.png" alt="LightDust Studio" class="brand-mark"><span class="brand-text">LightDust <em>Studio</em></span></div>
+        <div class="brand"><img src="images/logo-mark.png" alt="光塵影像工作室 LightDust Studio" class="brand-mark"><span class="brand-text"><span class="brand-zh">光塵</span><span class="brand-sub">影像工作室</span></span></div>
         <p>光塵影像工作室 — 商業攝影、影片製作與平面設計整合服務，用影像為品牌說故事。</p>
       </div>
       <div class="footer-col">
