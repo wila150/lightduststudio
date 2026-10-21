@@ -1,27 +1,36 @@
 {
-  "name": "lightdustudio",
+  "name": "portfolioweb",
   "version": "1.0.0",
-  "private": true,
-  "description": "LightDust Studio website — static frontend + Express backend (Turso database, Cloudinary media) with a full CMS admin panel.",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "engines": {
-    "node": ">=18"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "@libsql/client": "^0.17.4",
-    "bcryptjs": "^2.4.3",
-    "cloudinary": "^2.11.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-async-errors": "^3.1.1",
-    "express-session": "^1.18.0",
-    "google-auth-library": "^11.0.2",
-    "multer": "^2.0.0",
-    "multer-storage-cloudinary": "^2.2.1",
-    "nodemailer": "^9.0.5"
+    "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "express-session": "^1.19.0",
+    "firebase-admin": "^14.1.0",
+    "helmet": "^8.3.0",
+    "multer": "^2.2.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "allowScripts": {
+    "@firebase/util@1.15.1": true,
+    "bcrypt@6.0.0": true,
+    "fsevents@2.3.3": true,
+    "protobufjs@7.6.5": true
   }
 }

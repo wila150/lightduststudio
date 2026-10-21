@@ -1,0 +1,152 @@
+{
+  "description": "攝影服務範例作品項目",
+  "note": "此檔案包含示例作品項目，可供測試頁面顯示效果。實際部署時應通過 CMS 後台添加真實作品。",
+
+  "categories": [
+    {
+      "label": "人像與形象攝影",
+      "id": "portrait-branding",
+      "sortOrder": 70
+    },
+    {
+      "label": "品牌與活動紀錄",
+      "id": "brand-event",
+      "sortOrder": 60
+    },
+    {
+      "label": "婚禮與人生慶典",
+      "id": "weddings",
+      "sortOrder": 50
+    },
+    {
+      "label": "商業與美食攝影",
+      "id": "commercial-food",
+      "sortOrder": 40
+    },
+    {
+      "label": "劇場與舞台影像",
+      "id": "theatre-stage",
+      "sortOrder": 30
+    },
+    {
+      "label": "SDE 快播快剪",
+      "id": "same-day-edit",
+      "sortOrder": 20
+    },
+    {
+      "label": "短影音／Reels製作",
+      "id": "short-form-video",
+      "sortOrder": 10
+    }
+  ],
+
+  "sampleItems": [
+    {
+      "title": "企業領導人形象照",
+      "slug": "corporate-portrait-001",
+      "category": "portrait-branding",
+      "description": "為企業高管拍攝的專業形象照。運用自然光線和精心設計的背景，突出受拍者的專業氣質和個人特色。適用於公司網站、年報、媒體報導等多種用途。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+        "type": "image",
+        "alt": "專業人像照"
+      },
+      "status": "published",
+      "publishAt": "2026-09-01"
+    },
+    {
+      "title": "品牌發表會現場紀錄",
+      "slug": "brand-launch-event-001",
+      "category": "brand-event",
+      "description": "新產品發表會的完整紀錄攝影。從舞台佈置、主講人動態到觀眾互動，捕捉現場的每一個精彩瞬間。高質量的影像素材可用於後期製作、宣傳與存檔。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1552664730-d307ca884978",
+        "type": "image",
+        "alt": "活動現場"
+      },
+      "status": "published",
+      "publishAt": "2026-08-15"
+    },
+    {
+      "title": "山景婚禮莊園",
+      "slug": "mountain-wedding-001",
+      "category": "weddings",
+      "description": "在高山莊園舉辦的婚禮全紀錄。清晨的山嵐、新人交換誓言的淚水、親朋好友的燦爛笑容—每一個細節都是永恆的回憶。以細膩而真誠的視角，記錄這對新人最珍貴的時刻。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1519741497674-611481863552",
+        "type": "image",
+        "alt": "婚禮現場"
+      },
+      "status": "published",
+      "publishAt": "2026-07-20"
+    },
+    {
+      "title": "美食餐廳菜色拍攝",
+      "slug": "restaurant-food-001",
+      "category": "commercial-food",
+      "description": "五星餐廳新菜單的商業美食攝影。運用專業的光線布置、精心的擺盤呈現，以及恰當的色溫調整，讓每一道菜色的質感、色澤與細節都清晰展現。最適合用於菜單、社群媒體和餐廳行銷。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1495195134373-f698db841601",
+        "type": "image",
+        "alt": "美食攝影"
+      },
+      "status": "published",
+      "publishAt": "2026-06-10"
+    },
+    {
+      "title": "戲劇演出第二幕精彩時刻",
+      "slug": "theatre-performance-001",
+      "category": "theatre-stage",
+      "description": "現代話劇的舞台攝影紀錄。在暗場和聚光燈的交互中，捕捉演員們的情感表演、舞台走位的節奏感，以及整場演出的戲劇張力。這些影像是演出藝術最好的視覺見證。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1485579149c01123123a0d3cb7c0ff5e",
+        "type": "image",
+        "alt": "舞台表演"
+      },
+      "status": "published",
+      "publishAt": "2026-05-28"
+    },
+    {
+      "title": "婚禮當日即時快編",
+      "slug": "wedding-sde-001",
+      "category": "same-day-edit",
+      "description": "把婚禮當天的情緒，留在當天發生。從儀式到宴會，我們在現場完成素材拍攝、快速剪輯，在晚宴時播放給所有來賓。這段影像不只是紀錄，更是婚禮的活的故事，讓感動不會散去。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1519046904884-53103b34b206",
+        "type": "video",
+        "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "alt": "婚禮快編影片"
+      },
+      "status": "published",
+      "publishAt": "2026-04-14"
+    },
+    {
+      "title": "品牌日常故事 Reels",
+      "slug": "brand-story-reels-001",
+      "category": "short-form-video",
+      "description": "為服飾品牌製作的 Instagram Reels 系列。捕捉產品細節、設計靈感、客戶穿搭故事等內容，剪輯成 15-30 秒的精彩短影音。每支影片都結合音樂、文字、動畫，讓短短幾秒展現品牌個性與溫度。",
+      "coverImage": {
+        "url": "https://images.unsplash.com/photo-1611532736597-de2d4265fba3",
+        "type": "video",
+        "videoUrl": "https://www.youtube.com/embed/9bZkp7q19f0",
+        "alt": "短影音製作"
+      },
+      "status": "published",
+      "publishAt": "2026-03-30"
+    }
+  ],
+
+  "importInstructions": {
+    "title": "如何導入示例數據",
+    "steps": [
+      "此文件僅供參考，展示推薦的項目結構",
+      "實際項目應通過 CMS 後台手動創建，或由開發者創建導入工具",
+      "每個項目應包含：",
+      "  - 標題和描述",
+      "  - 所屬分類",
+      "  - 封面圖片",
+      "  - 相關圖庫或影片"
+    ],
+    "note": "CMS 系統會自動為圖片進行處理：2048px、72dpi、JPG、sRGB、800KB-2MB"
+  }
+}

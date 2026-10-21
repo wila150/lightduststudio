@@ -1,0 +1,146 @@
+{
+  "description": "導航菜單配置示例",
+  "note": "此模板展示如何在主菜單中添加攝影服務連結",
+
+  "recommendedNavStructure": [
+    {
+      "label": "首頁",
+      "link": "/",
+      "position": 1,
+      "published": true
+    },
+    {
+      "label": "攝影服務",
+      "link": "/p/photography-services",
+      "position": 2,
+      "published": true,
+      "description": "分類清單型自訂頁面連結",
+      "note": "此連結指向 photography-services 自訂頁面，會顯示所有分類和作品"
+    },
+    {
+      "label": "關於",
+      "link": "/about",
+      "position": 3,
+      "published": true
+    },
+    {
+      "label": "聯絡",
+      "link": "/contact",
+      "position": 4,
+      "published": true
+    }
+  ],
+
+  "pageTypes": {
+    "home": {
+      "url": "/",
+      "description": "首頁"
+    },
+    "customPage": {
+      "url": "/p/{slug}",
+      "example": "/p/photography-services",
+      "description": "自訂頁面（包括分類清單型頁面）"
+    },
+    "collectionItem": {
+      "url": "/p/{pageSlug}/{itemSlug}",
+      "example": "/p/photography-services/corporate-portrait-001",
+      "description": "作品項目詳情頁"
+    }
+  },
+
+  "cmsNavigationSetup": {
+    "title": "CMS 後台操作步驟",
+    "steps": [
+      "1. 登入 CMS：https://bluedot-slaj.onrender.com/cms",
+      "2. 點擊「設定」→「導航設置」",
+      "3. 點擊「新增菜單項目」",
+      "4. 填寫表單：",
+      "   - 標籤：攝影服務",
+      "   - 連結類型：自訂頁面",
+      "   - 選擇頁面：攝影服務",
+      "5. 設置排列順序（位置 2）",
+      "6. 保存"
+    ]
+  },
+
+  "menuItemStructure": {
+    "title": "菜單項目結構",
+    "fields": {
+      "label": {
+        "type": "string",
+        "description": "菜單項目的顯示文字",
+        "example": "攝影服務"
+      },
+      "link": {
+        "type": "string",
+        "description": "菜單項目的連結 URL",
+        "example": "/p/photography-services"
+      },
+      "linkType": {
+        "type": "string",
+        "options": ["external", "internal", "customPage", "sitePage"],
+        "description": "連結類型",
+        "example": "customPage"
+      },
+      "pageId": {
+        "type": "string",
+        "description": "當連結類型為 customPage 時，指向的頁面 ID",
+        "example": "abc123def456"
+      },
+      "position": {
+        "type": "number",
+        "description": "菜單項目的排列順序（1-N）",
+        "example": 2
+      },
+      "published": {
+        "type": "boolean",
+        "description": "菜單項目是否已發佈",
+        "example": true
+      }
+    }
+  },
+
+  "urlPatterns": {
+    "description": "攝影服務相關 URL 模式",
+    "pages": [
+      {
+        "name": "攝影服務首頁",
+        "url": "/p/photography-services",
+        "description": "展示所有分類和作品項目，支援分類篩選"
+      },
+      {
+        "name": "作品詳情",
+        "url": "/p/photography-services/corporate-portrait-001",
+        "description": "單個作品項目的詳情頁，包括完整圖庫和描述"
+      }
+    ]
+  },
+
+  "frontendNavigation": {
+    "description": "前端導航菜單渲染相關信息",
+    "location": "views/layout.js",
+    "cssClass": "navbar",
+    "responsibilities": [
+      "自動從 Firebase 讀取導航配置",
+      "根據 published 狀態決定是否顯示",
+      "按 position 排列菜單項目",
+      "生成對應的 HTML 連結"
+    ]
+  },
+
+  "customPageNavigation": {
+    "description": "自訂頁面的子菜單（如果有層級結構）",
+    "note": "目前不支援多級菜單，如需要可在自訂頁面內部添加次級導航"
+  },
+
+  "mobileResponsiveness": {
+    "description": "行動裝置導航",
+    "features": [
+      "漢堡選單（hamburger menu）",
+      "點擊外部自動關閉",
+      "垂直排列菜單項目",
+      "觸控友善的點擊區域"
+    ],
+    "cssFile": "public/css/style.css"
+  }
+}

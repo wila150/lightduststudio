@@ -1,151 +1,145 @@
-require('dotenv').config();
-require('express-async-errors'); // Express 4 doesn't auto-catch async route rejections — this patches that.
+require("dotenv").config();
 
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const session = require('express-session');
-const { db, init } = require('./db');
-
-const authRoutes = require('./routes/auth');
-const portfolioRoutes = require('./routes/portfolio');
-const contactRoutes = require('./routes/contact');
-const settingsRoutes = require('./routes/settings');
-const navRoutes = require('./routes/nav');
-const heroRoutes = require('./routes/hero');
-const pagesRoutes = require('./routes/pages');
-const homeBlocksRoutes = require('./routes/home-blocks');
-const messagesRoutes = require('./routes/messages');
-const mediaRoutes = require('./routes/media');
-const accountsRoutes = require('./routes/accounts');
-const liveRoutes = require('./routes/live');
-const trackRoutes = require('./routes/track');
-const analyticsRoutes = require('./routes/analytics');
-const equipmentRoutes = require('./routes/equipment');
+const express = require("express");
+const session = require("express-session");
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Firebase
+require("./config/firebase");
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'lightdustudio-dev-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 * 8 }
+// ===== Middleware =====
+
+app.set("trust proxy", 1);
+
+// 安全性標頭（防 clickjacking、MIME sniffing 等），CSP 先關閉避免擋到既有的 inline script/外部資源（Google 字型、GA、Firebase SDK 等）。
+// referrerPolicy 明確設回瀏覽器原本的預設值：helmet 預設是 no-referrer，會把 Referer 標頭整個拿掉，
+// 導致嵌入的 YouTube 影片播放器抓不到來源網域驗證失敗（錯誤 153）
+// crossOriginOpenerPolicy 也明確放寬：helmet 預設是 same-origin，會切斷彈出視窗跟開啟它的分頁之間的關聯，
+// 導致 Google Identity Services（媒體庫的雲端硬碟匯入用的那個）跳出登入彈窗完成授權後，沒辦法把權杖傳回原本的分頁
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
 
-// Clean URLs for the admin panel (/admin/settings instead of
-// /admin/settings.html), with 301s from the old .html paths.
-const ADMIN_DIR = path.join(__dirname, 'admin');
-app.get('/admin', (req, res) => res.sendFile(path.join(ADMIN_DIR, 'index.html')));
-app.get('/admin/index.html', (req, res) => res.redirect(301, '/admin'));
-const ADMIN_PAGES = ['login', 'settings', 'nav', 'hero', 'pages', 'page-edit', 'home-blocks', 'analytics', 'messages', 'media', 'accounts', 'equipment'];
-ADMIN_PAGES.forEach((name) => {
-  app.get('/admin/' + name, (req, res) => res.sendFile(path.join(ADMIN_DIR, name + '.html')));
-  app.get('/admin/' + name + '.html', (req, res) => res.redirect(301, '/admin/' + name));
-});
+// 壓縮回應內容
+app.use(compression());
 
-app.use('/admin', express.static(ADMIN_DIR));
+// 解析表單
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/portfolio', portfolioRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/nav', navRoutes);
-app.use('/api/hero', heroRoutes);
-app.use('/api/pages', pagesRoutes);
-app.use('/api/home-blocks', homeBlocksRoutes);
-app.use('/api/messages', messagesRoutes);
-app.use('/api/media', mediaRoutes);
-app.use('/api/accounts', accountsRoutes);
-app.use('/api/live', liveRoutes);
-app.use('/api/track', trackRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/equipment', equipmentRoutes);
+// 解析 JSON。順便保留原始 bytes 到 req.rawBody——LINE webhook 驗證簽章要用完全沒被重新序列化過的原始 body，
+// JSON.parse 再 JSON.stringify 一輪可能因為欄位順序/空白差異導致算出來的簽章對不上
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
-// Custom pages built in the admin page editor render through this shared template
-app.get('/pages/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, 'page.html'));
-});
-
-// Portfolio album pages. The title/description/share image are filled in
-// server-side so search engines and link previews see the real album.
-const WORK_TEMPLATE = path.join(__dirname, 'work.html');
-const GROUP_NAMES = { photography: '攝影作品', film: '影片作品', design: '設計作品' };
-function escapeAttr(str) {
-  return String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-app.get('/work/:id', async (req, res, next) => {
-  const project = await db.prepare('SELECT * FROM portfolio_projects WHERE id = ?').get(req.params.id);
-  if (!project) return next();
-  const title = `${project.title}｜${GROUP_NAMES[project.group_key] || '作品'}｜LightDust Studio`;
-  const desc = (project.description || `LightDust Studio 光塵影像工作室作品「${project.title}」。`).replace(/\s+/g, ' ').slice(0, 150);
-  const html = (await fs.promises.readFile(WORK_TEMPLATE, 'utf8'))
-    .replace(/\{\{TITLE\}\}/g, escapeAttr(title))
-    .replace(/\{\{DESCRIPTION\}\}/g, escapeAttr(desc))
-    .replace(/\{\{IMAGE\}\}/g, escapeAttr(project.cover_url || `${SITE_ORIGIN}/images/icons/icon-512.png`))
-    .replace(/\{\{URL\}\}/g, `${SITE_ORIGIN}/work/${project.id}`);
-  res.type('html').send(html);
-});
-
-const SITE_ORIGIN = 'https://lightduststudio-q8qk.onrender.com';
-app.get('/sitemap.xml', async (req, res) => {
-  const staticPaths = ['', 'about', 'photography', 'film', 'design', 'equipment', 'contact'];
-  const pages = await db.prepare(
-    "SELECT slug FROM pages WHERE published = 1 AND (publish_at IS NULL OR publish_at <= datetime('now'))"
-  ).all();
-
-  const works = await db.prepare('SELECT id FROM portfolio_projects ORDER BY id ASC').all();
-
-  const urls = staticPaths.map((p) => `${SITE_ORIGIN}/${p}`)
-    .concat(pages.map((p) => `${SITE_ORIGIN}/pages/${p.slug}`))
-    .concat(works.map((w) => `${SITE_ORIGIN}/work/${w.id}`));
-
-  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    urls.map((u) => `  <url><loc>${u}</loc></url>`).join('\n') +
-    '\n</urlset>\n';
-
-  res.type('application/xml').send(xml);
-});
-
-// Clean URLs for the core static pages (/about instead of /about.html), with
-// 301s from the old .html paths so existing links/bookmarks keep working.
-const STATIC_PAGES = ['about', 'photography', 'film', 'design', 'equipment', 'contact'];
-STATIC_PAGES.forEach((name) => {
-  app.get('/' + name, (req, res) => res.sendFile(path.join(__dirname, name + '.html')));
-  app.get('/' + name + '.html', (req, res) => res.redirect(301, '/' + name));
-});
-app.get('/index.html', (req, res) => res.redirect(301, '/'));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'robots.txt')));
-
-// Only these asset folders are meant to be public — the project root also
-// holds server.js/db.js/routes/etc, which must never be served as static files.
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
+// Express 5 的 body-parser 2.x 遇到 Content-Type 對不上（例如非表單、非 JSON 的請求）時，
+// req.body 會維持 undefined 而不是像舊版那樣退回 {}，controller 直接讀 req.body.xxx 會整台當機
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'not found' });
-  res.status(404).sendFile(path.join(__dirname, '404.html'));
+    if (req.body === undefined) {
+        req.body = {};
+    }
+    next();
 });
 
+// Session
+app.use(
+    session({
+        // 登入狀態存 Firestore，部署／休眠重啟不會被登出（services/firestoreSessionStore.js）
+        store: new (require("./services/firestoreSessionStore"))(),
+        secret: process.env.SESSION_SECRET || "PortfolioWebCMS",
+        resave: false,
+        saveUninitialized: false,
+        // 每次操作都延長有效期（24 小時沒動作才會登出）
+        rolling: true,
+        cookie: {
+            maxAge: 1000 * 60 * 60 * 24, // 24 小時
+            sameSite: "lax"
+        }
+    })
+);
+
+// 靜態檔案（CSS/JS 常常在改，快取設短一點避免使用者一直看到舊版本；圖片/影片大多走 Firebase Storage 不是這裡）
+app.use(express.static("public", { maxAge: "1d" }));
+
+
+// ===== Routes =====
+
+// 前台
+app.use("/", require("./routes/public"));
+
+// CMS
+// 前台訪客追蹤（即時統計用）
+app.use("/api/track", require("./routes/track"));
+// 給 AI 搜尋讀的網站導覽（GEO）
+app.use("/", require("./routes/llms"));
+// 後台有任何寫入就清空前台頁面快取（middleware/pageCache.js）
+app.use("/cms", require("./middleware/pageCache").clearOnCmsWrite);
+app.use("/cms", require("./routes/cms/auth"));
+app.use("/cms/pages", require("./routes/cms/sitePage")("home"));
+app.use("/cms/media", require("./routes/cms/media"));
+app.use("/cms/custom-pages", require("./routes/cms/customPage"));
+app.use("/cms/nav-items", require("./routes/cms/navItem"));
+app.use("/cms/messages", require("./routes/cms/message"));
+app.use("/cms/settings", require("./routes/cms/setting"));
+app.use("/cms/booking-services", require("./routes/cms/serviceItem"));
+app.use("/cms/staff", require("./routes/cms/staff"));
+app.use("/cms/booking-settings", require("./routes/cms/bookingSettings"));
+app.use("/cms/bookings", require("./routes/cms/booking"));
+app.use("/cms/admins", require("./routes/cms/adminAccount"));
+app.use("/cms/help", require("./routes/cms/help"));
+app.use("/cms", require("./routes/cms/analytics"));
+app.use("/cms/trash", require("./routes/cms/trash"));
+
+// 404：以上路由都沒對到。CMS 底下顯示簡單訊息，前台顯示品牌化 404 頁
+app.use("/cms", (req, res) => {
+    res.status(404).send(`
+        <div style="font-family:sans-serif;max-width:480px;margin:80px auto;text-align:center;">
+            <h2>找不到這個頁面</h2>
+            <p><a href="/cms">回到後台首頁</a></p>
+        </div>
+    `);
+});
+
+app.use(require("./controllers/homeController").notFoundCatchAll);
+
+// 統一錯誤處理（例如 multer 檔案類型/大小檢查失敗），避免直接把堆疊資訊丟給使用者看
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'server error' });
+
+    console.error(err);
+
+    if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).send(`
+            <div style="font-family:sans-serif;max-width:480px;margin:80px auto;text-align:center;">
+                <h2>檔案太大</h2>
+                <p>圖片請控制在 15MB 以內、影片請控制在 20MB 以內。</p>
+                <p>剛才填寫的內容尚未儲存，請返回上一頁重新選擇檔案後再送出一次。</p>
+                <button onclick="history.back()" style="padding:10px 24px;">返回上一頁</button>
+            </div>
+        `);
+    }
+
+    const message = process.env.NODE_ENV === "production" ? "發生錯誤，請稍後再試" : (err.message || "發生錯誤，請稍後再試");
+
+    res.status(500).send(`
+        <div style="font-family:sans-serif;max-width:480px;margin:80px auto;text-align:center;">
+            <h2>發生錯誤</h2>
+            <p>${message}</p>
+            <button onclick="history.back()" style="padding:10px 24px;">返回上一頁</button>
+        </div>
+    `);
+
 });
 
-init()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`LIGHTDU STUDIO server running at http://localhost:${PORT}`);
-      console.log(`Admin panel at http://localhost:${PORT}/admin/login`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to initialize database:', err);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+});

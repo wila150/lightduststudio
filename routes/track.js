@@ -1,55 +1,45 @@
-const express = require('express');
-const { db } = require('../db');
-const live = require('../lib/live');
-
+const express = require("express");
 const router = express.Router();
 
-const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|facebookexternalhit|curl|wget|python-requests/i;
-const lastInsert = new Map(); // visitorId -> timestamp, cheap flood guard
+const { DEFAULT_TENANT_ID } = require("../config/tenant");
+const liveHub = require("../services/liveHub");
+const analyticsService = require("../services/analyticsService");
+
+// 前台訪客追蹤（2026/10/03，移植自 lightdustudio）：匿名訪客 id（瀏覽器自己產生）＋網址，
+// 不存 IP、不存個資；機器人、後台、預覽、管理員自己的瀏覽器（前端會跳過）都不算
+const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|facebookexternalhit|line-poker|curl|wget|python-requests|render/i;
+const lastInsert = new Map(); // 同一個訪客短時間重複送出就忽略
 
 function cleanPath(raw) {
-  let p = String(raw || '').split(/[?#]/)[0];
-  if (!/^\/[\w\-./%]*$/.test(p) || p.length > 200) return null;
-  p = p.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
-  if (p.length > 1) p = p.replace(/\/+$/, '');
-  return p || '/';
+    let path = String(raw || "").split(/[?#]/)[0];
+    try { path = decodeURI(path); } catch (error) { return null; }
+    if (!path.startsWith("/") || path.length > 200 || path.startsWith("/cms") || path.startsWith("/api")) return null;
+    if (path.length > 1) path = path.replace(/\/+$/, "");
+    return path || "/";
 }
 
-router.post('/', async (req, res) => {
-  res.status(204).end();
-  const ua = req.get('user-agent') || '';
-  if (BOT_UA.test(ua)) return;
+router.post("/", (req, res) => {
 
-  const { vid, type, path: rawPath, id } = req.body || {};
-  if (typeof vid !== 'string' || !/^[\w-]{8,40}$/.test(vid)) return;
-  const path = cleanPath(rawPath);
-  if (!path) return;
+    res.status(204).end();
 
-  live.touchVisitor(vid, path);
-  if (type === 'ping') return;
+    if (BOT_UA.test(req.get("user-agent") || "")) return;
 
-  const now = Date.now();
-  const key = vid + ':' + type;
-  if (now - (lastInsert.get(key) || 0) < (type === 'album' ? 500 : 1500)) return;
-  lastInsert.set(key, now);
-  if (lastInsert.size > 5000) lastInsert.clear();
+    const { vid, type, path: rawPath } = req.body || {};
+    if (typeof vid !== "string" || !/^[\w-]{8,40}$/.test(vid)) return;
+    const path = cleanPath(rawPath);
+    if (!path) return;
 
-  try {
-    if (type === 'album') {
-      const projectId = Number(id);
-      const project = Number.isInteger(projectId)
-        ? await db.prepare('SELECT id, title FROM portfolio_projects WHERE id = ?').get(projectId)
-        : null;
-      if (!project) return;
-      await db.prepare("INSERT INTO page_views (visitor_id, kind, path, ref_id) VALUES (?, 'album', ?, ?)").run(vid, path, project.id);
-      live.broadcast('view', { kind: 'album', path, title: project.title, ts: now });
-    } else {
-      await db.prepare("INSERT INTO page_views (visitor_id, kind, path) VALUES (?, 'view', ?)").run(vid, path);
-      live.broadcast('view', { kind: 'view', path, ts: now });
-    }
-  } catch (err) {
-    console.warn('[track] failed to record view:', err.message);
-  }
+    liveHub.touchVisitor(vid, path);
+    if (type !== "view") return; // ping 只更新「目前在線」
+
+    const now = Date.now();
+    const key = vid + ":" + path;
+    if (now - (lastInsert.get(key) || 0) < 3000) return;
+    lastInsert.set(key, now);
+    if (lastInsert.size > 5000) lastInsert.clear();
+
+    analyticsService.recordView(DEFAULT_TENANT_ID, vid, path).catch(error => console.warn("[track]", error.message));
+
 });
 
 module.exports = router;

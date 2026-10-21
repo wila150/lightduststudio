@@ -1,6 +1,10 @@
 node_modules/
 .env
-data/
-uploads/
-*.log
+
+config/firebase-key.json
+
+.firebase/
+.firebaserc
+
 .DS_Store
+.claude/settings.local.json

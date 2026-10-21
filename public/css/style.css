@@ -1,0 +1,1466 @@
+/* style.css — 三套可切換樣板，靠 [data-theme] 換一整組 CSS 變數，其餘規則共用不用重寫 */
+
+:root, [data-theme="dark-artistic"] {
+  --bg: #0b1220;
+  --bg-alt: #111a2e;
+  --panel: #16202f;
+  --border: #253247;
+  --text: #e8ecf2;
+  --muted: #8a96ab;
+  --accent: #4a7fd1;
+  --accent-2: #6b9ee6;
+  --danger: #ff6b6b;
+  --header-bg: rgba(11, 18, 32, 0.85);
+  /* 預設值放在 :root，四套樣板都吃得到；CMS 的自訂標題/內文字體設定只有 [data-theme="bluedot"]
+     那組樣板的 h1-h6/body 規則有實際套用 var(--font-display)/var(--font-body)（見下面第 94、102 行），
+     其餘三套樣板完全沒有規則參照這兩個變數，所以之前不管上傳什麼字體都不會有任何變化 */
+  --font-display: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  --font-body: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+}
+
+[data-theme="light-minimal"] {
+  --bg: #ffffff;
+  --bg-alt: #f5f6f8;
+  --panel: #ffffff;
+  --border: #e4e7eb;
+  --text: #1b212b;
+  --muted: #6c7684;
+  --accent: #46586b;
+  --accent-2: #64768a;
+  --danger: #c0392b;
+  --header-bg: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="warm-luxury"] {
+  --bg: #f7f3ee;
+  --bg-alt: #efe8de;
+  --panel: #fffdfa;
+  --border: #e2d6c6;
+  --text: #362e26;
+  --muted: #8a7d6d;
+  --accent: #a97b4f;
+  --accent-2: #c49a6c;
+  --danger: #b0402f;
+  --header-bg: rgba(247, 243, 238, 0.88);
+}
+
+/* 藍點影像工作室配色：白底／淺灰讓攝影作品當主角，7 個冷灰藍→暖沙棕漸層色只用在介面元件
+   （導覽列/頁尾、按鈕、分隔線、淺色背景區塊），不套用在作品縮圖或內文文字上。
+   --sand-warm／--caption-bg 是這組主題額外多出來的兩個色票，只在下面幾個特定元件用到，
+   其餘規則不吃這兩個變數，跟其他樣板共用同一份 CSS 不會互相影響 */
+[data-theme="bluedot"] {
+  --bg: #ffffff;
+  --bg-alt: #b9cee3;
+  --panel: #ffffff;
+  --border: #a0b5ca;
+  --text: #2a2e33;
+  --muted: #6b7680;
+  --accent: #a89785;
+  --accent-2: #889db0;
+  --danger: #b0402f;
+  --header-bg: #708598;
+  --sand-warm: #d9c8b4;
+  --caption-bg: #c1af9b;
+}
+/* 導覽列／頁尾底色是深灰藍實色，文字要換成白色系才夠對比，下拉選單面板本身維持白底不受影響 */
+[data-theme="bluedot"] .logo,
+[data-theme="bluedot"] .site-nav a,
+[data-theme="bluedot"] .nav-dropdown > span {
+  color: rgba(255, 255, 255, .92);
+}
+[data-theme="bluedot"] .site-nav a:hover, [data-theme="bluedot"] .site-nav a.active { color: #fff; }
+[data-theme="bluedot"] .mobile-menu-toggle span { background: rgba(255, 255, 255, .92); }
+[data-theme="bluedot"] .nav-more-toggle span { background: rgba(255, 255, 255, .92); }
+[data-theme="bluedot"] .nav-dropdown-menu a { color: var(--text); }
+[data-theme="bluedot"] .site-footer { background: var(--header-bg); border-top-color: transparent; color: rgba(255, 255, 255, .8); }
+[data-theme="bluedot"] .site-footer a { color: #fff; }
+[data-theme="bluedot"] .footer-contact-label { color: rgba(255, 255, 255, .6); }
+/* 圖說文字底／次要按鈕（暖調）用沙棕色，跟白底作品縮圖有明確區隔又不搶焦點 */
+[data-theme="bluedot"] .gallery-item-title { background: var(--caption-bg); color: #2a2e33; border-top-color: transparent; }
+[data-theme="bluedot"] .btn-ghost:hover { background: var(--sand-warm); border-color: var(--sand-warm); color: #2a2e33; }
+
+/* ===================================================================
+   藍點版型：字體升級＋留白/字級微調為主，色彩只在極少數地方點綴一次，
+   不做滿版漸層色條或到處重複的裝飾線——避免搶過作品本身的風頭。
+   只掛在 [data-theme="bluedot"] 底下，不影響平台上其他業者選用的樣板（dark-artistic／
+   light-minimal／warm-luxury／custom），跟本檔案最上面三套樣板的既有作法一致。
+   =================================================================== */
+
+[data-theme="bluedot"] {
+  /* 中文放在 -apple-system/PingFang 前面：PingFang TC 最粗只到 Semibold（600），
+     系統合成的假粗體套用在中文字上會偏細，跟 Archivo 900 的英文粗體並排時明顯不一致；
+     Noto Sans TC 有真正的 700/900 字重，確保中英文粗細視覺一致 */
+  --font-display: 'Archivo', 'Noto Sans TC', -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-body: 'Inter', 'Noto Sans TC', -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  /* 只取頭尾兩色，中間不再混色，僅用於下面「唯一一處」的裝飾（hero 副標下方的小色條） */
+  --gradient-bluedot: linear-gradient(90deg, #708598, #a89785);
+}
+
+[data-theme="bluedot"] body { font-family: var(--font-body); }
+[data-theme="bluedot"] h1, [data-theme="bluedot"] h2, [data-theme="bluedot"] h3,
+[data-theme="bluedot"] h4, [data-theme="bluedot"] h5, [data-theme="bluedot"] h6,
+[data-theme="bluedot"] .logo, [data-theme="bluedot"] .site-nav a, [data-theme="bluedot"] .mobile-nav-links a,
+[data-theme="bluedot"] .eyebrow, [data-theme="bluedot"] .btn-primary, [data-theme="bluedot"] .btn-ghost,
+[data-theme="bluedot"] .footer-brand, [data-theme="bluedot"] .work-card h3, [data-theme="bluedot"] .feature-meta h3,
+[data-theme="bluedot"] .process-step-body h3, [data-theme="bluedot"] .video-carousel-caption,
+[data-theme="bluedot"] .featured-sidebar-slide-title, [data-theme="bluedot"] .featured-sidebar-item {
+  font-family: var(--font-display);
+}
+
+[data-theme="bluedot"] .logo { font-weight: 800; letter-spacing: .5px; }
+[data-theme="bluedot"] .site-nav a { font-weight: 700; letter-spacing: 2px; }
+
+/* Hero：字級加大、字距收緊即可帶出份量感，不需要額外的色塊或色條 */
+[data-theme="bluedot"] .hero-title {
+  font-size: clamp(40px, 6vw, 84px); line-height: 1.08; letter-spacing: -1.5px; font-weight: 800;
+}
+[data-theme="bluedot"] .hero-kicker { font-weight: 700; letter-spacing: 6px; position: relative; padding-bottom: 16px; }
+/* 唯一保留的裝飾色條：hero 小標籤下方一條極細的雙色漸層，其餘標題/卡片/按鈕一律不再重複這個裝飾 */
+[data-theme="bluedot"] .hero-kicker::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 36px; height: 2px; background: var(--gradient-bluedot); border-radius: 1px;
+}
+[data-theme="bluedot"] .hero-sub { font-size: 19px; }
+
+/* Section 標題：字級微幅加大、字重加重，不再加裝飾線，維持乾淨 */
+[data-theme="bluedot"] .section-head h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; letter-spacing: -.5px; }
+[data-theme="bluedot"] .section-head h2.collection-list-title { font-size: clamp(34px, 4.5vw, 54px); }
+[data-theme="bluedot"] .section-head h2.collection-list-title--large { font-size: clamp(38px, 5.5vw, 68px); }
+[data-theme="bluedot"] .section-head h2.collection-list-title--xlarge { font-size: clamp(42px, 6.5vw, 84px); }
+[data-theme="bluedot"] .eyebrow { font-weight: 700; letter-spacing: 4px; }
+[data-theme="bluedot"] .split-feature-text h2 { font-weight: 800; letter-spacing: -.5px; }
+
+/* 圖文分欄的圖片配一個柔和的漂浮陰影，讓圖片本身有份量，不用色塊也能有質感 */
+[data-theme="bluedot"] .split-feature-media img,
+[data-theme="bluedot"] .split-feature-media .img-style-polaroid-wrap {
+  box-shadow: 0 24px 48px -20px rgba(42, 46, 51, .28);
+}
+
+/* 按鈕：字重加重、字距加大即可，不額外加位移/陰影，維持跟其他樣板一致的沉穩 hover */
+[data-theme="bluedot"] .btn-primary, [data-theme="bluedot"] .btn-ghost {
+  font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; font-size: 13px;
+}
+
+/* 作品卡片：標題加大加粗即可，圖片本身的 hover 放大（見共用規則）已經足夠表達互動，不再疊加色條 */
+[data-theme="bluedot"] .work-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
+[data-theme="bluedot"] .work-card-badge { background: rgba(42, 46, 51, .72); }
+
+[data-theme="bluedot"] .process-step-number { font-size: 14px; font-weight: 700; letter-spacing: 1.5px; }
+
+/* 頁尾品牌名：大字重的招牌字，是整個版型裡唯一的「大字」用途之一，取代原本純文字版權宣告 */
+[data-theme="bluedot"] .footer-brand {
+  font-size: clamp(24px, 3vw, 32px); font-weight: 800; letter-spacing: -.3px; margin-bottom: 20px;
+  color: #fff;
+}
+
+/* 自訂配色的保底樣式（設定讀取失敗時），實際顏色由 views/layout.js 依照 settings 內容注入的 <style> 覆蓋 */
+[data-theme="custom"] {
+  --bg: #f4f1ec;
+  --bg-alt: #e8e2d6;
+  --panel: #fbfaf7;
+  --border: #d8cdb8;
+  --text: #33302a;
+  --muted: #8d8477;
+  --accent: #5b7a99;
+  --accent-2: #7f9db3;
+  --danger: #b5533f;
+  --header-bg: #f4f1ec;
+}
+
+/* 「自訂配色」目前套的是莫蘭迪低飽和撞色，卡片刻意不用純白，改用半透明白＋毛玻璃模糊融入暖色背景。
+   顏色選擇器只能存純色 hex，rgba／backdrop-filter 沒辦法透過那組設定存，所以這個質感直接寫死在這裡 */
+[data-theme="custom"] .site-header {
+  background: rgba(185, 212, 237, .75);
+}
+[data-theme="custom"] .feature-card,
+[data-theme="custom"] .gallery-item,
+[data-theme="custom"] .gallery-item-title,
+[data-theme="custom"] .video-block-cover,
+[data-theme="custom"] .form-card,
+[data-theme="custom"] .booking-option,
+[data-theme="custom"] .nav-dropdown-menu,
+[data-theme="custom"] .admin-row {
+  background: rgba(255, 255, 255, .6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(154, 182, 205, .4);
+  box-shadow: 0 8px 24px rgba(154, 182, 205, .35);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.7; }
+/* 手機上任何比螢幕寬的元素（超長單字標題、跑馬燈等）都不能把整頁撐寬變成可以左右滑動；
+   用 clip 不用 hidden，hidden 會讓 position: sticky 失效 */
+html, body { overflow-x: clip; }
+/* iOS Safari 對 html/body（也就是整個 viewport）上的 overflow-x 常常不理會，手指還是可以把整頁往左右拖
+   （回饋「手機左右版面偏移」），所以內容區塊自己再裁一次；clip 不會產生捲動容器，不影響 sticky 導覽列。
+   舊版 iOS（15 以前）不支援 clip，退回用 hidden */
+.site-main { overflow-x: clip; }
+@supports not (overflow-x: clip) {
+  .site-main { overflow-x: hidden; }
+}
+.section-head h2 { overflow-wrap: break-word; }
+.content-module h1, .content-module h2, .content-module h3,
+.content-module h4, .content-module h5, .content-module h6 { overflow-wrap: break-word; }
+/* 標題字體全樣板通用（不是只有 bluedot 那套才吃得到），CMS 設定的自訂標題字體才會在所有樣板上生效 */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+/* 捲動淡入：只有 JS 有跑起來（html.js-ready）才會先隱藏，JS 沒執行時內容照常顯示，不會被永久藏起來
+   --i 是 main.js 依照同批進場元素的順序設的 0~5，做出輕微錯落進場的效果；沒設就是 0，等同沒有延遲 */
+.js-ready .reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .7s ease, transform .7s ease;
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.js-ready .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Header */
+.site-header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--header-padding-y, 24px) 48px;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+/* .logo 固定 40px 高當導覽列排版的錨點；裡面的 <a> 用 flex 垂直置中，Logo 圖片留在文件流裡（不用 absolute），
+   這樣 <a> 的寬度就是圖片本身的寬度，整個 Logo 都是連結的點擊範圍。圖片可以設得比 40px 高（例如 110px），
+   多出來的部分會平均往上下溢出，但因為 .logo 高度固定，不會把 .site-header 撐高。
+   之前改成 absolute + transform 定位時，手機上點 Logo 沒有反應（連結範圍只剩 40px 寬的空盒子） */
+.logo { font-weight: 800; letter-spacing: 1px; color: var(--text); height: 40px; line-height: 0; }
+.logo a { display: flex; align-items: center; height: 100%; }
+.logo-image { flex: 0 0 auto; height: 40px; width: auto; max-width: none; display: block; }
+.site-nav { display: flex; align-items: center; }
+.site-nav a {
+  margin-left: 32px; font-size: 14px; letter-spacing: 2px; color: var(--muted);
+  text-transform: uppercase; transition: color .2s;
+}
+.site-nav a:hover, .site-nav a.active { color: var(--accent); }
+
+/* 導覽項目如果指到的頁面有填副標，滑鼠移過去文字往上滑一行，換成顯示副標 */
+.nav-link-swap { display: inline-block; overflow: hidden; height: 1.3em; vertical-align: top; }
+.nav-label-track { display: flex; flex-direction: column; transition: transform .25s ease; }
+.nav-label-main, .nav-label-alt { display: block; line-height: 1.3em; white-space: nowrap; }
+/* 觸發點是外層的 <a>（不管是不是有下拉選單的項目），不是 .nav-link-swap 自己，
+   這樣「有下拉選單、▾ 箭頭在 span 外面」的項目滑鼠移到箭頭上也一樣會觸發換字 */
+a:hover .nav-label-track { transform: translateY(-1.3em); }
+
+/* 漢堡選單按鈕：預設隱藏，小螢幕才出現（見底下 @media），取代 .site-nav */
+.mobile-menu-toggle {
+  display: none; flex-direction: column; justify-content: center; gap: 5px;
+  width: 40px; height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer;
+}
+.mobile-menu-toggle span { display: block; width: 100%; height: 2px; background: var(--text); }
+
+/* 「更多」改用漢堡圖示取代文字，觸發元素本身還是 span 不是連結，滑鼠移過去只展開下拉選單、不會跳頁 */
+.nav-more-toggle {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 4px;
+  width: 22px; height: 16px; cursor: pointer;
+}
+.nav-more-toggle span { display: block; height: 2px; background: var(--muted); transition: width .2s; }
+.nav-more-toggle span:nth-child(1) { width: 100%; }
+.nav-more-toggle span:nth-child(2) { width: 70%; }
+.nav-more-toggle span:nth-child(3) { width: 100%; }
+.nav-dropdown-more:hover .nav-more-toggle span,
+.nav-dropdown-more:focus-within .nav-more-toggle span { width: 100%; }
+
+/* 首頁有影片時：導覽列浮在影片上方且透明，捲動離開影片區塊後才變回實色（JS 依 hero-section 高度切換 is-scrolled，見 main.js） */
+.site-header.header-overlay {
+  position: fixed; left: 0; right: 0;
+  background: transparent; border-bottom-color: transparent; backdrop-filter: none;
+  transition: background .3s ease, backdrop-filter .3s ease, border-color .3s ease;
+}
+.site-header.header-overlay .logo,
+.site-header.header-overlay .site-nav a,
+.site-header.header-overlay .nav-dropdown > span {
+  color: #fff;
+}
+.site-header.header-overlay .mobile-menu-toggle span { background: #fff; }
+.site-header.header-overlay .nav-more-toggle span { background: #fff; }
+/* 下拉選單面板本身一直都有實色背景（跟捲動狀態無關），裡面的連結文字不能被上面那條白字規則蓋掉，否則變成白字疊白底 */
+.site-header.header-overlay .nav-dropdown .nav-dropdown-menu a {
+  color: var(--text);
+}
+.site-header.header-overlay .nav-dropdown .nav-dropdown-menu a:hover,
+.site-header.header-overlay .nav-dropdown .nav-dropdown-menu a.active {
+  color: var(--accent);
+}
+.site-header.header-overlay.is-scrolled {
+  background: var(--header-bg); border-bottom-color: var(--border); backdrop-filter: blur(10px);
+}
+.site-header.header-overlay.is-scrolled .logo,
+.site-header.header-overlay.is-scrolled .site-nav a,
+.site-header.header-overlay.is-scrolled .nav-dropdown > span {
+  color: var(--text);
+}
+.site-header.header-overlay.is-scrolled .site-nav a:hover,
+.site-header.header-overlay.is-scrolled .site-nav a.active {
+  color: var(--accent);
+}
+.site-header.header-overlay.is-scrolled .mobile-menu-toggle span { background: var(--text); }
+.site-header.header-overlay.is-scrolled .nav-more-toggle span { background: var(--muted); }
+
+/* 全螢幕手機導覽選單：跟桌機版導覽列完全分開的獨立畫面，不是同一份 nav 縮小。
+   版型（參考藍點影像工作室）：深色滿版底、左上 logo＋右上實色方塊關閉鈕，
+   選單項目置中、大字加寬字距，有子項目的在文字右邊放圓框 +，目前所在頁面用主色標示。
+   選單底色固定深色（不吃各樣板的 --bg），所以文字一律白色系，只有 hover/目前頁面/展開狀態用 --accent */
+.mobile-nav-overlay {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: #0f1420; color: #fff; flex-direction: column; overflow-y: auto;
+}
+.mobile-nav-overlay.is-open { display: flex; animation: mobileNavFade .25s ease; }
+@keyframes mobileNavFade { from { opacity: 0; } to { opacity: 1; } }
+.mobile-nav-bar {
+  position: sticky; top: 0; z-index: 2; flex-shrink: 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 0 0 0 28px; background: #0f1420;
+}
+/* 選單蓋住整個頁面時，原本點 logo 回首頁的路徑被擋住，標題列另外放一份 logo */
+.mobile-nav-logo {
+  font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; align-items: center;
+  min-height: 64px; padding: 12px 0;
+}
+/* inline style 帶的是 CMS 設的 Logo 高度（可到 160px），標題列放不下，強制縮小（!important 才蓋得過 inline style）；
+   深色底上 logo 圖反白顯示 */
+.mobile-nav-logo img { height: 36px !important; width: auto; display: block; filter: brightness(0) invert(1); }
+.mobile-nav-close {
+  width: 64px; height: 64px; border: 0; background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;
+}
+.mobile-nav-close svg { width: 30px; height: 30px; stroke-width: 1.6; }
+.mobile-nav-links {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 8px; padding: 40px 24px 48px;
+}
+.mobile-nav-group { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.mobile-nav-group-head { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.mobile-nav-group-head > a {
+  padding: 18px 0; font-size: clamp(24px, 7vw, 32px); font-weight: 300; letter-spacing: .18em;
+  text-transform: uppercase; color: rgba(255, 255, 255, .92); text-align: center;
+  margin-right: -.18em; /* 抵銷最後一個字後面多出來的字距，讓文字視覺上真的置中 */
+}
+.mobile-nav-links a { transition: color .2s; }
+.mobile-nav-links a:hover, .mobile-nav-links a:active, .mobile-nav-links a.is-current { color: var(--accent); }
+/* 子項目（分類／子頁面）預設收合，點文字右邊圓框 + 才展開；主連結本身還是可以直接點進總覽頁 */
+.mobile-nav-toggle {
+  width: 36px; height: 36px; border: 1.5px solid rgba(255, 255, 255, .7); border-radius: 50%;
+  background: none; color: #fff; font-size: 22px; font-weight: 400; line-height: 1;
+  cursor: pointer; padding: 0 0 2px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s ease, color .2s, border-color .2s;
+}
+.mobile-nav-group.is-open .mobile-nav-toggle { transform: rotate(45deg); color: var(--accent); border-color: var(--accent); }
+.mobile-nav-children { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 4px 0 20px; }
+.mobile-nav-group.is-open .mobile-nav-children { display: flex; }
+.mobile-nav-child {
+  font-size: 15px !important; font-weight: 400 !important; letter-spacing: 2px !important;
+  text-transform: none !important; color: rgba(255, 255, 255, .6) !important; text-align: center;
+  display: flex !important; flex-direction: column; align-items: center; gap: 4px;
+}
+.mobile-nav-child:hover, .mobile-nav-child:active, .mobile-nav-child.is-current { color: var(--accent) !important; }
+/* 分類的英文名稱，讓「動態分類」清單不是只有中文標籤，一眼就能對應到服務項目 */
+.mobile-nav-child-sub {
+  font-size: 11px !important; font-weight: 400 !important; letter-spacing: .5px !important;
+  text-transform: uppercase !important; color: rgba(255, 255, 255, .6) !important; opacity: .7;
+}
+.mobile-nav-social { padding: 0 24px 48px; gap: 28px; justify-content: center; margin-top: 0; }
+.mobile-nav-social a { color: rgba(255, 255, 255, .7); }
+.mobile-nav-social a:hover { color: var(--accent); }
+
+/* 平板（iPad 直向 768～834、橫向 1024～1180）寬度塞不下五個選單項目，最右邊的 CONTACT US 會被切掉
+   （2026/10/03 回饋：平板版面跑掉），1100 以下一律用漢堡選單 */
+@media (max-width: 1100px) {
+  .site-nav { display: none; }
+  .mobile-menu-toggle { display: flex; }
+}
+
+/* 麵包屑：首頁 | 目前頁面 */
+/* 麵包屑再往下移到頁面大標左側的高度（2026/09/30 回饋），下方第一個 section 的上留白扣回同樣距離，大標位置不變 */
+.breadcrumb { padding: 128px 48px 0; font-size: 13px; color: var(--muted); }
+.breadcrumb + .site-main > .section:first-child,
+.breadcrumb + .site-main > .page-bg-wrap:first-child > .section { padding-top: 8px; }
+@media (max-width: 640px) {
+  .breadcrumb { padding: 28px 20px 10px; }
+  .breadcrumb + .site-main > .section:first-child,
+  .breadcrumb + .site-main > .page-bg-wrap:first-child > .section { padding-top: 40px; }
+}
+.breadcrumb a { color: var(--muted); }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb-item + .breadcrumb-item::before { content: "|"; margin: 0 8px; opacity: .7; }
+.breadcrumb-item[hidden] { display: none; }
+/* 清單頁（FILM／PHOTOGRAPH）寬螢幕：麵包屑移到大標左側、跟大標同高（2026/10/01 回饋圈選的位置）。
+   用 transform 往下移，不佔版面，大標位置不變；限制寬度避免跟置中的大標重疊，太長就換行 */
+@media (min-width: 1200px) {
+  .breadcrumb--side { position: relative; z-index: 2; }
+  .breadcrumb--side .breadcrumb-inner { transform: translateY(145px); max-width: 300px; line-height: 1.8; }
+}
+
+/* 作品內頁上方的「← 回到分類」：只在手機版顯示，不用滑到最底下才能回上一頁；
+   桌機上方已經有麵包屑可以點，維持只在頁尾顯示 */
+.item-back--top { display: none; }
+@media (max-width: 640px) {
+  .item-back--top { display: block; text-align: left; margin: 0 0 20px; }
+}
+
+/* 導覽列 hover 下拉子選單（自訂頁面） */
+.site-nav .nav-dropdown { position: relative; margin-left: 32px; }
+.site-nav .nav-dropdown > a, .site-nav .nav-dropdown > span { margin-left: 0; cursor: pointer; }
+.nav-dropdown-menu {
+  position: absolute; top: 100%; right: 0; margin-top: 18px;
+  min-width: 220px; padding: 10px 0;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.18);
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .2s, transform .2s, visibility .2s;
+  z-index: 20;
+}
+.nav-dropdown:hover .nav-dropdown-menu, .nav-dropdown:focus-within .nav-dropdown-menu {
+  opacity: 1; visibility: visible; transform: translateY(0);
+}
+.nav-dropdown-menu a {
+  display: block; margin-left: 0 !important; padding: 10px 20px;
+  font-size: 14px; letter-spacing: 1px; text-transform: none; white-space: nowrap;
+  color: var(--text);
+}
+.nav-dropdown-menu a:hover { color: var(--accent); background: var(--bg-alt); }
+/* 「更多」選單維持展開/不轉跳頁面的行為，只是面板改成霧面半透明，疊在照片背景上比整塊實色白底輕盈 */
+.nav-dropdown-more .nav-dropdown-menu {
+  background: rgba(255, 255, 255, .6);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, .4);
+}
+.nav-dropdown-more .nav-dropdown-menu a:hover { background: rgba(255, 255, 255, .5); }
+/* 分類的英文名稱放在中文標籤下面一行，跟手機版 .mobile-nav-child-sub 對應同一份資料 */
+.nav-dropdown-sub {
+  display: block; font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--muted); opacity: .7; margin-top: 2px; white-space: nowrap;
+}
+
+/* Hero：留白加大，讓相片本身當主角 */
+.hero {
+  padding: 160px 40px 120px;
+  background: linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 65%);
+  text-align: center;
+}
+.hero.small { padding: 100px 40px 60px; }
+
+/* 全螢幕背景影片：撐滿第一screen（100vh），深色遮罩維持文字可讀性（跟主題無關，因為文字疊在照片/影片上） */
+.hero.has-video {
+  position: relative; overflow: hidden; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: #14181f;
+}
+.hero-logo { max-width: var(--hero-logo-size, 220px); width: auto; height: auto; margin: 0 auto 24px; display: block; transition: filter .3s ease; }
+/* 滑鼠移過去反藍：invert 系列 filter 組合，不管原本 logo 是黑是白都能大致轉成同一種淺藍色 */
+.hero-logo:hover { filter: invert(58%) sepia(61%) saturate(1704%) hue-rotate(199deg) brightness(101%) contrast(96%); }
+.hero-scroll-cue {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 2; color: #fff; font-size: 22px; opacity: .75;
+  animation: hero-scroll-bounce 1.8s ease-in-out infinite;
+}
+.hero-scroll-cue:hover { opacity: 1; }
+@keyframes hero-scroll-bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 8px); }
+}
+.hero-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0;
+}
+/* YouTube/Vimeo 嵌入版：iframe 沒有 object-fit，用固定比例 + 置中溢出的方式做出鋪滿效果 */
+.hero-video-embed {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: hidden; z-index: 0; pointer-events: none;
+}
+.hero-video-embed iframe {
+  position: absolute; top: 50%; left: 50%;
+  width: 100vw; height: 56.25vw;
+  min-height: 100%; min-width: 177.78vh;
+  /* 放大 1.2 倍：YouTube 播放器上緣的影片標題列、角落按鈕會落在畫面外（平板直向特別明顯） */
+  transform: translate(-50%, -50%) scale(1.2); border: 0;
+}
+.hero.has-video::before {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: rgba(16, 19, 24, 0.5);
+}
+.hero.has-video .hero-inner { position: relative; z-index: 2; }
+.hero.has-video .hero-kicker { color: #cfd8e3; }
+.hero.has-video .hero-title, .hero.has-video .hero-sub { color: #fff; }
+.hero-inner { max-width: 900px; margin: 0 auto; }
+.hero img#live-heroImage { max-width: 880px !important; border-radius: 4px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16); }
+.hero-kicker { letter-spacing: 6px; color: var(--accent); font-size: 13px; margin: 0 0 24px; text-transform: uppercase; }
+.hero-title { font-size: 64px; line-height: 1.15; margin: 0 0 28px; font-weight: 800; letter-spacing: -1px; }
+.hero-sub { color: var(--muted); font-size: 19px; max-width: 620px; margin: 0 auto 36px; }
+
+/* Buttons */
+.btn-primary, .btn-ghost, .btn-danger {
+  display: inline-block; padding: 14px 30px; border-radius: 999px;
+  font-weight: 600; letter-spacing: 1px; cursor: pointer; border: none;
+  transition: transform .15s, background .15s, border-color .15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { transform: translateY(-2px); background: var(--accent-2); }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: var(--danger); color: white; padding: 8px 14px; font-size: 13px; }
+
+/* Section：段落間留白拉大 */
+.site-main { min-height: calc(100vh - 200px); }
+
+/* 自訂頁面/首頁的內容模組，每一種模組類型渲染出來的標籤都不一樣（div/ul/section...），
+   統一包一層 .content-module 才能在這裡集中控制模組跟模組之間的間距，不用每種模組各自調 margin */
+.content-module { margin-bottom: 56px; }
+.content-module:last-child { margin-bottom: 0; }
+/* 模組編輯畫面的「區塊底色」選項：滿版換色，內距用跟 .section 一樣的算法（跟著 1200px 內容欄對齊），
+   做出色塊分段的效果，同樣是靠「negative margin 撐滿 100vw」跳出 .section 的寬度限制 */
+.content-module--alt, .content-module--custom {
+  width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  padding: 64px max(40px, calc((100vw - 1200px) / 2 + 40px));
+  box-sizing: border-box;
+}
+.content-module--alt { background: var(--bg-alt); }
+@media (max-width: 640px) {
+  .content-module--alt, .content-module--custom { padding: 48px 20px; }
+}
+
+/* 文字模組（Quill 編輯器）選的字級，編輯器裡看得到，但沒有這幾條規則前台不會生效 */
+.ql-size-small { font-size: 0.75em; }
+.ql-size-large { font-size: 1.5em; }
+.ql-size-huge { font-size: 2.5em; }
+.section { max-width: 1200px; margin: 0 auto; padding: 100px 40px; }
+.section.narrow { max-width: 560px; }
+.section-head { text-align: center; margin-bottom: 56px; }
+.eyebrow { color: var(--accent); letter-spacing: 4px; font-size: 13px; text-transform: uppercase; }
+/* 作品詳情頁的分類標籤／拍攝類型（照片／影片） */
+.item-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+.item-tag {
+  display: inline-block; padding: 5px 14px; border: 1px solid var(--border); border-radius: 999px;
+  font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+}
+.item-tag-category { color: var(--accent); border-color: var(--accent); }
+.section-head h2 { font-size: 38px; margin: 10px 0 0; font-weight: 800; letter-spacing: -.5px; }
+
+/* 分類清單頁（作品集/文章）的標題比一般 section 標題再大一點，副標是選填的說明文字 */
+/* 要蓋過上面 .section-head h2 的字級設定，選擇器要至少一樣具體（class+element），
+   不然單純掛 class 的規則specificity 比較低，永遠贏不了 .section-head h2 */
+.section-head h2.collection-list-title { font-size: 52px; }
+.section-head h2.collection-list-title--small { font-size: 38px; }
+.section-head h2.collection-list-title--medium { font-size: 52px; }
+.section-head h2.collection-list-title--large { font-size: 68px; }
+.section-head h2.collection-list-title--xlarge { font-size: 88px; }
+.collection-list-subtitle { color: var(--muted); font-size: 22px; max-width: 680px; margin: 16px auto 0; }
+
+/* 作品集分類篩選標籤：純文字連結風格，不用外框/底色的藥丸按鈕 */
+.works-filter { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin: -24px 0 40px; }
+.works-filter-btn {
+  padding: 4px 0; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+  background: transparent; color: var(--muted); font-size: 15px; letter-spacing: .5px; cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.works-filter-btn:hover { color: var(--accent); }
+.works-filter-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+/* 子分類的篩選鈕：字小一點、淡一點，跟上層分類做出區隔 */
+.works-filter-btn-sub { padding: 3px 0; font-size: 13px; opacity: .8; }
+/* 選到的分類沒有作品時的提示 */
+.works-empty { text-align: center; color: var(--muted); margin: 8px 0 0; }
+
+/* Feature / works grid */
+.feature-grid, .works-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+/* 不同類型的模組區塊（特色卡片、服務流程、時間軸等）各自成一塊時，彼此保留間距，不要黏在一起 */
+.feature-grid + .feature-grid,
+.feature-grid + .process-steps,
+.feature-grid + .timeline,
+.process-steps + .feature-grid,
+.process-steps + .process-steps,
+.process-steps + .timeline,
+.timeline + .feature-grid,
+.timeline + .process-steps,
+.timeline + .timeline {
+  margin-top: 32px;
+}
+
+/* 窄版容器（例如自訂頁面）放不下 300px 最小寬度，改用等分寬度讓同一批卡片橫排在一起 */
+.section.narrow .feature-grid {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 16px;
+}
+.section.narrow .feature-grid .feature-card { flex: 1 1 0; min-width: 140px; }
+@media (max-width: 480px) {
+  .section.narrow .feature-grid { flex-wrap: wrap; overflow-x: visible; }
+  .section.narrow .feature-grid .feature-card { flex: 1 1 100%; }
+}
+.feature-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; margin: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, .14); border-color: var(--accent); }
+.feature-card img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+
+/* 作品卡片：不用白底卡片框，圖片直接融入頁面背景，文字置中
+   圖片包一層 .work-card-media 才能裁切 hover 放大的效果，並讓「影片」徽章有位置可以貼 */
+.work-card { margin: 0; transition: transform .2s; display: block; }
+.work-card:hover { transform: translateY(-4px); }
+.work-card-media {
+  position: relative; overflow: hidden; border-radius: 6px; background: var(--bg-alt);
+}
+/* 分類子頁作品縮圖比例固定：照片 3:2、影片 4:3（見 views/collectionList.js 的 data-media-type），
+   避免每張圖原始比例不一造成的網格參差不齊 */
+.work-card-media img { aspect-ratio: 3/2; object-fit: cover; width: 100%; display: block; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.work-card[data-media-type="video"] .work-card-media img { aspect-ratio: 4/3; }
+/* 方格排版的影片清單（動態攝影）：YouTube 縮圖 16:9、影片封面 4:3、偶爾夾雜照片，全部統一 16:9，每排才會等高對齊 */
+.works-grid[data-layout="grid"]:has([data-media-type="video"], [data-media-type="player"]) .work-card-media img { aspect-ratio: 16/9; }
+.work-card:hover .work-card-media img { transform: scale(1.06); }
+/* 用 YouTube 影片縮圖當封面的卡片：16:9 跟影片同比例（參考樂圖，不加播放鈕） */
+.work-card[data-media-type="player"] .work-card-media img { aspect-ratio: 16/9; }
+/* 直式短影音的縮圖也用 9:16；YouTube 縮圖是橫的、直式畫面在正中間，置中裁切剛好只留影片本身。
+   選擇器要比上面 .works-grid[data-layout="grid"]:has(...) 那條 16:9 更具體才蓋得過 */
+.works-grid .work-card[data-video-ratio="portrait"] .work-card-media img { aspect-ratio: 3/4; object-position: center center; }
+/* YouTube 橫式縮圖裡的直式畫面：放大 1.25 倍，兩側的模糊背景就被裁掉（9:16、4:5 的短影音都適用） */
+.works-grid .work-card[data-video-ratio="portrait"] .work-card-media img.yt-portrait-thumb { transform: scale(1.25); }
+.works-grid .work-card[data-video-ratio="portrait"]:hover .work-card-media img.yt-portrait-thumb { transform: scale(1.32); }
+
+/* 作品內頁：連結是影片時直接嵌入播放器（參考樂圖），取代「前往連結」按鈕 */
+.item-video-player { max-width: 1100px; margin: 0 auto 40px; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #000; }
+.item-video-player iframe { width: 100%; height: 100%; border: 0; display: block; }
+/* 直式短影音（後台「影片比例」選 9:16）：播放器改直式，高度不超過一個螢幕，置中 */
+.item-video-player--portrait { aspect-ratio: 9/16; width: min(100%, calc(80vh * 9 / 16)); max-width: 460px; }
+.item-video-player--portrait img { object-fit: cover; }
+/* 點擊前的封面（見 main.js）：跟播放器同尺寸，播放鈕沿用 .video-block-play 的樣式 */
+.item-video-facade {
+  position: relative; display: block; width: 100%; padding: 0; border: 0; cursor: pointer;
+  font: inherit; color: inherit;
+}
+.item-video-facade img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+.item-video-facade:hover img { transform: scale(1.03); }
+.item-video-facade:hover .video-block-play { background: rgba(10, 12, 16, 0.75); transform: translate(-50%, -50%) scale(1.08); }
+.item-video-facade .video-block-play { width: 80px; height: 80px; font-size: 26px; }
+.work-card-badge {
+  position: absolute; top: 14px; left: 14px; padding: 4px 10px; border-radius: 999px;
+  background: rgba(10, 12, 16, .55); color: #fff; font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; backdrop-filter: blur(4px);
+}
+.feature-meta { padding: 20px 22px; }
+.work-card figcaption { padding: 16px 4px 0; text-align: center; }
+.feature-meta h3, .work-card h3 { margin: 0 0 8px; font-size: 19px; }
+/* 作品標題可以在後台自己換行（分行顯示），換行照原樣呈現；沒換行的長標題讓瀏覽器平均斷行，不要最後一行只剩一兩個字 */
+.work-card h3, .item-title, .video-carousel-caption, .carousel-caption { white-space: pre-line; text-wrap: balance; }
+/* 作品卡片標題一律保留兩行高度：一行和兩行的標題混在一起時，下一排卡片的起點才會對齊（回饋「文字行數不同造成排版不平整」） */
+.work-card h3 { line-height: 1.5; min-height: 3em; }
+.work-card p { margin: 0; color: var(--muted); font-size: 15px; }
+/* 卡片描述現在是編輯器輸出的 HTML（可能自帶 <p>），外層改用 div 包，避免 <p> 包 <p> 的無效巢狀標籤 */
+.feature-description { margin: 6px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.feature-description p { margin: 0 0 8px; }
+.feature-description p:last-child { margin-bottom: 0; }
+
+/* 作品集列表：Masonry 石版排版（依圖片原始比例排列，不裁切） */
+.works-grid[data-layout="masonry"] {
+  display: block; column-count: 3; column-gap: 32px;
+}
+/* 間距用 padding 不用 margin：Safari 的多欄排版會把上一欄最後一張的 margin-bottom 帶到下一欄頂端，
+   造成第二、三欄整欄往下掉一截、每次載入/每台裝置對齊都不一樣（回饋「照片有些對齊有些沒對齊」）。
+   padding 屬於元素本身，不會被搬到別欄 */
+.works-grid[data-layout="masonry"] .work-card {
+  break-inside: avoid; margin-bottom: 0; padding-bottom: 32px; display: block;
+}
+/* 瀑布流封面照原始比例完整顯示：直式照片不能被裁切（回饋「直式都會被裁切到」），也不墊底色框 */
+.works-grid[data-layout="masonry"] .work-card-media { background: none; }
+.works-grid[data-layout="masonry"] .work-card-media img { aspect-ratio: auto; height: auto; object-fit: initial; }
+@media (max-width: 900px) {
+  .works-grid[data-layout="masonry"] { column-count: 2; }
+}
+@media (max-width: 600px) {
+  .works-grid[data-layout="masonry"] { column-count: 1; }
+}
+
+/* 服務項目宮格：照片卡片，預設 3 欄，項目數不是 3 的倍數時最後一排自然靠左，不用特別處理。
+   customPage.js 內容頁預設套 .section.narrow（給純文字頁用的 560px 窄欄），照片宮格放進去會被
+   擠成一小條，這裡放寬回一般內容頁的滿版寬度，卡片才有足夠空間顯示 */
+.section.narrow:has(.service-grid) { max-width: 1200px; }
+.service-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px 40px; margin: 24px 0;
+}
+.service-grid-item { display: block; text-decoration: none; color: inherit; }
+.service-grid-media {
+  aspect-ratio: 4/3; overflow: hidden; border-radius: 4px; margin-bottom: 16px; background: var(--bg-alt);
+}
+.service-grid-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+.service-grid-item:hover .service-grid-media img { transform: scale(1.06); }
+.service-grid-label {
+  display: block; text-align: center; font-size: 17px; font-weight: 700; letter-spacing: 1px;
+  transition: color .2s;
+}
+.service-grid-item:hover .service-grid-label { color: var(--service-accent, var(--accent)); }
+@media (max-width: 720px) {
+  .service-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+}
+@media (max-width: 460px) {
+  .service-grid { grid-template-columns: 1fr; }
+}
+
+/* 圖文分欄模組：大標題+說明文字配側邊圖片（可放多張並排），可切左右、可選深色強調背景 */
+.split-feature {
+  display: grid; grid-template-columns: var(--split-cols, 1fr 1fr); gap: 48px; align-items: center;
+  margin: 0 0 32px;
+}
+.split-feature-reverse { direction: rtl; }
+.split-feature-reverse > * { direction: ltr; }
+.split-feature-text h2 { font-size: 34px; font-weight: 800; letter-spacing: -.5px; margin: 0 0 18px; }
+/* font-size 不寫死，讓段落跟著 .split-feature-copy 外層那個依「內文大小」設定算出來的 inline font-size 走 */
+.split-feature-copy { color: var(--muted); line-height: 1.8; }
+.split-feature-copy p { margin: 0 0 10px; }
+.split-feature-copy p:last-child { margin-bottom: 0; }
+.split-feature-media { display: flex; gap: 16px; align-items: flex-start; }
+/* 預設（沒選圖片比例）：不強制固定比例裁切，直式、橫式照片都照原始比例完整顯示，兩張並排時用
+   flex-start 對齊頂端，比例不同也不會互相拉伸變形（見 .works-grid[data-layout="masonry"] 同樣的處理原則） */
+.split-feature-media img { flex: 1 1 0; min-width: 0; width: 100%; height: auto; border-radius: var(--split-radius, 10px); display: block; }
+@media (max-width: 480px) {
+  .split-feature-media { flex-wrap: wrap; }
+  .split-feature-media img { flex: 1 1 100%; }
+}
+
+/* 有選圖片比例（data-ratio）：多張圖片統一裁成同一個比例的框，用 object-fit:contain
+   讓完整照片置中顯示（不裁切人物），比例不同的原圖會在框內留白，而不是硬拉伸變形 */
+.split-feature-media[data-ratio] { align-items: stretch; }
+.split-feature-media[data-ratio] img {
+  aspect-ratio: var(--split-img-ratio, 1/1); height: auto; object-fit: contain;
+}
+.split-feature-media[data-ratio] .img-style-polaroid-wrap img {
+  aspect-ratio: var(--split-img-ratio, 1/1); object-fit: contain;
+}
+/* 留白處預設透明（看不到框），後台勾「顯示圖片底框」才補上底色；沒底框時陰影也拿掉，不然陰影會把框的輪廓描出來 */
+.split-feature-media[data-ratio][data-frame] img { background: var(--bg-alt); }
+.split-feature-media[data-ratio]:not([data-frame]) img { box-shadow: none !important; }
+
+/* 圖片風格：單張圖片模組、圖文分欄的圖片共用這幾種（見 views/moduleRenderer.js 的 renderStyledImage） */
+img.img-style-modern { border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, .14); }
+img.img-style-organic { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+img.img-style-mono { filter: grayscale(1); border-radius: 4px; transition: filter .4s ease; }
+img.img-style-mono:hover { filter: grayscale(0); }
+
+/* 內容頁放了黑白橫幅照片時（見服務項目子頁），代表這頁是圖片為主的版面，不是純文字頁，
+   放寬回一般內容寬度，標題也換成強調色，跟純文字頁（關於我／聯絡我）的窄欄版型做出區隔 */
+.section.narrow:has(.img-style-mono) { max-width: 1200px; }
+/* 內容頁（例如關於我）放了圖文分欄或服務流程：560px 窄欄會把左右分欄、4 格流程擠成一條，放寬版面；
+   純文字段落維持在好讀的行寬，不跟著拉到滿版 */
+.section.narrow:has(.split-feature), .section.narrow:has(.process-steps) { max-width: 1040px; }
+.section.narrow:has(.split-feature) .text-block, .section.narrow:has(.process-steps) .text-block { max-width: 720px; }
+.section:has(.img-style-mono) .collection-list-title { color: var(--accent); }
+.section:has(.img-style-mono) .collection-list-subtitle { color: var(--text); font-weight: 700; margin-top: 6px; }
+.img-style-polaroid-wrap {
+  display: inline-block; background: #fff; padding: 14px 14px 44px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .18);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.img-style-polaroid-wrap img { display: block; width: 100%; height: auto; }
+.img-style-polaroid-wrap:hover { transform: scale(1.03) rotate(-1deg); box-shadow: 0 16px 34px rgba(0, 0, 0, .24); }
+
+/* 圖文分欄的圖片欄是 flex 排列，拍立得外框是額外包一層 div，不是 img 本身，要另外給 flex 屬性才能跟其他圖片並排一致 */
+.split-feature-media .img-style-polaroid-wrap { flex: 1 1 0; min-width: 0; }
+@media (max-width: 480px) {
+  .split-feature-media .img-style-polaroid-wrap { flex: 1 1 100%; }
+}
+.split-feature-dark {
+  background: var(--bg-alt); border: 1px solid var(--border); border-radius: 14px;
+  padding: 56px; margin: 0 0 32px;
+}
+@media (max-width: 720px) {
+  .split-feature { grid-template-columns: 1fr; gap: 24px; }
+  .split-feature-reverse { direction: ltr; }
+  .split-feature-media { order: -1; }
+  .split-feature-dark { padding: 28px; }
+}
+
+/* 作品卡片：hover 顯示說明文字（疊在照片上，固定用深色遮罩+白字，跟主題無關） */
+.work-card.gallery-card { position: relative; display: block; }
+.work-card.gallery-card .card-overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 22px; background: linear-gradient(180deg, transparent 45%, rgba(10, 12, 16, 0.88) 100%);
+  opacity: 0; transition: opacity .25s;
+}
+.work-card.gallery-card:hover .card-overlay { opacity: 1; }
+.work-card.gallery-card .card-overlay h3 { margin: 0 0 6px; font-size: 19px; color: #fff; min-height: 0; }
+.work-card.gallery-card .card-overlay p { margin: 0; color: rgba(255,255,255,.75); font-size: 15px; }
+
+/* 相簿頁：縮圖 hover 淡出說明文字 + 點擊放大 */
+.gallery-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px; margin-top: 24px;
+}
+.gallery-grid[data-layout="masonry"] {
+  display: block; column-count: 3; column-gap: 20px;
+}
+/* 同 .works-grid 的 Safari 多欄 margin 問題：間距改用 padding。項目本身因此不能再有底色／邊框／圓角裁切
+   （不然 padding 那段會露出來），圓角跟 hover 放大的裁切改由圖片自己處理，說明遮罩也扣掉底部間距 */
+.gallery-grid[data-layout="masonry"] .gallery-item {
+  break-inside: avoid; margin-bottom: 0; padding-bottom: 20px;
+  background: none; border: 0; border-radius: 0; overflow: visible;
+}
+.gallery-grid[data-layout="masonry"] .gallery-item img { aspect-ratio: auto; border-radius: 6px; }
+.gallery-grid[data-layout="masonry"] .gallery-item:hover img { transform: none; }
+.gallery-grid[data-layout="masonry"] .gallery-caption { bottom: 20px; border-radius: 6px; }
+@media (max-width: 900px) {
+  .gallery-grid[data-layout="masonry"] { column-count: 2; }
+}
+@media (max-width: 600px) {
+  .gallery-grid[data-layout="masonry"] { column-count: 1; }
+}
+.gallery-item {
+  position: relative; border-radius: 6px; overflow: hidden; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--border);
+}
+/* object-position 固定靠上：grid 模式仍然是固定 4:3 裁切，直式人像預設從正中央裁切常常整個頭被切掉，
+   靠上對齊至少保住臉部；真的不想裁切就把該作品的相簿排版切成 masonry（見上面 data-layout="masonry"） */
+.gallery-item img { aspect-ratio: 4/3; object-fit: cover; object-position: top center; width: 100%; transition: transform .3s; }
+.gallery-item:hover img { transform: scale(1.05); }
+.gallery-item.gallery-item-video img { aspect-ratio: 4/3; }
+.gallery-caption {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 12, 16, 0.45); color: #fff; font-size: 14px; letter-spacing: 1px;
+  opacity: 0; transition: opacity .25s;
+}
+.gallery-item:hover .gallery-caption { opacity: 1; }
+.gallery-item-title {
+  padding: 10px 12px; font-size: 13px; color: var(--text); background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+/* 相簿：輪播 */
+/* 不上底色：照片比例跟 16:9 框不同時，留邊的地方會像照片外多一圈邊框（2026/10/01 回饋：作品輪播都不要邊框） */
+.gallery-carousel {
+  position: relative; margin-top: 24px; border-radius: 8px; overflow: hidden;
+  aspect-ratio: 16/9; background: transparent;
+}
+.gallery-carousel.home-carousel {
+  margin: 0; border-radius: 0; aspect-ratio: 21/9; max-height: 70vh;
+}
+.gallery-carousel-track { position: relative; width: 100%; height: 100%; }
+.gallery-carousel .carousel-slide {
+  position: absolute; inset: 0; margin: 0; border: none; border-radius: 0;
+  opacity: 0; transform: translateX(120%) scale(.7); cursor: pointer;
+  transition: transform .5s ease, opacity .5s ease; pointer-events: none;
+}
+.gallery-carousel .carousel-slide.active {
+  opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; z-index: 3; cursor: default;
+}
+.gallery-carousel .carousel-slide { background: transparent; }
+.gallery-carousel .carousel-slide img { width: 100%; height: 100%; aspect-ratio: auto; }
+.gallery-carousel .carousel-slide .gallery-caption { display: none; }
+.gallery-carousel .carousel-slide .gallery-item-title { display: none; }
+.carousel-caption {
+  margin: 16px 0 0; text-align: center; font-size: 16px; font-weight: 600;
+  color: var(--text); letter-spacing: .5px;
+}
+.carousel-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.4);
+  background: rgba(10, 12, 16, 0.4); color: #fff; font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background .2s;
+}
+.carousel-arrow:hover { background: rgba(10, 12, 16, 0.7); }
+.carousel-prev { left: 16px; }
+.carousel-next { right: 16px; }
+.carousel-dots {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 2;
+  display: flex; gap: 8px;
+}
+.carousel-dot {
+  width: 9px; height: 9px; border-radius: 50%; border: none; background: rgba(255,255,255,.45);
+  cursor: pointer; padding: 0; transition: background .2s, transform .2s;
+}
+.carousel-dot.active { background: #fff; transform: scale(1.2); }
+
+/* 精選作品側邊選單：左側固定列出作品標題，點一下切換右側大圖/影片（不是頁面跳轉，JS 在 main.js），
+   跟上面的全螢幕輪播是各自獨立的區塊，兩個可以同時開 */
+.featured-sidebar-section {
+  display: flex; min-height: 100vh; margin: 0 0 32px; background: var(--bg-alt);
+}
+.featured-sidebar-list {
+  flex: 0 0 320px; display: flex; flex-direction: column; justify-content: center;
+  gap: 2px; padding: 60px 48px;
+}
+.featured-sidebar-item {
+  position: relative;
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  padding: 16px 0 16px 22px; font-size: 17px; font-weight: 600; letter-spacing: .3px; color: var(--muted);
+  cursor: pointer; font-family: inherit; transition: color .25s;
+}
+.featured-sidebar-item::before {
+  content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 0; background: var(--accent); border-radius: 2px;
+  transition: height .25s ease;
+}
+.featured-sidebar-item:hover { color: var(--text); }
+.featured-sidebar-item.active { color: var(--text); }
+.featured-sidebar-item.active::before { height: 60%; }
+.featured-sidebar-display {
+  flex: 1; position: relative; min-height: 100vh; overflow: hidden; background: #14181f;
+  margin: 20px 20px 20px 0; border-radius: 14px;
+}
+.featured-sidebar-slide {
+  position: absolute; inset: 0; display: block; opacity: 0; visibility: hidden;
+  transition: opacity .5s ease;
+}
+.featured-sidebar-slide.active { opacity: 1; visibility: visible; }
+.featured-sidebar-media, .featured-sidebar-media img, .featured-sidebar-media iframe, .featured-sidebar-media video {
+  width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
+}
+.featured-sidebar-media iframe, .featured-sidebar-media video {
+  position: absolute; inset: 0; pointer-events: none;
+}
+/* 一個作品自己的多張照片疊在同一個位置，用 opacity 切換哪張顯示（婚禮這類有 10 張照片的作品可以直接左右瀏覽，不用點進作品頁） */
+.featured-sidebar-photo {
+  position: absolute; inset: 0; opacity: 0; transition: opacity .35s ease;
+}
+.featured-sidebar-photo.active { opacity: 1; }
+.featured-sidebar-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .4);
+  background: rgba(10, 12, 16, .4); color: #fff; font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: background .2s;
+}
+.featured-sidebar-nav:hover { background: rgba(10, 12, 16, .7); }
+.featured-sidebar-nav-prev { left: 16px; }
+.featured-sidebar-nav-next { right: 16px; }
+.featured-sidebar-slide-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(0deg, rgba(0, 0, 0, .65) 0%, rgba(0, 0, 0, 0) 45%);
+}
+.featured-sidebar-slide-title {
+  position: absolute; left: 40px; bottom: 32px; z-index: 2; color: #fff;
+  font-size: 26px; font-weight: 800; letter-spacing: -.5px; max-width: 70%;
+}
+@media (max-width: 860px) {
+  .featured-sidebar-section { flex-direction: column; min-height: auto; }
+  .featured-sidebar-list {
+    flex-direction: row; overflow-x: auto; padding: 20px; gap: 24px; justify-content: flex-start;
+  }
+  .featured-sidebar-item { width: auto; white-space: nowrap; padding: 8px 0 8px 14px; font-size: 15px; }
+  .featured-sidebar-display { min-height: 60vh; margin: 0 20px 20px; }
+  .featured-sidebar-slide-title { font-size: 19px; left: 20px; bottom: 18px; }
+}
+
+/* 相簿：手風琴（平常窄長條，hover 展開） */
+.gallery-accordion {
+  display: flex; gap: 8px; margin-top: 24px; height: 420px; overflow: hidden;
+}
+.gallery-accordion .accordion-item {
+  flex: 1; border-radius: 8px; transition: flex .4s ease; min-width: 60px;
+}
+.gallery-accordion .accordion-item:hover { flex: 4; }
+.gallery-accordion .accordion-item img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
+.gallery-accordion .accordion-item .gallery-caption { display: none; }
+@media (max-width: 700px) {
+  .gallery-accordion { flex-direction: column; height: auto; }
+  .gallery-accordion .accordion-item { height: 90px; flex: none; }
+  .gallery-accordion .accordion-item:hover { flex: none; height: 260px; }
+}
+
+/* 相簿：拼貼（不同尺寸格線） */
+.gallery-bento {
+  display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 160px;
+  gap: 12px; margin-top: 24px;
+}
+.gallery-bento .gallery-item { height: 100%; }
+.gallery-bento .gallery-item img { height: 100%; aspect-ratio: auto; }
+.gallery-bento .bento-large { grid-column: span 2; grid-row: span 2; }
+.gallery-bento .bento-tall { grid-row: span 2; }
+.gallery-bento .bento-wide { grid-column: span 2; }
+.gallery-bento .bento-normal { grid-column: span 1; grid-row: span 1; }
+@media (max-width: 700px) {
+  .gallery-bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 130px; }
+  .gallery-bento .bento-large { grid-column: span 2; grid-row: span 2; }
+  .gallery-bento .bento-wide { grid-column: span 2; }
+}
+
+/* 相簿：水平捲動 */
+.gallery-scroll {
+  display: flex; gap: 16px; margin-top: 24px; overflow-x: auto; padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+}
+.gallery-scroll .scroll-item {
+  flex: 0 0 280px; scroll-snap-align: start;
+}
+.gallery-scroll .scroll-item img { aspect-ratio: 3/4; }
+
+/* Lightbox */
+.lightbox-overlay {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 9, 12, 0.9); padding: 40px; cursor: zoom-out;
+}
+.lightbox-overlay img { max-width: 100%; max-height: 100%; border-radius: 4px; cursor: default; }
+.lightbox-overlay .video-frame-wrap {
+  width: 100%; max-width: 960px; aspect-ratio: 16/9; cursor: default;
+}
+.lightbox-overlay .video-frame-wrap iframe,
+.lightbox-overlay .video-frame-wrap video {
+  width: 100%; height: 100%; border-radius: 4px; border: none; background: #000;
+}
+
+/* 影片區塊：封面照 + 點擊播放 */
+.video-block-cover {
+  position: relative; cursor: pointer; border-radius: 8px; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--border);
+}
+.video-block-cover img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.video-block-placeholder { width: 100%; aspect-ratio: 16/9; background: var(--bg-alt); }
+.video-block-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border-radius: 50%; background: rgba(10, 12, 16, 0.55);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; padding-left: 4px; transition: background .2s, transform .2s;
+}
+.video-block-cover:hover .video-block-play { background: rgba(10, 12, 16, 0.75); transform: translate(-50%, -50%) scale(1.08); }
+
+/* 首頁專用：從作品集選影片的置中輪播，中間放大＋左右露出下一支，只有中間那支能點播放
+   左右兩支要貼齊螢幕邊緣，所以整個輪播要跳出 .section 的 max-width/padding，用經典的
+   「negative margin 撐滿 100vw」技巧做滿版效果，caption 再另外收回 .section 的寬度
+
+   中間放大的效果參考 latoo.com.tw 的做法：三張 slide 寬度其實一樣，是靠 CSS 3D
+   perspective + translateZ 把中間那張「往螢幕外推」，透視下自然顯得比較大、比較近，
+   兩邊維持 translateZ(0) 顯得比較遠、比較小——不是像之前那樣直接改寬度百分比 */
+.video-carousel {
+  position: relative; margin: 0 0 24px;
+  width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  perspective: 1400px;
+}
+/* 每張 slide 寬 32%，高度 = 寬 × 3/4，框固定 4:3；照片用 contain 完整顯示不裁切，比例不同的會在框內留邊。
+   框本身不上底色（透明）：之前用 --bg-alt，留邊的地方看起來像每張照片外面多一圈邊框（首頁 OUR WORKS／PHOTOGRAPH 回饋要拿掉） */
+.video-carousel-track { display: flex; align-items: center; justify-content: center; gap: 16px; height: 24vw; }
+.video-carousel-slide {
+  position: relative; flex: 0 0 auto; border-radius: var(--carousel-radius, 10px); overflow: hidden;
+  cursor: pointer; opacity: .85; filter: brightness(.8);
+  width: 32%; height: 100%; background: transparent;
+  transform: translateZ(0) scale(.92);
+  transition: transform .5s ease, opacity .5s ease, filter .5s ease;
+}
+.video-carousel-slide.prev { order: 1; }
+.video-carousel-slide.active {
+  order: 2; opacity: 1; filter: none; cursor: default;
+  transform: translateZ(180px) scale(1);
+}
+.video-carousel-slide.next { order: 3; }
+.video-carousel-slide img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* YouTube 的 hqdefault 縮圖是 4:3、上下自帶黑邊（2026/10/01 回饋 OUR WORKS 上下有邊框），
+   畫面一律先用沒有黑邊的 maxresdefault，那支影片沒有高畫質縮圖才退回 hqdefault，再把上下黑邊裁掉 */
+.video-carousel-slide img.yt-thumb-hq { clip-path: inset(12.5% 0); }
+.video-carousel-slide .video-block-cover, .video-carousel-slide .video-carousel-link { display: none; }
+.video-carousel-slide.active .video-block-cover {
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0; background: transparent; border: 0; border-radius: 0;
+}
+.video-carousel-slide .video-block-play { width: 80px; height: 80px; font-size: 26px; }
+.video-carousel-slide.active .video-carousel-link { display: block; position: absolute; inset: 0; }
+.video-carousel-caption { text-align: center; color: var(--accent); font-weight: 700; margin: 18px 0 0; font-size: 15px; }
+.video-carousel-prev, .video-carousel-next {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border-radius: 50%; border: 0;
+  border: 1px solid rgba(255, 255, 255, .6); background: rgba(0, 0, 0, .35); color: #fff;
+  font-size: 20px; line-height: 1; cursor: pointer; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.video-carousel-prev:hover, .video-carousel-next:hover { background: rgba(0, 0, 0, .55); }
+.video-carousel-prev { left: 4%; }
+.video-carousel-next { right: 4%; }
+.video-carousel-dots { display: none; justify-content: center; gap: 8px; margin-top: 16px; }
+.video-carousel-dot {
+  width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0;
+  background: var(--border); cursor: pointer;
+}
+.video-carousel-dot.active { background: var(--accent); width: 20px; border-radius: 4px; }
+
+/* 手機版：跟桌機版不是同一種排法——不露出左右鄰居，改成單張全寬卡片＋圓點翻頁＋左右滑動 */
+@media (max-width: 720px) {
+  /* 左右滑動切換時照片會滑出框外，裁掉；pan-y 讓橫向手勢交給輪播，直向照常捲動頁面；
+     高度跟著照片比例變化時也用動畫過渡，不要瞬間跳動 */
+  .video-carousel-track {
+    height: 110vw; max-height: 75vh; overflow: hidden; touch-action: pan-y;
+    transition: height .34s cubic-bezier(.22, .61, .36, 1);
+  }
+  .video-carousel-slide.prev, .video-carousel-slide.next { display: none !important; }
+  /* 單張全寬顯示時不需要 3D 透視放大，不然渲染出來的圖會比自己的版位大，可能溢出裁切邊界 */
+  .video-carousel-slide.active { width: 100%; transform: none; }
+  /* 固定 16:9 的框配 object-fit:cover 會把直式/非 16:9 的照片上下裁掉（人像連額頭下巴都切到），手機改完整顯示 */
+  .video-carousel-slide img { object-fit: contain; }
+  .video-carousel-prev, .video-carousel-next { display: none; }
+  .video-carousel-dots { display: flex; }
+}
+
+/* 贊助商跑馬燈：無限橫向捲動，預設黑白半透明，hover 單一 LOGO 恢復原色
+   邊緣淡出改用疊一層漸層色塊（不用 CSS mask）——手機版 Safari 對 mask-image
+   搭配動畫的元素偶爾會整個不繪製/消失，疊圖層是比較穩定、不依賴 mask 支援度的做法 */
+.sponsor-marquee { position: relative; overflow: hidden; width: 100%; margin: 56px 0 20px; }
+.sponsor-marquee::before, .sponsor-marquee::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 60px; z-index: 2; pointer-events: none;
+}
+.sponsor-marquee::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.sponsor-marquee::after { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+/* 2026/10/03 回饋跑馬燈卡頓、斷斷續續：
+   1. 間距改用每個 LOGO 的右邊留白（不用 gap），兩份 LOGO 的寬度才會完全一樣，捲到 -50% 銜接時不會跳半個間距
+   2. LOGO 不再延遲載入（lazy 會讓第二份捲進畫面時才載入、寬度改變，整條跑馬燈長度一變動畫就跳）
+   3. 等 LOGO 都載入完（main.js 加上 is-ready）才開始捲，最多等 3 秒
+   4. translate3d＋backface-visibility 讓動畫交給 GPU */
+.sponsor-marquee-track {
+  display: flex; align-items: center; width: max-content;
+  animation: sponsor-marquee-scroll 50s linear infinite;
+  animation-play-state: paused;
+  will-change: transform; backface-visibility: hidden; transform: translate3d(0, 0, 0);
+}
+.sponsor-marquee.is-ready .sponsor-marquee-track { animation-play-state: running; }
+.sponsor-marquee-track + .sponsor-marquee-track { margin-top: 40px; }
+.sponsor-marquee-track--reverse { animation-direction: reverse; }
+.sponsor-marquee-item { flex: 0 0 auto; padding-right: 64px; }
+.sponsor-marquee-item img {
+  height: var(--marquee-logo-size, 56px); width: auto; max-width: 280px; object-fit: contain;
+  filter: grayscale(100%); opacity: .5;
+  transition: filter .25s, opacity .25s;
+}
+/* :hover 只在真的有滑鼠的裝置上生效——觸控裝置點一下會讓 :hover 卡住不放，
+   跑馬燈會變成永久暫停在那個位置（使用者回報的「卡住」），LOGO 也會卡在彩色 */
+@media (hover: hover) {
+  .sponsor-marquee.is-ready:hover .sponsor-marquee-track { animation-play-state: paused; }
+  .sponsor-marquee-item img:hover { filter: grayscale(0%); opacity: 1; }
+}
+@keyframes sponsor-marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sponsor-marquee-track { animation: none; }
+}
+
+.lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+  background: rgba(20, 20, 24, 0.55); color: #fff; font-size: 20px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.lightbox-nav:hover { background: rgba(255,255,255,.18); }
+.lightbox-nav.prev { left: 20px; }
+.lightbox-nav.next { right: 20px; }
+.lightbox-counter {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.75); font-size: 13px; letter-spacing: 1px;
+}
+@media (max-width: 640px) {
+  .lightbox-nav { width: 36px; height: 36px; font-size: 16px; }
+  .lightbox-nav.prev { left: 8px; }
+  .lightbox-nav.next { right: 8px; }
+}
+
+/* 服務流程步驟 */
+.process-steps {
+  display: flex; gap: 0; max-width: 1100px; margin: 0 auto;
+  border: 1px solid var(--border); border-radius: 4px; overflow-x: auto;
+}
+.process-step {
+  flex: 1 0 160px; display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 10px; padding: 32px 20px; border-right: 1px solid var(--border);
+}
+.process-step:last-child { border-right: none; }
+
+/* 窄版容器（例如自訂頁面）放不下每格 160px 最小寬度，改用等分寬度橫排，維持同一排效果 */
+.section.narrow .process-steps { overflow-x: visible; }
+.section.narrow .process-step { flex: 1 1 0; min-width: 0; padding: 24px 10px; }
+.process-step-icon { font-size: 32px; line-height: 1; }
+.process-step-icon.is-svg {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 1px solid var(--border); color: var(--accent);
+  transition: border-color .3s ease, transform .3s ease;
+}
+.process-step-icon.is-svg svg { width: 26px; height: 26px; }
+.process-step:hover .process-step-icon.is-svg { border-color: var(--accent); transform: translateY(-2px); }
+.process-step-number { font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--accent); line-height: 1; }
+.process-step-body h3 { margin: 0; font-size: 18px; }
+/* 說明文字現在是編輯器輸出的 HTML（可能自帶 <p>），外層改用 div 包，避免 <p> 包 <p> 的無效巢狀標籤 */
+.process-step-desc { margin: 6px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.process-step-desc p { margin: 0 0 6px; }
+.process-step-desc p:last-child { margin-bottom: 0; }
+
+/* 線上預約 */
+.booking-step { max-width: 720px; margin: 0 auto 40px; }
+.booking-step h3 { margin: 0 0 18px; font-size: 13px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+.booking-options { display: flex; flex-wrap: wrap; gap: 12px; }
+.booking-option {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 16px 20px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); cursor: pointer; font-family: inherit;
+  transition: border-color .15s, transform .15s;
+}
+.booking-option:hover { transform: translateY(-2px); border-color: var(--accent); }
+.booking-option.selected { border-color: var(--accent); background: var(--bg-alt); }
+.booking-option span { color: var(--muted); font-size: 12px; }
+#booking-date { padding: 12px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text); font-family: inherit; margin-bottom: 18px; }
+
+/* Story */
+.story-intro { max-width: 720px; margin: 0 auto 64px; text-align: center; color: var(--muted); }
+.timeline { list-style: none; padding: 0; max-width: 720px; margin: 0 auto; position: relative; }
+.timeline::before {
+  content: ''; position: absolute; left: 80px; top: 8px; bottom: 8px;
+  width: 1px; background: var(--border);
+}
+.tl-item { display: flex; gap: 30px; padding: 18px 0; position: relative; }
+.tl-item::before {
+  content: ''; position: absolute; left: 74px; top: 26px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 4px var(--bg);
+}
+.tl-year { width: 60px; text-align: right; color: var(--accent); font-weight: 700; }
+.tl-content { flex: 1; padding-left: 30px; color: var(--text); }
+
+/* Forms */
+.form-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+  padding: 32px; max-width: 560px; margin: 0 auto 30px;
+  display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
+.form-card label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
+.form-card input, .form-card textarea {
+  padding: 12px 14px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-alt); color: var(--text); font-family: inherit; font-size: 15px;
+}
+.form-card input:focus, .form-card textarea:focus { outline: none; border-color: var(--accent); }
+.form-card .hint { font-size: 13px; color: var(--muted); margin: 0; }
+.hp-field { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.error { color: var(--danger); margin: 0; }
+
+/* 頁面背景照片（自訂頁面選填）：鋪滿整個頁面當底圖，蓋一層深色遮罩維持文字/表單可讀性，
+   跟主題無關（不管淺色深色主題，這塊固定用白字＋半透明玻璃卡片），手機上尤其明顯 */
+.page-bg-wrap { position: relative; background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 70vh; }
+.page-bg-wrap::before { content: ""; position: absolute; inset: 0; background: rgba(8, 10, 16, .62); }
+.page-bg-wrap > .section { position: relative; z-index: 1; }
+.page-bg-wrap .section-head h2, .page-bg-wrap .eyebrow, .page-bg-wrap .story-intro { color: #fff; }
+.page-bg-wrap .form-card { background: rgba(255, 255, 255, .07); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, .25); box-shadow: none; }
+.page-bg-wrap .form-card label { color: rgba(255, 255, 255, .8); }
+.page-bg-wrap .form-card input, .page-bg-wrap .form-card textarea { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .3); color: #fff; }
+.page-bg-wrap .form-card input::placeholder, .page-bg-wrap .form-card textarea::placeholder { color: rgba(255, 255, 255, .5); }
+.page-bg-wrap .form-card .hint { color: rgba(255, 255, 255, .75); }
+
+/* Admin list */
+.admin-sub { margin-top: 40px; color: var(--muted); font-size: 14px; letter-spacing: 2px; }
+.admin-list { list-style: none; padding: 0; }
+.admin-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; margin-bottom: 10px;
+}
+.admin-row img { width: 80px; height: 60px; object-fit: cover; border-radius: 4px; }
+.admin-meta { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.admin-meta span { color: var(--muted); font-size: 13px; }
+.empty { color: var(--muted); text-align: center; padding: 20px; }
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--border); padding: 32px 40px; text-align: center; color: var(--muted); font-size: 13px; }
+.site-footer--alt { background: var(--bg-alt); }
+
+.footer-contact {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 40px;
+  margin-bottom: 20px; font-size: 14px; color: var(--text);
+}
+.footer-contact-item { display: flex; align-items: center; gap: 8px; }
+.footer-contact-item a { color: var(--text); }
+.footer-contact-item a:hover { color: var(--accent); }
+.footer-contact-label { font-weight: 700; font-size: 11px; letter-spacing: 1.5px; color: var(--accent); }
+
+.social-links { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 14px; }
+.social-links a { color: var(--muted); display: inline-flex; transition: color .2s; }
+.social-links a:hover { color: var(--accent); }
+
+.footer-actions {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px;
+  margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border);
+}
+.footer-cta-btn {
+  display: inline-block; padding: 14px 32px; border: 1px solid var(--accent); border-radius: 2px;
+  color: var(--text); font-weight: 700; letter-spacing: 2px; font-size: 13px; text-transform: uppercase;
+  transition: background .2s, color .2s;
+}
+.footer-cta-btn:hover { background: var(--accent); color: var(--bg); }
+.footer-top-link {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 700;
+  letter-spacing: 2px; font-size: 13px; text-transform: uppercase; cursor: pointer; transition: color .2s;
+}
+.footer-top-link:hover { color: var(--accent); }
+.footer-top-arrow { font-size: 16px; transition: transform .2s; }
+.footer-top-link:hover .footer-top-arrow { transform: translateY(-3px); }
+
+.cookie-banner {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 999;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px;
+  background: var(--bg-alt); border-top: 1px solid var(--border);
+  padding: 16px 24px; color: var(--text); font-size: 13px;
+}
+.cookie-banner p { margin: 0; }
+.cookie-banner button {
+  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+  padding: 8px 18px; font-size: 13px; cursor: pointer; flex-shrink: 0;
+}
+.cookie-banner button:hover { background: var(--accent-2); }
+
+/* 右下角浮動社群按鈕群組：目前有 Instagram（純連結）跟 LINE（點開顯示 QR code），
+   之後要加其他社群平台按鈕都掛在這個容器底下，垂直往上疊 */
+.social-float { position: fixed; right: 24px; bottom: 24px; z-index: 998; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+
+.social-float-btn {
+  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22); transition: transform .2s;
+  color: #fff;
+}
+.social-float-btn:hover { transform: scale(1.06); }
+/* 顏色固定用該平台的品牌色，不跟著網站主題色走，才認得出是哪個平台 */
+.social-float-btn--instagram {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
+/* 電話／Email 快速聯絡按鈕固定用主題強調色，跟社群平台品牌色的按鈕做出區隔 */
+.social-float-btn--phone, .social-float-btn--email { background: var(--accent); }
+
+/* LINE 加好友按鈕：點開顯示 QR code，顏色固定用 LINE 品牌綠。
+   面板即使關閉時 opacity 是 0，如果留在一般文件流裡還是會照樣占版位（隱形但占高度），
+   把 .social-float 裡 IG 跟 LINE 按鈕硬生生撐開一大截看起來很開——所以面板要用 position:absolute
+   完全脫離文件流，改用「相對於 .line-widget 往上浮」的方式定位，不占版面高度 */
+.line-widget { position: relative; }
+
+.line-widget-toggle {
+  width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
+  background: #06c755; color: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22); transition: transform .2s;
+}
+.line-widget-toggle span { display: none; }
+.line-widget-toggle:hover { transform: scale(1.06); }
+
+.line-widget-panel {
+  position: absolute; right: 0; bottom: calc(100% + 14px);
+  width: 240px; background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(0,0,0,.25);
+  opacity: 0; transform: translateY(12px) scale(.96); pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+  transform-origin: bottom right;
+}
+.line-widget.is-open .line-widget-panel { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+/* 滑鼠裝置滑過去就直接顯示，不用點；觸控裝置沒有 hover，維持點擊開關（見 main.js） */
+@media (hover: hover) {
+  .line-widget:hover .line-widget-panel { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+}
+
+.line-widget-header {
+  background: #06c755; color: #fff; display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px; font-weight: 700; font-size: 15px;
+}
+.line-widget-badge {
+  background: #fff; color: #06c755; font-size: 10px; font-weight: 800; letter-spacing: .5px;
+  padding: 2px 6px; border-radius: 4px;
+}
+.line-widget-close {
+  margin-left: auto; background: none; border: none; color: #fff; font-size: 15px; line-height: 1;
+  cursor: pointer; padding: 4px; display: flex;
+}
+.line-widget-body { padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.line-widget-body svg { width: 100%; height: auto; max-width: 180px; }
+.line-widget-body a { font-size: 12px; color: #06c755; word-break: break-all; text-align: center; }
+
+@media (max-width: 640px) {
+  .social-float { right: 16px; bottom: 16px; }
+  .social-float-btn { width: 48px; height: 48px; }
+  .line-widget-toggle { width: 48px; height: 48px; }
+  .line-widget-panel { width: 200px; }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  /* 原本手機版寫死 16px，CMS 的「導覽列上下留白」設定只有桌機吃得到，手機不管改多少都沒用；
+     改成一樣吃 --header-padding-y，手機才會跟著設定值變薄 */
+  .site-header { padding: var(--header-padding-y, 16px) 20px; flex-wrap: wrap; }
+  .site-nav a { margin-left: 14px; font-size: 11px; }
+  .hero { padding: 100px 20px 70px; }
+  .hero-title { font-size: 36px; }
+  .hero-logo { max-width: var(--hero-logo-size-mobile, var(--hero-logo-size, 220px)); }
+  .section { padding: 60px 20px; }
+  .section-head h2.collection-list-title--large { font-size: 44px; }
+  .section-head h2.collection-list-title--xlarge { font-size: 52px; }
+  .timeline::before, .tl-item::before { display: none; }
+  .tl-item { flex-direction: column; gap: 4px; }
+  .tl-year { width: auto; text-align: left; }
+  .tl-content { padding-left: 0; }
+  .nav-dropdown-menu { position: fixed; left: 20px; right: 20px; }
+}
+
+/* ===================================================================
+   手機版回饋調整（9/29）
+   =================================================================== */
+@media (max-width: 640px) {
+  /* 頁面大標：原本 medium 在手機沒有覆寫，一直是 52px，「PHOTOGRAPHY」這種長單字塞不進螢幕寬度，
+     直接超出右邊、把整頁撐寬（左右偏移的主因）。改成跟螢幕寬度走，並整體縮小一點 */
+  .section-head h2.collection-list-title,
+  .section-head h2.collection-list-title--small { font-size: clamp(24px, 7.5vw, 32px); }
+  .section-head h2.collection-list-title--medium { font-size: clamp(26px, 8.5vw, 36px); }
+  .section-head h2.collection-list-title--large { font-size: clamp(28px, 9vw, 38px); }
+  .section-head h2.collection-list-title--xlarge { font-size: clamp(30px, 9.5vw, 40px); }
+  .collection-list-subtitle { font-size: 18px; }
+
+  /* 作品卡片標題（例：KOL Pandora 潘朵拉品牌業配合作）稍微縮小 */
+  .work-card h3 { font-size: 16px; }
+
+  /* 服務流程：四格橫排在手機會擠成四條直直的窄欄，改成一格一列，圖示在左、文字在右 */
+  .process-steps, .section.narrow .process-steps { flex-direction: column; overflow-x: visible; }
+  .process-step, .section.narrow .process-step {
+    flex: none; display: grid; grid-template-columns: 48px 1fr; column-gap: 16px; row-gap: 6px;
+    align-items: start; text-align: left; padding: 22px 18px;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .process-step:last-child, .section.narrow .process-step:last-child { border-bottom: none; }
+  .process-step-icon { grid-row: 1 / span 2; }
+  .process-step-icon.is-svg { width: 48px; height: 48px; }
+  .process-step-icon.is-svg svg { width: 22px; height: 22px; }
+  .process-step-number, .process-step-body { grid-column: 2; }
+  .process-step-number { align-self: end; }
+  .process-step-body h3 { font-size: 17px; }
+  .process-step-desc { font-size: 14px; }
+
+  /* 平面作品集（清單裡只有照片、沒有影片）一排兩張，作品量大時比較容易一次瀏覽到各種風格；
+     有影片的清單（動態作品）維持一排一張 */
+  .works-grid[data-layout="masonry"]:not(:has([data-media-type="video"], [data-media-type="player"])) {
+    column-count: 2; column-gap: 12px;
+  }
+  .works-grid[data-layout="masonry"]:not(:has([data-media-type="video"], [data-media-type="player"])) .work-card {
+    padding-bottom: 16px;
+  }
+  .works-grid:not([data-layout="masonry"]):not(:has([data-media-type="video"], [data-media-type="player"])) {
+    grid-template-columns: repeat(2, 1fr); gap: 16px 12px;
+  }
+  .works-grid:not(:has([data-media-type="video"], [data-media-type="player"])) .work-card figcaption { padding-top: 8px; }
+  .works-grid:not(:has([data-media-type="video"], [data-media-type="player"])) .work-card h3 {
+    font-size: 13px; line-height: 1.5; margin-bottom: 4px;
+  }
+  /* 直式短影音（2026/10/03 回饋）：手機一排兩張，橫式影片照舊整排一張
+     FILM 每個分類的卡片都在同一個 grid 裡（切換分類只是隱藏），所以用每張卡片自己的比例決定佔幾欄 */
+  .works-grid:has([data-video-ratio="portrait"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 12px; }
+  .works-grid:has([data-video-ratio="portrait"]) .work-card:not([data-video-ratio="portrait"]) { grid-column: 1 / -1; }
+  .works-grid .work-card[data-video-ratio="portrait"] figcaption { padding-top: 8px; }
+  .works-grid .work-card[data-video-ratio="portrait"] h3 { font-size: 13px; line-height: 1.5; min-height: 0; margin-bottom: 0; }
+}
+
+/* 常見問題（faqItem 模組，2026/10/03 GEO）：可展開的問與答 */
+.faq-list { max-width: 860px; margin: 0 auto; display: grid; gap: 12px; }
+.faq-item { border: 1px solid var(--border); border-radius: 10px; background: var(--panel, transparent); overflow: hidden; }
+.faq-item summary { cursor: pointer; list-style: none; padding: 18px 52px 18px 22px; font-weight: 700; font-size: 17px; position: relative; line-height: 1.6; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: "+"; position: absolute; right: 22px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 400; color: var(--accent); transition: transform .2s; }
+.faq-item[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+.faq-answer { padding: 0 22px 20px; color: var(--muted); line-height: 1.9; }
+.faq-answer p { margin: 0 0 10px; }
