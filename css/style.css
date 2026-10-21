@@ -356,6 +356,8 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
 
 /* Services grid (homepage): black-and-white photos that turn to colour on hover */
 .services-home{padding-top:min(14vh,120px);}
+.services-page{padding-top:70px;padding-bottom:120px;}
+.services-page .services-grid{margin-top:0;}
 .services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:44px 32px;margin-top:56px;}
 .service-card{display:block;text-align:center;}
 .service-media{display:block;aspect-ratio:4/3;overflow:hidden;background:var(--color-dark);}

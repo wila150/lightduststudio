@@ -92,7 +92,7 @@ app.get('/work/:id', async (req, res, next) => {
 
 const SITE_ORIGIN = 'https://lightduststudio-q8qk.onrender.com';
 app.get('/sitemap.xml', async (req, res) => {
-  const staticPaths = ['', 'about', 'photography', 'film', 'design', 'equipment', 'contact'];
+  const staticPaths = ['', 'about', 'services', 'photography', 'film', 'design', 'equipment', 'contact'];
   const pages = await db.prepare(
     "SELECT slug FROM pages WHERE published = 1 AND (publish_at IS NULL OR publish_at <= datetime('now'))"
   ).all();
@@ -113,7 +113,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
 // Clean URLs for the core static pages (/about instead of /about.html), with
 // 301s from the old .html paths so existing links/bookmarks keep working.
-const STATIC_PAGES = ['about', 'photography', 'film', 'design', 'equipment', 'contact'];
+const STATIC_PAGES = ['about', 'services', 'photography', 'film', 'design', 'equipment', 'contact'];
 STATIC_PAGES.forEach((name) => {
   app.get('/' + name, (req, res) => res.sendFile(path.join(__dirname, name + '.html')));
   app.get('/' + name + '.html', (req, res) => res.redirect(301, '/' + name));
