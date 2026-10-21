@@ -1,3 +1,4 @@
+const BRAND = require("../config/brand");
 // 導覽項目本身可以點擊連到自己的網址/自訂頁面，如果有自訂頁面掛在底下、
 // 或這個項目本身有分類清單（作品集/文章），滑鼠移過去/focus 時額外展開下拉選單
 // （沿用「更多」原本就有的 hover 下拉樣式）
@@ -71,9 +72,9 @@ function escapeAttr(value) {
 
 module.exports = (title, content, navPages = [], settings = {}, navItems = [], pageMeta = {}) => {
 
-// 首頁標題不要出現「首頁」兩個字（Google 搜尋結果會顯示成「藍點影像工作室: 首頁」，沒有資訊量），
-// 改成「網站名稱｜在做什麼」，讓搜尋的人一眼看出是新北的影像工作室（2026/10/03 回饋）
-const HOME_TITLE_TAGLINE = "新北影像工作室・人像形象、品牌活動、婚禮與舞台攝影";
+// 首頁標題不要出現「首頁」兩個字（搜尋結果會顯示成「網站名稱: 首頁」，沒有資訊量），
+// 改成「網站名稱｜在做什麼」，標語在 config/brand.js
+const HOME_TITLE_TAGLINE = BRAND.homeTagline;
 const fullTitle = title === "首頁" && settings.siteName
     ? `${settings.siteName}｜${HOME_TITLE_TAGLINE}`
     : `${title}${settings.siteName ? ` | ${settings.siteName}` : ""}`;
@@ -81,15 +82,15 @@ const description = pageMeta.description || settings.metaDescription || "";
 const ogImage = pageMeta.image || settings.ogImageUrl || "";
 const canonicalUrl = pageMeta.url || "";
 
-// Organization 結構化資料：讓 Google 把網站跟社群帳號視為同一個品牌實體，有助於品牌詞搜尋（例如「藍點影像工作室」）
+// Organization 結構化資料：讓 Google 把網站跟社群帳號視為同一個品牌實體，有助於品牌詞搜尋
 // 不含地址／電話，這兩項目前是 CMS 聯絡資訊裡的範例佔位資料，還沒填入真實內容
 const sameAs = [settings.socialInstagramUrl, settings.socialFacebookUrl, settings.socialYoutubeUrl].filter(Boolean);
 // GEO（2026/10/03）：升級成 ProfessionalService（在地專業服務商家），讓 AI 搜尋與 Google 知道
 // 「在哪裡、服務哪些地區、做什麼、怎麼聯絡」，回答「新北推薦的攝影工作室」這類問題時才會被引用
 // 服務地區、服務項目可以在網站設定覆寫（serviceAreas、serviceList），沒填就用下面的預設
 // 沒有實體工作室（2026/10/03 確認），只標地區、不放地址；服務地區照 SEO 描述「位於新北」
-const DEFAULT_SERVICE_AREAS = ["新北市"];
-const DEFAULT_SERVICES = ["人像與形象照", "演員卡／模特兒卡", "品牌與活動紀錄", "商業與美食攝影", "婚禮與人生慶典（抓周、性別派對）", "劇場與舞台攝影", "運動攝影", "主視覺影像製作", "影片拍攝與剪輯", "短影音／Reels", "快播快剪 SDE"];
+const DEFAULT_SERVICE_AREAS = BRAND.serviceAreas;
+const DEFAULT_SERVICES = BRAND.services;
 const serviceAreas = (settings.serviceAreas && settings.serviceAreas.length ? settings.serviceAreas : DEFAULT_SERVICE_AREAS);
 const serviceList = (settings.serviceList && settings.serviceList.length ? settings.serviceList : DEFAULT_SERVICES);
 const organizationSchema = {
@@ -97,31 +98,33 @@ const organizationSchema = {
     "@type": "ProfessionalService",
     "@id": SITE_URL + "/#organization",
     name: settings.siteName || "",
-    alternateName: ["Blue Dot Studio", "藍點影像"],
+    alternateName: BRAND.alternateNames,
     url: SITE_URL,
     description: settings.metaDescription || "",
     ...(settings.logoUrl ? { logo: settings.logoUrl } : {}),
     image: settings.ogImageUrl || settings.logoUrl || undefined,
     ...(settings.contactPhone ? { telephone: settings.contactPhone } : {}),
     ...(settings.contactEmail ? { email: settings.contactEmail } : {}),
-    address: { "@type": "PostalAddress", addressRegion: "新北市", addressCountry: "TW" },
-    areaServed: serviceAreas.map(name => ({ "@type": "City", name })),
+    ...(serviceAreas.length ? {
+        address: { "@type": "PostalAddress", addressRegion: serviceAreas[0], addressCountry: "TW" },
+        areaServed: serviceAreas.map(name => ({ "@type": "City", name }))
+    } : { address: { "@type": "PostalAddress", addressCountry: "TW" } }),
     knowsAbout: serviceList,
     hasOfferCatalog: {
         "@type": "OfferCatalog",
-        name: "攝影與影像製作服務",
-        itemListElement: serviceList.map(name => ({ "@type": "Offer", itemOffered: { "@type": "Service", name, areaServed: serviceAreas.join("、") } }))
+        name: BRAND.serviceCatalogName,
+        itemListElement: serviceList.map(name => ({ "@type": "Offer", itemOffered: { "@type": "Service", name, ...(serviceAreas.length ? { areaServed: serviceAreas.join("、") } : {}) } }))
     },
     ...(sameAs.length > 0 ? { sameAs } : {})
 };
 
-// WebSite 結構化資料：告訴 Google 網站名稱是「藍點影像工作室」。網站放在 Render 的共用網域（onrender.com）上，
+// WebSite 結構化資料：告訴 Google 網站名稱。網站放在 Render 的共用網域（onrender.com）上，
 // Google 搜尋結果的網站名稱會顯示成「Render」；這段能幫忙，但最根本的解法是換成自己的網域
 const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: settings.siteName || "",
-    alternateName: ["Blue Dot Studio", "藍點影像", "bluedot"],
+    alternateName: BRAND.alternateNames,
     url: SITE_URL + "/"
 };
 

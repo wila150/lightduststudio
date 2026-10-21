@@ -1,3 +1,4 @@
+const BRAND = require("../config/brand");
 // 貼上影片連結就自動帶入作品資料（2026/10/03 回饋：貼連結就抓 YouTube 名稱、封面，網址代稱自動翻譯，不用自己想）
 // - 標題、縮圖：YouTube／Vimeo 官方 oEmbed（不需要 API 金鑰）
 // - 直式或橫式：YouTube 的 /shorts/影片ID，是 Shorts 會直接 200，一般影片會轉址到 /watch
@@ -23,7 +24,7 @@ function youtubeId(url) {
 
 // 頻道上傳時自動加的「| 藍點 blue dot.」這類後綴，網站上不需要
 function cleanTitle(title) {
-    return String(title || "").replace(/\s*[|｜]\s*藍點.*$/i, "").replace(/\s+/g, " ").trim();
+    return String(title || "").replace(new RegExp("\\s*[|｜]\\s*(" + BRAND.alternateNames.concat(BRAND.name).join("|") + ").*$", "i"), "").replace(/\s+/g, " ").trim();
 }
 
 function slugify(text) {
@@ -103,7 +104,7 @@ async function getVideoInfo(url) {
         thumbnailUrl,
         videoRatio: isShort ? "9:16" : "16:9",
         slug,
-        metaDescription: title ? `藍點影像工作室拍攝製作：${title}。` : ""
+        metaDescription: title ? `${BRAND.videoDescriptionPrefix}${title}。` : ""
     };
 
 }

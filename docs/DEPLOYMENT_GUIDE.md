@@ -84,7 +84,7 @@ node scripts/init-photography-services.js
 
 登入 CMS 後台檢查：
 ```
-https://bluedot-slaj.onrender.com/cms
+https://lightduststudio-q8qk.onrender.com/cms
 → 自訂頁面
 → 應該看到「攝影服務」頁面
 ```
@@ -96,7 +96,7 @@ https://bluedot-slaj.onrender.com/cms
 ### 3.1 CMS 後台操作
 
 **Step 1：編輯頁面**
-1. 登入 CMS：https://bluedot-slaj.onrender.com/cms
+1. 登入 CMS：https://lightduststudio-q8qk.onrender.com/cms
 2. 點擊「自訂頁面」
 3. 找到「攝影服務」頁面
 4. 點擊「編輯」
@@ -171,7 +171,7 @@ https://bluedot-slaj.onrender.com/cms
 
 **頁面標題**：
 ```
-攝影服務 | 藍點攝影工作室
+攝影服務 | 光塵影像工作室
 ```
 
 **頁面描述（Meta Description）**：
@@ -235,7 +235,7 @@ npm start
 
 ### 7.2 CMS 後台測試
 
-1. 登入 CMS：https://bluedot-slaj.onrender.com/cms
+1. 登入 CMS：https://lightduststudio-q8qk.onrender.com/cms
 2. 檢查「自訂頁面」中的「攝影服務」
 3. 點擊「預覽」查看頁面效果
 4. 檢查：
@@ -266,7 +266,7 @@ npm start
 
 ```bash
 # 訪問現場網址
-https://bluedot-slaj.onrender.com/photography-services
+https://lightduststudio-q8qk.onrender.com/photography-services
 
 # 應該看到：
 # - 頁面標題和副標題

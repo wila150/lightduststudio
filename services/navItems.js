@@ -2,7 +2,7 @@
 // （不選就沿用原本的行為，統一歸類到導覽列最後的「更多」）
 module.exports = {
     NAV_ITEMS: [
-        { key: "about", label: "關於藍點", href: "/about" },
+        { key: "about", label: "關於我們", href: "/about" },
         { key: "projects", label: "作品集", href: "/projects" },
         { key: "blog", label: "文章", href: "/blog" },
         { key: "contact", label: "聯絡我", href: "/contact" },

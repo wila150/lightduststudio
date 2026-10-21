@@ -66,7 +66,7 @@
             el.textContent = n ? n : "";
         });
         document.getElementById("inbox-read-all").disabled = counts.unread === 0;
-        if (window.BlueDotLive) window.BlueDotLive.setBadge(counts.unread);
+        if (window.CmsLive) window.CmsLive.setBadge(counts.unread);
     }
 
     function render() {
@@ -95,7 +95,7 @@
                         (m.subject ? "<h3>" + escapeHtml(m.subject) + "</h3>" : "") +
                         "<div class=\"inbox-body\">" + escapeHtml(m.message) + "</div>" +
                         "<div class=\"inbox-actions\">" +
-                            (m.email ? "<a class=\"btn-reply\" href=\"mailto:" + encodeURIComponent(m.email) + "?subject=" + encodeURIComponent("Re: " + (m.subject || "藍點影像工作室")) + "\">回覆 Email</a>" : "") +
+                            (m.email ? "<a class=\"btn-reply\" href=\"mailto:" + encodeURIComponent(m.email) + "?subject=" + encodeURIComponent("Re: " + (m.subject || "您的詢問")) + "\">回覆 Email</a>" : "") +
                             (m.source === "line" ? "<span class=\"inbox-hint\">LINE 訊息請到 LINE 官方帳號後台回覆</span>" : "") +
                             "<button type=\"button\" data-row-action=\"unread\">標為未讀</button>" +
                             "<button type=\"button\" data-row-action=\"delete\" class=\"danger\">刪除</button>" +
@@ -144,7 +144,7 @@
             body: JSON.stringify({ ids: ids, action: action })
         }).then(function (res) { return res.json(); }).then(function (data) {
             if (!data.success) throw new Error();
-            if (window.BlueDotLive) window.BlueDotLive.setBadge(data.unread);
+            if (window.CmsLive) window.CmsLive.setBadge(data.unread);
         }).catch(function () {
             alert("儲存失敗，請重新整理頁面後再試一次");
         });
@@ -244,7 +244,7 @@
         render();
         fetch("/cms/messages/read-all", { method: "POST" })
             .then(function (res) { return res.json(); })
-            .then(function () { if (window.BlueDotLive) window.BlueDotLive.setBadge(0); })
+            .then(function () { if (window.CmsLive) window.CmsLive.setBadge(0); })
             .catch(function () { alert("儲存失敗，請重新整理頁面後再試一次"); });
     });
 

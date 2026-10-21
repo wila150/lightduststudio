@@ -164,7 +164,7 @@ node scripts/init-photography-services.js
 
 ### 3️⃣ 內容添加（1-2 小時）
 
-登入 CMS：https://bluedot-slaj.onrender.com/cms
+登入 CMS：https://lightduststudio-q8qk.onrender.com/cms
 - 為每個分類添加作品項目
 - 上傳圖片和設置描述
 
@@ -221,9 +221,9 @@ git push
 ## 🔗 相關資源
 
 ### 內部資源
-- 項目 Git 倉庫：https://github.com/wila150/bluedot
-- CMS 後台：https://bluedot-slaj.onrender.com/cms
-- 現場網址：https://bluedot-slaj.onrender.com
+- 項目 Git 倉庫：https://github.com/wila150/lightduststudio
+- CMS 後台：https://lightduststudio-q8qk.onrender.com/cms
+- 現場網址：https://lightduststudio-q8qk.onrender.com
 
 ### 外部技術文檔
 - [Sharp 圖片處理文檔](https://sharp.pixelplumbing.com/)

@@ -16,7 +16,7 @@
         bar.innerHTML = "登入已過期，剛剛的操作沒有儲存。<a href=\"/cms/login\">重新登入</a>";
         document.body.appendChild(bar);
     }
-    window.BlueDotLoginExpired = showLoginExpired;
+    window.CmsLoginExpired = showLoginExpired;
 
     if (window.fetch) {
         var originalFetch = window.fetch;
@@ -64,7 +64,7 @@
     }
 
     // 給收件匣用：標已讀／未讀後直接更新紅點跟分頁標題
-    window.BlueDotLive = { setBadge: setBadge, showToast: showToast };
+    window.CmsLive = { setBadge: setBadge, showToast: showToast };
 
     var dot = document.createElement("span");
     dot.className = "live-dot";

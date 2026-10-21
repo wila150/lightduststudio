@@ -1,6 +1,6 @@
 const { ASSET_VERSION } = require("../../config/version");
 
-// 後台「使用說明」：藍點後台操作手冊（版型沿用 2026/09 交付的操作手冊，2026/10/02 起改放在後台 /cms/help）
+// 後台「使用說明」：光塵後台操作手冊（版型沿用 2026/09 交付的操作手冊，2026/10/02 起改放在後台 /cms/help）
 // 整頁獨立輸出、不包後台 layout，樣式在 public/css/help.css，截圖在 public/images/help/
 // 內容用詞對齊後台畫面上的按鈕／欄位名稱；改了後台功能記得回來改這裡，並更新頁尾的整理日期
 
@@ -12,7 +12,7 @@ module.exports = () => `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>藍點後台操作手冊</title>
+<title>光塵後台操作手冊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
@@ -23,11 +23,11 @@ module.exports = () => `<!doctype html>
 <header class="hero">
   <div class="hero-in">
     <p class="brand"><span class="dot"></span>BLUE DOT STUDIO</p>
-    <h1><span class="en">CMS MANUAL</span>藍點後台操作手冊</h1>
+    <h1><span class="en">CMS MANUAL</span>光塵後台操作手冊</h1>
     <p class="sub">上架影片、整理照片、改頁面、調選單，全部在後台完成，存檔後前台立刻更新。先在下面選你要做的事，直接跳到那一段。</p>
     <div class="hero-actions">
       <a class="back" href="/cms">← 回到後台</a>
-      <p class="url">後台網址 <code>bluedot-slaj.onrender.com/cms</code></p>
+      <p class="url">後台網址 <code>lightduststudio-q8qk.onrender.com/cms</code></p>
     </div>
   </div>
 </header>
@@ -119,7 +119,7 @@ module.exports = () => `<!doctype html>
       <div class="mock-body">
         <div class="fld hl"><label>標題</label><div class="in">寶島神很大 x 三立電視台 x 乖乖 x 青山宮聯名 宣傳短片</div><span class="pin">1</span></div>
         <div class="fld hl"><label>網址代稱</label><div class="in">formosa-gods-sanlih-kuaikuai-promo</div><span class="pin">2</span></div>
-        <div class="fld hl"><label>SEO 描述</label><div class="in">藍點影像工作室製作寶島神很大 x 三立電視台 x 乖乖 x 青山宮聯名商品宣傳短片……</div><span class="pin">3</span></div>
+        <div class="fld hl"><label>SEO 描述</label><div class="in">光塵影像工作室為品牌拍攝的形象影片……</div><span class="pin">3</span></div>
         <div class="fld hl"><label>連結（選填）</label><div class="in">https://www.youtube.com/watch?v=lNzdKLpK3oQ</div><span class="pin">4</span></div>
         <div class="row2">
           <div class="fld hl"><label>影片比例</label><div class="in">9:16 直式（短影音） ▾</div><span class="pin">5</span></div>
@@ -348,7 +348,7 @@ module.exports = () => `<!doctype html>
         <div class="modcard">
           <header><span class="grip">⠿</span>圖文分欄<span class="act"><span>▲</span><span>▼</span><span>刪除</span></span></header>
           <div>
-            <div class="fld"><label>大標題</label><div class="in">BLUEDOT</div></div>
+            <div class="fld"><label>大標題</label><div class="in">LIGHTDUST</div></div>
             <div class="row2">
               <div class="fld"><label>圖片比例</label><div class="in">正方形 ▾</div></div>
               <div class="fld"><label>圖片</label><div class="in">2 張</div></div>
@@ -464,7 +464,7 @@ module.exports = () => `<!doctype html>
     <div class="card"><span class="tag">合作品牌LOGO</span><h4>跑馬燈的 Logo</h4><p>新 Logo 先上傳到「合作品牌LOGO」相簿，再到首頁的「圖片跑馬燈」模組選進來。首頁是深色底，有白字版的請用白字版。</p></div>
   </div>
 
-  <div class="note warn"><strong>刪媒體庫圖片前</strong>已經用在頁面上的圖片（例如首頁 BLUEDOT／藍點的照片、作品相簿），刪掉後那個位置會變成破圖。</div>
+  <div class="note warn"><strong>刪媒體庫圖片前</strong>已經用在頁面上的圖片（例如首頁主視覺的照片、作品相簿），刪掉後那個位置會變成破圖。</div>
 </section>
 
 <!-- ═══════ 設定 ═══════ -->
@@ -511,7 +511,7 @@ module.exports = () => `<!doctype html>
   <div class="note"><strong>每次改完</strong>把預覽切到「手機版」，或直接用手機打開網站看一次：文字有沒有被切到、圖片比例對不對。</div>
 </section>
 
-<footer class="foot">藍點影像工作室 Blue Dot Studio｜後台操作手冊。依 2026 年 10 月的後台功能整理，畫面以實際後台為準。</footer>
+<footer class="foot">光塵影像工作室 LightDust Studio｜後台操作手冊。依 2026 年 10 月的後台功能整理，畫面以實際後台為準。</footer>
 
 </div>
 

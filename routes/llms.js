@@ -8,7 +8,8 @@ const { isEffectivelyPublished } = require("../services/publishHelper");
 
 // /llms.txt（2026/10/03 GEO）：給 ChatGPT、Perplexity、Claude 這類 AI 讀的網站導覽（Markdown）
 // 內容依網站資料即時產生（工作室介紹、服務、聯絡方式、主要頁面、各分類代表作品），10 分鐘快取一次
-const SERVICES = ["人像與形象照", "演員卡／模特兒卡", "品牌與活動紀錄", "商業與美食攝影", "婚禮與人生慶典（抓周、性別派對）", "劇場與舞台攝影", "運動攝影", "主視覺影像製作", "影片拍攝與剪輯", "短影音／Reels", "快播快剪 SDE"];
+const BRAND = require("../config/brand");
+const SERVICES = BRAND.services;
 
 let cache = { text: "", at: 0 };
 
@@ -20,20 +21,19 @@ async function build() {
     const pages = (await tenantCollection(DEFAULT_TENANT_ID, "customPages").get()).docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(isEffectivelyPublished);
     const categories = (await tenantCollection(DEFAULT_TENANT_ID, "pageCategories").get()).docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const items = (await tenantCollection(DEFAULT_TENANT_ID, "pageItems").get()).docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(isEffectivelyPublished);
-    const areas = settings.serviceAreas && settings.serviceAreas.length ? settings.serviceAreas : ["新北市"];
+    const areas = settings.serviceAreas && settings.serviceAreas.length ? settings.serviceAreas : BRAND.serviceAreas;
     const services = settings.serviceList && settings.serviceList.length ? settings.serviceList : SERVICES;
-    const name = settings.siteName || "藍點影像工作室";
+    const name = settings.siteName || BRAND.name;
 
     const lines = [
-        `# ${name}（Blue Dot Studio）`,
+        `# ${name}（${BRAND.nameEn}）`,
         "",
         `> ${oneLine(settings.metaDescription)}`,
         "",
         "## 基本資訊",
         "",
-        `- 工作室：${name}（英文名 Blue Dot Studio）`,
-        `- 所在地區：台灣新北市（沒有實體工作室，拍攝地點依每個案子的需求討論安排）`,
-        `- 服務地區：${areas.join("、")}`,
+        `- 工作室：${name}（英文名 ${BRAND.nameEn}）`,
+        ...(areas.length ? [`- 服務地區：${areas.join("、")}`] : []),
         ...(settings.contactPhone ? [`- 電話：${settings.contactPhone}`] : []),
         ...(settings.contactEmail ? [`- Email：${settings.contactEmail}`] : []),
         ...(settings.lineFriendUrl ? [`- LINE 官方帳號：${settings.lineFriendUrl}`] : []),

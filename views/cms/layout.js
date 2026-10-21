@@ -31,7 +31,7 @@ module.exports = (title, content, user) => `
 
     <header class="admin-header">
 
-        <div class="brand">Portfolio <span>CMS</span></div>
+        <div class="brand">LightDust <span>CMS</span></div>
 
         <nav class="admin-nav">
 
