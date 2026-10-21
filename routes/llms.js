@@ -1,3 +1,4 @@
+const settingsService = require("../services/settingsService");
 const express = require("express");
 const router = express.Router();
 
@@ -17,7 +18,8 @@ const oneLine = text => String(text || "").replace(/<[^>]+>/g, "").replace(/\s+/
 
 async function build() {
 
-    const settings = (await tenantCollection(DEFAULT_TENANT_ID, "settings").get()).docs[0].data();
+    // 走 settingsService：設定還沒存過時有預設值（直接讀 collection 第一筆，新站沒設定會整個壞掉）
+    const settings = await settingsService.get(DEFAULT_TENANT_ID);
     const pages = (await tenantCollection(DEFAULT_TENANT_ID, "customPages").get()).docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(isEffectivelyPublished);
     const categories = (await tenantCollection(DEFAULT_TENANT_ID, "pageCategories").get()).docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const items = (await tenantCollection(DEFAULT_TENANT_ID, "pageItems").get()).docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(isEffectivelyPublished);
