@@ -28,6 +28,17 @@ router.get("/blog", (req, res) => res.redirect(301, "/p/blog"));
 router.get("/projects/:id", (req, res) => res.redirect(301, "/p/projects"));
 router.get("/blog/:slug", (req, res) => res.redirect(301, "/p/blog"));
 
+// 舊版 LightDust（2026/10 搬進這套系統前）的網址：社群分享過、Google 收錄過的連結繼續有效
+router.get("/photography", (req, res) => res.redirect(301, "/p/photography"));
+router.get("/film", (req, res) => res.redirect(301, "/p/film"));
+router.get("/design", (req, res) => res.redirect(301, "/p/graphic-design"));
+router.get("/services", (req, res) => res.redirect(301, "/p/services"));
+router.get("/equipment", (req, res) => res.redirect(301, "/p/equipment"));
+router.get(/^\/(about|contact|photography|film|design|services|equipment)\.html$/, (req, res) => res.redirect(301, "/" + req.params[0]));
+router.get("/pages/:slug", (req, res) => res.redirect(301, "/p/" + encodeURIComponent(req.params.slug)));
+// 作品內頁：舊網址 /work/16 → 搬家時記在作品上的 legacyId（scripts/migrateFromLightdustV1.js）
+router.get("/work/:id", homeController.legacyWorkRedirect);
+
 // 聯絡我表單送出（聯絡我頁面本身是自訂頁面 /p/contact，用 contactForm 模組）
 router.post("/contact", publicFormLimiter, homeController.submitContact);
 

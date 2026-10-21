@@ -10,7 +10,7 @@ const bookingService = require("../services/bookingService");
 const lineService = require("../services/lineService");
 const settingsService = require("../services/settingsService");
 const fontService = require("../services/fontService");
-const { bucket } = require("../config/firebase");
+const { bucket, tenantCollection } = require("../config/firebase");
 const { buildPublicContext } = require("../services/publicContext");
 const { isEffectivelyPublished } = require("../services/publishHelper");
 const { DEFAULT_TENANT_ID } = require("../config/tenant");
@@ -308,6 +308,34 @@ async function sendNotFound(res) {
 }
 
 exports.notFoundCatchAll = (req, res) => sendNotFound(res);
+
+// 舊版 LightDust 作品網址 /work/:id 轉到新網址。查過的結果（含查不到）記在記憶體，爬蟲重複掃不會一直讀資料庫
+const legacyWorkTargets = new Map();
+exports.legacyWorkRedirect = async (req, res) => {
+
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return sendNotFound(res);
+    }
+
+    if (!legacyWorkTargets.has(id)) {
+        const snapshot = await tenantCollection(DEFAULT_TENANT_ID, "pageItems").where("legacyId", "==", id).limit(1).get();
+        let target = null;
+        if (!snapshot.empty) {
+            const item = snapshot.docs[0].data();
+            const page = await customPageService.getById(DEFAULT_TENANT_ID, item.pageId);
+            if (page && item.slug) target = `/p/${page.slug}/${item.slug}`;
+        }
+        if (legacyWorkTargets.size > 500) legacyWorkTargets.clear();
+        legacyWorkTargets.set(id, target);
+    }
+
+    const target = legacyWorkTargets.get(id);
+
+    return target ? res.redirect(301, target) : sendNotFound(res);
+
+};
 
 // 分類清單頁底下單一項目的詳細頁
 exports.collectionItemDetail = async (req, res) => {
