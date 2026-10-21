@@ -271,30 +271,64 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
 /* Home sections                                                          */
 /* ---------------------------------------------------------------------- */
 
-.category-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
-  background:var(--color-border);
+/* Work carousels (精選作品 / 平面攝影): the centre slide is pushed toward the
+   viewer with 3D perspective, its neighbours sit back dimmed. Phones get one
+   full-width slide with dots and swipe instead. */
+.reel{background:var(--color-dark);color:#fff;padding:min(14vh,120px) 0;overflow:hidden;}
+.reel-alt{background:#0f2426;}
+.reel .section-title .title-zh{color:#fff;}
+.reel .section-title .title-en{color:var(--color-accent);}
+.reel-stage{position:relative;margin-top:56px;perspective:1400px;}
+.reel-loading{text-align:center;color:rgba(255,255,255,.6);}
+.reel-track{display:flex;align-items:center;justify-content:center;gap:16px;height:21.3vw;}
+.reel-slide{
+  --slide-h:21.3vw;
+  position:relative;flex:0 0 32vw;height:100%;display:none;align-items:center;justify-content:center;
+  opacity:.75;filter:brightness(.6);transform:translateZ(0) scale(.92);
+  transition:transform .5s ease,opacity .5s ease,filter .5s ease;
 }
-.category-card{
-  position:relative;aspect-ratio:3/4;overflow:hidden;background:#222;color:#fff;
+.reel-slide.prev{display:flex;order:1;}
+.reel-slide.active{display:flex;order:2;opacity:1;filter:none;transform:translateZ(120px) scale(1);}
+.reel-slide.next{display:flex;order:3;}
+/* The frame hugs the photo (portrait or landscape, never cropped), so the
+   category label and play button sit on the picture itself. */
+.reel-frame{position:relative;display:block;max-width:100%;}
+.reel-slide img{display:block;max-width:100%;max-height:var(--slide-h);width:auto;height:auto;}
+.reel-label{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  padding:10px 18px;background:rgba(0,0,0,.45);border-left:1px solid rgba(255,255,255,.6);
 }
-.category-card .bg{
-  position:absolute;inset:0;background-size:cover;background-position:center;
-  transition:transform .6s ease;
+.reel-label .zh{display:block;font-size:15px;letter-spacing:.35em;}
+.reel-label .en{display:block;margin-top:2px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.75);}
+.reel-play{
+  position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;
+  background:rgba(0,0,0,.45);display:none;
 }
-.category-card:hover .bg{transform:scale(1.08);}
-.category-card::after{
-  content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.6));
+.reel-play::after{content:'';position:absolute;left:30px;top:23px;border-style:solid;border-width:15px 0 15px 24px;border-color:transparent transparent transparent #fff;}
+.reel-slide.active .reel-play{display:block;}
+.reel-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+  width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.7);
+  background:rgba(0,0,0,.35);color:#fff;font-size:22px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s ease;
 }
-.category-card .label{
-  position:absolute;left:20px;bottom:20px;z-index:2;
+.reel-nav:hover{background:rgba(0,0,0,.6);}
+.reel-prev{left:4%;}
+.reel-next{right:4%;}
+.reel-caption{margin:28px 6vw 0;text-align:center;color:var(--color-accent);font-size:15px;letter-spacing:.06em;text-wrap:balance;}
+.reel-dots{display:none;justify-content:center;gap:8px;margin-top:18px;}
+.reel-dot{width:8px;height:8px;padding:0;border:0;border-radius:4px;background:rgba(255,255,255,.35);cursor:pointer;transition:width .3s ease;}
+.reel-dot.active{width:20px;background:var(--color-accent);}
+@media(max-width:720px){
+  .reel-track{height:auto;touch-action:pan-y;}
+  .reel-slide.prev,.reel-slide.next{display:none;}
+  .reel-slide.active{--slide-h:58.7vw;flex-basis:88vw;height:58.7vw;transform:none;}
+  .reel-label{padding:8px 12px;}
+  .reel-label .zh{font-size:13px;}
+  .reel-nav{display:none;}
+  .reel-dots{display:flex;}
 }
-.category-card .label .zh{display:block;font-family:'Noto Serif TC', serif;font-size:1.35rem;font-weight:700;letter-spacing:.2em;}
-.category-card .label .en{display:block;margin-top:4px;font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.8);}
 
-@media(max-width:900px){
-  .category-grid{grid-template-columns:repeat(2,1fr);}
-}
 
 .about-teaser{
   padding-top:min(14vh,120px);padding-bottom:min(14vh,120px);display:flex;gap:6vw;align-items:center;flex-wrap:wrap;
@@ -341,8 +375,6 @@ video.hero-slide-bg{width:100%;height:100%;object-fit:cover;background:#111;}
 
 /* Selected works: a uniform 3:2 grid per photography category. Portrait
    covers are center-cropped so every cell lines up. */
-.our-work{padding-top:min(14vh,120px);}
-.our-work .section-title{margin-bottom:48px;}
 .showcase{padding-top:min(14vh,120px);}
 .showcase-cat{margin-top:min(7vh,56px);}
 .showcase-empty{margin:40px 0 0;text-align:center;color:var(--color-text-soft);}

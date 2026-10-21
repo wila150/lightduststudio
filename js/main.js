@@ -572,6 +572,130 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* -------------------------------------------------------------- */
+  /* Work carousels (.reel): centre slide in front, neighbours dimmed */
+  /* behind; prev/next buttons, dots + swipe on phones. A side slide */
+  /* rotates to the centre when clicked; the centre one opens /work/ */
+  /* -------------------------------------------------------------- */
+  var REEL_LIMIT = 8;
+
+  // Video projects without a cover: let Cloudinary cut a frame from the video.
+  function reelImage(p) {
+    if (p.cover_url) return thumbUrl(p.cover_url).replace('w_900', 'w_1400');
+    if (p.video_url && p.video_url.indexOf('/video/upload/') !== -1) {
+      return p.video_url.replace('/video/upload/', '/video/upload/so_1,w_1400/').replace(/\.[a-z0-9]+$/i, '.jpg');
+    }
+    return '';
+  }
+
+  function reelCategory(p) {
+    var cat = (SHOWCASE_CATEGORIES[p._group] || []).filter(function (c) { return c[0] === p.category_key; })[0];
+    return cat ? { zh: cat[1], en: cat[2] } : null;
+  }
+
+  function fetchGroup(group) {
+    return fetch('/api/portfolio/' + group)
+      .then(function (r) { return r.json(); })
+      .then(function (items) { items.forEach(function (p) { p._group = group; }); return items; });
+  }
+
+  function initReel(section) {
+    var stage = section.querySelector('.reel-stage');
+    var source = section.getAttribute('data-source');
+    var withLabels = section.hasAttribute('data-labels');
+
+    fetchGroup(source)
+      .then(function (items) {
+        items = items.filter(reelImage);
+        // e.g. no videos uploaded yet: show the newest work from every group instead
+        if (!items.length && section.getAttribute('data-fallback') === 'all') {
+          return Promise.all(['photography', 'film', 'design'].map(fetchGroup)).then(function (groups) {
+            return groups[0].concat(groups[1], groups[2])
+              .filter(reelImage)
+              .sort(function (a, b) { return b.id - a.id; });
+          });
+        }
+        return items;
+      })
+      .then(function (items) {
+        items = items.slice(0, REEL_LIMIT);
+        if (!items.length) { section.hidden = true; return; }
+
+        stage.innerHTML =
+          '<div class="reel-track">' +
+            items.map(function (p, i) {
+              var cat = withLabels ? reelCategory(p) : null;
+              return (
+                '<a class="reel-slide" href="/work/' + p.id + '" data-index="' + i + '">' +
+                  '<span class="reel-frame">' +
+                    '<img src="' + reelImage(p) + '" alt="' + escapeHtml(p.title) + '"' + (i > 2 ? ' loading="lazy"' : '') + '>' +
+                    (cat ? '<span class="reel-label"><span class="zh">' + cat.zh + '</span><span class="en">' + cat.en + '</span></span>' : '') +
+                    (p.media_type === 'video' ? '<span class="reel-play" aria-hidden="true"></span>' : '') +
+                  '</span>' +
+                '</a>'
+              );
+            }).join('') +
+          '</div>' +
+          (items.length > 1 ? '<button type="button" class="reel-nav reel-prev" aria-label="上一個">‹</button><button type="button" class="reel-nav reel-next" aria-label="下一個">›</button>' : '');
+        section.insertAdjacentHTML('beforeend',
+          '<p class="reel-caption"></p>' +
+          (items.length > 1 ? '<div class="reel-dots">' + items.map(function (_, i) {
+            return '<button type="button" class="reel-dot" data-index="' + i + '" aria-label="第 ' + (i + 1) + ' 個"></button>';
+          }).join('') + '</div>' : ''));
+
+        var slides = Array.prototype.slice.call(stage.querySelectorAll('.reel-slide'));
+        var dots = Array.prototype.slice.call(section.querySelectorAll('.reel-dot'));
+        var caption = section.querySelector('.reel-caption');
+        var active = 0;
+
+        function render() {
+          var total = slides.length;
+          slides.forEach(function (el, i) {
+            el.classList.toggle('active', i === active);
+            el.classList.toggle('prev', total > 1 && i === (active - 1 + total) % total);
+            el.classList.toggle('next', total > 2 && i === (active + 1) % total);
+          });
+          dots.forEach(function (d, i) { d.classList.toggle('active', i === active); });
+          caption.textContent = items[active].title;
+        }
+        function go(delta) {
+          active = (active + delta + slides.length) % slides.length;
+          render();
+        }
+
+        var swiped = false;
+        stage.addEventListener('click', function (e) {
+          if (swiped) { swiped = false; e.preventDefault(); return; } // a swipe is not a tap
+          if (e.target.closest('.reel-prev')) { go(-1); return; }
+          if (e.target.closest('.reel-next')) { go(1); return; }
+          var slide = e.target.closest('.reel-slide');
+          if (slide && !slide.classList.contains('active')) {
+            e.preventDefault();
+            active = Number(slide.getAttribute('data-index'));
+            render();
+          }
+        });
+        dots.forEach(function (d) {
+          d.addEventListener('click', function () { active = Number(d.getAttribute('data-index')); render(); });
+        });
+
+        // Swipe left/right on touch screens
+        var startX = null;
+        stage.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+        stage.addEventListener('touchend', function (e) {
+          if (startX === null) return;
+          var dx = e.changedTouches[0].clientX - startX;
+          startX = null;
+          if (Math.abs(dx) > 40) { swiped = true; go(dx < 0 ? 1 : -1); setTimeout(function () { swiped = false; }, 400); }
+        });
+
+        render();
+      })
+      .catch(function () { section.hidden = true; });
+  }
+
+  document.querySelectorAll('.reel').forEach(initReel);
+
+  /* -------------------------------------------------------------- */
   /* Equipment: featured cards on the homepage, the full list grouped */
   /* by category on /equipment                                        */
   /* -------------------------------------------------------------- */
