@@ -4,7 +4,7 @@ const { renderModules } = require("./moduleRenderer");
 const { getEmbedUrl } = require("../services/videoEmbed");
 const { SITE_URL } = require("../config/site");
 
-module.exports = (page, navPages = [], settings = {}, featuredProjects = [], navItems = []) => {
+module.exports = (page, navPages = [], settings = {}, featuredProjects = [], navItems = [], context = {}) => {
 
   const embedUrl = getEmbedUrl(page.heroVideo);
 
@@ -145,7 +145,7 @@ ${settings.showFeaturedSidebar && featuredProjects.length > 0 ? `
 
 <section class="section" id="feature-section">
 
-    ${renderModules(page.modules)}
+    ${renderModules(page.modules, context)}
 
 </section>
 

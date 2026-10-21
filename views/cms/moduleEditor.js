@@ -96,6 +96,7 @@ const MODULE_ICONS = {
     bookingWidget: "🗓️",
     videoCarousel: "🎞️",
     sponsorMarquee: "🏷️",
+    equipmentGrid: "📷",
     serviceGrid: "🗂️"
 };
 
@@ -415,6 +416,20 @@ function renderModuleFields(module) {
                     <option value="large" ${data.logoSize === "large" ? "selected" : ""}>大</option>
                     <option value="xlarge" ${data.logoSize === "xlarge" ? "selected" : ""}>特大</option>
                 </select>
+            `;
+
+        case "equipmentGrid":
+            return `
+                <p style="color:#888;font-size:13px;margin-bottom:10px;">設備資料在後台「設備管理」新增與排序，這裡只決定要顯示哪些、怎麼排。</p>
+                <label>顯示方式</label>
+                <select name="mode">
+                    <option value="featured"${data.mode !== "all" ? " selected" : ""}>只顯示勾選「首頁精選」的設備（適合首頁）</option>
+                    <option value="all"${data.mode === "all" ? " selected" : ""}>全部設備，依類別分組（適合「我的設備」頁）</option>
+                </select>
+                <label>精選模式最多顯示幾項</label>
+                <input type="number" name="limit" min="1" max="24" value="${data.limit || 6}">
+                <input type="text" name="linkUrl" placeholder="底部按鈕連結（選填，例如 /p/equipment）" value="${escapeHtml(data.linkUrl || "")}">
+                <input type="text" name="linkText" placeholder="按鈕文字（例如 查看全部設備）" value="${escapeHtml(data.linkText || "")}">
             `;
 
         case "serviceGrid":

@@ -1,3 +1,5 @@
+const { EQUIPMENT_CATEGORIES } = require("../services/equipmentService");
+const categoryLabel = value => (EQUIPMENT_CATEGORIES.find(c => c.value === value) || { label: "" }).label;
 const featureService = require("../services/featureService");
 const { getEmbedUrl } = require("../services/videoEmbed");
 const { renderGallery } = require("../services/galleryRenderer");
@@ -295,6 +297,43 @@ const MODULE_RENDERERS = {
             ${renderRow(rows[1], true)}
         </div>
         `;
+
+    },
+
+    // 設備清單：資料來自後台「設備管理」（controller 渲染前放進 context.equipment）。
+    // featured 模式只取勾選首頁精選的前 N 項；all 模式依類別分組全部列出
+    equipmentGrid: (data, context = {}) => {
+
+        const all = context.equipment || [];
+        const card = item => `
+            <div class="equipment-card">
+                <div class="equipment-media">${item.photoUrl ? `<img src="${escapeHtml(item.photoUrl)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ""}</div>
+                <div class="equipment-info">
+                    <span class="equipment-category">${escapeHtml(categoryLabel(item.category))}</span>
+                    <strong class="equipment-name">${escapeHtml(item.name)}</strong>
+                    ${item.brand ? `<span class="equipment-brand">${escapeHtml(item.brand)}</span>` : ""}
+                    ${item.description ? `<p class="equipment-desc">${escapeHtml(item.description)}</p>` : ""}
+                </div>
+            </div>`;
+        const link = data.linkUrl && data.linkText
+            ? `<p class="equipment-more"><a href="${escapeHtml(data.linkUrl)}" class="btn-primary">${escapeHtml(data.linkText)}</a></p>`
+            : "";
+
+        if (data.mode === "all") {
+            const groups = EQUIPMENT_CATEGORIES
+                .map(cat => ({ cat, items: all.filter(item => item.category === cat.value) }))
+                .filter(group => group.items.length > 0);
+            if (groups.length === 0) return "";
+            return groups.map(group => `
+                <div class="equipment-group">
+                    <h3 class="equipment-group-title">${group.cat.label}<span>${group.cat.labelEn}</span></h3>
+                    <div class="equipment-grid">${group.items.map(card).join("")}</div>
+                </div>`).join("") + link;
+        }
+
+        const picks = all.filter(item => item.featured).slice(0, data.limit || 6);
+        if (picks.length === 0) return "";
+        return `<div class="equipment-grid">${picks.map(card).join("")}</div>${link}`;
 
     },
 

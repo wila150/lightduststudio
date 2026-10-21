@@ -28,7 +28,8 @@ module.exports = {
         { type: "bookingWidget", label: "線上預約區塊" },
         { type: "videoCarousel", label: "精選作品輪播（從作品集選）" },
         { type: "sponsorMarquee", label: "圖片跑馬燈（贊助商）" },
-        { type: "serviceGrid", label: "服務項目（宮格卡片）" }
+        { type: "serviceGrid", label: "服務項目（宮格卡片）" },
+        { type: "equipmentGrid", label: "設備清單（從設備管理帶入）" }
     ],
 
     defaultData(type) {
@@ -82,6 +83,9 @@ module.exports = {
 
             case "serviceGrid":
                 return { items: [], accentColor: "" };
+
+            case "equipmentGrid":
+                return { mode: "featured", limit: 6, linkUrl: "/p/equipment", linkText: "查看全部設備" };
 
             default:
                 return {};
@@ -319,6 +323,14 @@ module.exports = {
                 };
 
             }
+
+            case "equipmentGrid":
+                return {
+                    mode: body.mode === "all" ? "all" : "featured",
+                    limit: Math.min(24, Math.max(1, parseInt(body.limit, 10) || 6)),
+                    linkUrl: (body.linkUrl || "").trim(),
+                    linkText: (body.linkText || "").trim()
+                };
 
             default:
                 return {};

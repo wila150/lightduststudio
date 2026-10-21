@@ -709,6 +709,26 @@ a:hover .nav-label-track { transform: translateY(-1.3em); }
   .service-grid { grid-template-columns: 1fr; }
 }
 
+/* 設備清單模組：照片＋類別＋名稱卡片，首頁精選或「我的設備」頁依類別分組 */
+.section.narrow:has(.equipment-grid) { max-width: 1200px; }
+.equipment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 24px; margin: 24px 0; }
+.equipment-card { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--panel, transparent); }
+.equipment-media { aspect-ratio: 4/3; background: var(--bg-alt); overflow: hidden; }
+.equipment-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.equipment-info { padding: 16px 18px 20px; }
+.equipment-category { display: block; font-size: 12px; letter-spacing: 2px; color: var(--accent); }
+.equipment-name { display: block; margin-top: 6px; font-size: 17px; }
+.equipment-brand { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
+.equipment-desc { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.equipment-group + .equipment-group { margin-top: 48px; }
+.equipment-group-title { font-size: 20px; letter-spacing: 2px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.equipment-group-title span { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 3px; color: var(--accent); font-weight: 400; }
+.equipment-more { text-align: center; margin-top: 32px; }
+@media (max-width: 720px) {
+  .equipment-grid { grid-template-columns: repeat(2, 1fr); gap: 16px 12px; }
+  .equipment-info { padding: 12px 14px 16px; }
+}
+
 /* 圖文分欄模組：大標題+說明文字配側邊圖片（可放多張並排），可切左右、可選深色強調背景 */
 .split-feature {
   display: grid; grid-template-columns: var(--split-cols, 1fr 1fr); gap: 48px; align-items: center;

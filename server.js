@@ -103,6 +103,7 @@ app.use("/cms/admins", require("./routes/cms/adminAccount"));
 app.use("/cms/help", require("./routes/cms/help"));
 app.use("/cms", require("./routes/cms/analytics"));
 app.use("/cms/trash", require("./routes/cms/trash"));
+app.use("/cms/equipment", require("./routes/cms/equipment"));
 
 // 404：以上路由都沒對到。CMS 底下顯示簡單訊息，前台顯示品牌化 404 頁
 app.use("/cms", (req, res) => {

@@ -1,3 +1,4 @@
+const equipmentService = require("../../services/equipmentService");
 const customPageService = require("../../services/customPageService");
 const collectionService = require("../../services/collectionService");
 const storageService = require("../../services/storageService");
@@ -276,7 +277,10 @@ exports.preview = async (req, res) => {
 
     page.modules = await refreshCarousels(page.modules, req.tenantId);
 
-    const context = await buildBookingContext(req.tenantId, page.modules);
+    const context = {
+        ...(await buildBookingContext(req.tenantId, page.modules)),
+        ...(await equipmentService.contextFor(req.tenantId, page.modules))
+    };
 
     res.send(customPageView(page, navPages, settings, navItems, context));
 

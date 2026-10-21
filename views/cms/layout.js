@@ -43,6 +43,7 @@ module.exports = (title, content, user) => `
                     <a href="/cms/pages">首頁管理</a>
                     <a href="/cms/custom-pages">自訂頁面</a>
                     <a href="/cms/media">媒體庫</a>
+                    <a href="/cms/equipment">設備管理</a>
                 </div>
             </div>
 

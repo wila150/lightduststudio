@@ -1,3 +1,4 @@
+const equipmentService = require("../services/equipmentService");
 const featureService = require("../services/featureService");
 const pageService = require("../services/pageService");
 const customPageService = require("../services/customPageService");
@@ -79,7 +80,9 @@ exports.home = async (req, res) => {
         page.modules = await refreshCarousels(page.modules, DEFAULT_TENANT_ID);
     }
 
-    res.send(homeView(page, navPages, settings, featuredProjects, navItems));
+    const context = await buildModuleContext(page.modules, settings, req.query);
+
+    res.send(homeView(page, navPages, settings, featuredProjects, navItems, context));
 
 };
 
@@ -214,7 +217,7 @@ exports.submitBooking = async (req, res) => {
 // 檢查頁面是否含該模組才額外查詢，避免每個一般頁面都多查一次
 async function buildModuleContext(modules, settings, query = {}) {
 
-    const context = {};
+    const context = { ...(await equipmentService.contextFor(DEFAULT_TENANT_ID, modules)) };
 
     if ((modules || []).some(m => m.type === "contactForm")) {
         context.sent = query.sent === "1";
