@@ -15,22 +15,30 @@ const DEFAULT_FEATURES = FEATURES.reduce((map, f) => ({ ...map, [f.key]: false }
 // 模組類型 → 需要打開的功能
 const MODULE_FEATURE = { bookingWidget: "booking", sponsorMarquee: "sponsorMarquee" };
 
-// 每個請求都要判斷功能開關，設定存在 Firestore，快取 30 秒避免每次都讀；後台儲存設定時會立刻清掉快取
-const TTL_MS = 30 * 1000;
+// 每個請求（包含爬蟲亂掃的 404）都要判斷功能開關，不能每次都讀 Firestore：
+// 快取 30 分鐘，跟前台頁面快取一起過期；後台任何寫入都會連同頁面快取一起清掉（pageCache.onClear）
+const TTL_MS = 30 * 60 * 1000;
 let cache = { ...DEFAULT_FEATURES };
 let loadedAt = 0;
 
+let inflight = null;
+
 async function load(force) {
     if (!force && Date.now() - loadedAt < TTL_MS) return cache;
-    const settings = await settingsService.get(DEFAULT_TENANT_ID);
-    cache = { ...DEFAULT_FEATURES, ...(settings.features || {}) };
-    loadedAt = Date.now();
-    return cache;
+    // 快取剛過期時同時進來很多請求，只讀一次 Firestore
+    inflight = inflight || settingsService.get(DEFAULT_TENANT_ID).then(settings => {
+        cache = { ...DEFAULT_FEATURES, ...(settings.features || {}) };
+        loadedAt = Date.now();
+        return cache;
+    }).finally(() => { inflight = null; });
+    return inflight;
 }
 
 function invalidate() {
     loadedAt = 0;
 }
+
+require("../middleware/pageCache").onClear(invalidate);
 
 // 同步讀目前快取的值（middleware 已在每個請求開始時刷新過），給 view 這類同步函式用
 function enabled(key) {

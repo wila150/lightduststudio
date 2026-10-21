@@ -243,11 +243,12 @@ async function buildModuleContext(modules, settings, query = {}) {
 exports.customPage = async (req, res) => {
 
     const page = await customPageService.getBySlug(DEFAULT_TENANT_ID, req.params.slug);
-    const { navPages, settings, navItems } = await buildPublicContext(DEFAULT_TENANT_ID);
 
     if (!page || !isEffectivelyPublished(page)) {
-        return res.status(404).send(notFoundView(navPages, settings, navItems));
+        return sendNotFound(res);
     }
+
+    const { navPages, settings, navItems } = await buildPublicContext(DEFAULT_TENANT_ID);
 
     if (page.pageType === "collection") {
 
@@ -290,7 +291,7 @@ exports.serveFont = async (req, res) => {
 
 // 前台任何沒對到路由的網址，顯示品牌化 404（而不是 Express 預設那個純文字頁面）
 // 爬蟲常常亂掃 /wp-login.php 之類的網址，每次都重抓前台資料很浪費 Firestore 讀取，404 頁共用一份快取
-exports.notFoundCatchAll = async (req, res) => {
+async function sendNotFound(res) {
 
     const cached = getCached("__notFound");
 
@@ -304,23 +305,27 @@ exports.notFoundCatchAll = async (req, res) => {
     setCached("__notFound", { body: html, status: 404 });
     res.status(404).send(html);
 
-};
+}
+
+exports.notFoundCatchAll = (req, res) => sendNotFound(res);
 
 // 分類清單頁底下單一項目的詳細頁
 exports.collectionItemDetail = async (req, res) => {
 
+    // 先確認頁面和作品存在才讀前台共用資料；亂掃的網址直接回共用的 404 快取（見 sendNotFound）
     const page = await customPageService.getBySlug(DEFAULT_TENANT_ID, req.params.slug);
-    const { navPages, settings, navItems } = await buildPublicContext(DEFAULT_TENANT_ID);
 
     if (!page || !isEffectivelyPublished(page) || page.pageType !== "collection") {
-        return res.status(404).send(notFoundView(navPages, settings, navItems));
+        return sendNotFound(res);
     }
 
     const item = await collectionService.getItemBySlug(DEFAULT_TENANT_ID, page.id, req.params.itemSlug);
 
     if (!item || !isEffectivelyPublished(item)) {
-        return res.status(404).send(notFoundView(navPages, settings, navItems));
+        return sendNotFound(res);
     }
+
+    const { navPages, settings, navItems } = await buildPublicContext(DEFAULT_TENANT_ID);
 
     // 分類標籤：作品詳情頁要顯示這件作品掛在哪個分類（例如「婚禮紀錄」），查一次該頁面底下的分類清單來對應 id → 名稱
     const categories = await collectionService.getCategories(DEFAULT_TENANT_ID, page.id);

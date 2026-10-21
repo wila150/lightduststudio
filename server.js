@@ -51,6 +51,10 @@ app.use((req, res, next) => {
     next();
 });
 
+// 靜態檔案放在 session 之前：CSS/JS/圖片不需要登入狀態，不然登入中的管理員每載入一個檔案
+// 都會去 Firestore 讀一次 session（一頁十幾次讀取）
+app.use(express.static("public", { maxAge: "1d" }));
+
 // Session
 app.use(
     session({
@@ -68,8 +72,6 @@ app.use(
     })
 );
 
-// 靜態檔案（CSS/JS 常常在改，快取設短一點避免使用者一直看到舊版本；圖片/影片大多走 Firebase Storage 不是這裡）
-app.use(express.static("public", { maxAge: "1d" }));
 
 
 // ===== Routes =====

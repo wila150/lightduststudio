@@ -24,14 +24,35 @@ function set(key, entry) {
     store.set(key, { ...entry, at: Date.now() });
 }
 
+// 其他也要跟著前台快取一起清的記憶體快取（例如功能開關），在這裡註冊
+const clearHooks = [];
+
+function onClear(fn) {
+    clearHooks.push(fn);
+}
+
 function clearPageCache() {
     store.clear();
+    clearHooks.forEach(fn => fn());
+}
+
+// 快取的 key 只用網址路徑＋會影響伺服器輸出的參數。FB／Google 廣告連結會帶 fbclid、utm_*、gclid
+// 這類每次都不一樣的參數，整串網址當 key 的話每個點擊都是新 key、每次都重讀資料庫，快取等於失效。
+// ?category= 是瀏覽器端篩選（public/js/main.js），伺服器輸出的 HTML 一樣，不放進 key；
+// ?sent=1 會讓聯絡表單顯示「已送出」，要保留
+const SERVER_PARAMS = ["sent"];
+
+function cacheKey(req) {
+    const kept = SERVER_PARAMS
+        .filter(name => typeof req.query[name] === "string")
+        .map(name => `${name}=${encodeURIComponent(req.query[name])}`);
+    return req.path + (kept.length ? `?${kept.join("&")}` : "");
 }
 
 // 掛在前台 GET 路由上：有快取直接回，沒有就照常跑 controller，把 200／404 的結果存起來
 function pageCache(req, res, next) {
 
-    const key = req.originalUrl;
+    const key = cacheKey(req);
     const cached = get(key);
 
     if (cached) {
@@ -62,4 +83,4 @@ function clearOnCmsWrite(req, res, next) {
     next();
 }
 
-module.exports = { pageCache, clearOnCmsWrite, clearPageCache, getCached: get, setCached: set };
+module.exports = { pageCache, clearOnCmsWrite, clearPageCache, onClear, getCached: get, setCached: set };
