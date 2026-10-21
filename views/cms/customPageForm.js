@@ -1,3 +1,4 @@
+const featureService = require("../../services/featureService");
 const layout = require("./layout");
 const { renderModulesSection, moduleEditorScript } = require("./moduleEditor");
 const { renderCollectionSection } = require("./collectionSection");
@@ -100,10 +101,10 @@ page ? "編輯頁面" : "新增頁面",
                     作品集（強調封面照／相簿，例如攝影作品、案例展示）
                 </label>
 
-                <label style="display:block;">
+                ${featureService.enabled("blog") ? `<label style="display:block;">
                     <input type="radio" name="contentKind" value="article">
                     文章（列表/內頁會顯示發布日期與作者，例如部落格、最新消息）
-                </label>
+                </label>` : ""}
 
             </div>
 

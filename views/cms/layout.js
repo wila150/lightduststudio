@@ -1,3 +1,4 @@
+const featureService = require("../../services/featureService");
 const { ASSET_VERSION } = require("../../config/version");
 
 module.exports = (title, content, user) => `
@@ -49,7 +50,7 @@ module.exports = (title, content, user) => `
 
             <a href="/cms/analytics">即時統計</a>
 
-            <div class="nav-dropdown" tabindex="0">
+            ${featureService.enabled("booking") ? `<div class="nav-dropdown" tabindex="0">
                 <span>線上預約</span>
                 <div class="nav-dropdown-menu">
                     <a href="/cms/bookings">預約管理</a>
@@ -57,7 +58,7 @@ module.exports = (title, content, user) => `
                     <a href="/cms/staff">預約人員</a>
                     <a href="/cms/booking-settings">預約設定</a>
                 </div>
-            </div>
+            </div>` : ""}
 
             <div class="nav-dropdown" tabindex="0">
                 <span>系統</span>

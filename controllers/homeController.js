@@ -1,3 +1,4 @@
+const featureService = require("../services/featureService");
 const pageService = require("../services/pageService");
 const customPageService = require("../services/customPageService");
 const collectionService = require("../services/collectionService");
@@ -140,8 +141,10 @@ exports.submitContact = async (req, res) => {
     await messageService.create(DEFAULT_TENANT_ID, { name, email, subject, message });
 
     // LINE 通知為附加功能，尚未設定或發送失敗都不影響留言本身已成功送出
-    lineService.notifyOwners(DEFAULT_TENANT_ID, `📩 新留言\n姓名：${name}\nEmail：${email}\n主旨：${subject}\n內容：${message}`)
-        .catch(error => console.error("LINE notify error:", error));
+    if (featureService.enabled("line")) {
+        lineService.notifyOwners(DEFAULT_TENANT_ID, `📩 新留言\n姓名：${name}\nEmail：${email}\n主旨：${subject}\n內容：${message}`)
+            .catch(error => console.error("LINE notify error:", error));
+    }
 
     res.redirect("/contact?sent=1");
 

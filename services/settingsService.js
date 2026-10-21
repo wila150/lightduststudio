@@ -54,7 +54,9 @@ const DEFAULTS = {
     customColorDanger: "#b5533f",
     customColorHeaderBg: "#f4f1ec",
     // 自訂配色範本：把當下調好的 10 個顏色存成一筆 {id, name, colors}，之後可以直接套用回來或切換其他組合
-    colorPresets: []
+    colorPresets: [],
+    // 功能開關（見 services/featureService.js），預設全部關閉
+    features: { booking: false, line: false, sponsorMarquee: false, blog: false }
 };
 
 // 可選樣板清單，CMS 的樣板選擇器跟這份清單走，值要跟 public/css/style.css 的 [data-theme="..."] 對上

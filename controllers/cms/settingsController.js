@@ -1,3 +1,4 @@
+const featureService = require("../../services/featureService");
 const settingsService = require("../../services/settingsService");
 const storageService = require("../../services/storageService");
 const mediaService = require("../../services/mediaService");
@@ -132,8 +133,10 @@ exports.update = async (req, res) => {
         cookieConsentText: (req.body.cookieConsentText || "").trim(),
         recaptchaSiteKey: (req.body.recaptchaSiteKey || "").trim(),
         recaptchaSecretKey: (req.body.recaptchaSecretKey || "").trim(),
+        features: featureService.FEATURES.reduce((map, f) => ({ ...map, [f.key]: req.body[`feature_${f.key}`] === "on" }), {}),
         ...customColors
     });
+    featureService.invalidate();
 
     // settingsService.update 內部把 Firestore 錯誤吞掉只回傳 false（例如某個欄位不小心是 undefined，
     // Firestore 會整批寫入失敗），這裡以前沒檢查結果，儲存失敗時還是照樣導回設定頁，

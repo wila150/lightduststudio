@@ -1,3 +1,4 @@
+const { FEATURES } = require("../../services/featureService");
 const layout = require("./layout");
 const { THEMES, PROJECT_LIST_LAYOUTS } = require("../../services/settingsService");
 const { cropWidgetAssets, cropWidgetHtml, cropWidgetScript } = require("./cropWidget");
@@ -106,6 +107,16 @@ ${fonts.length > 0 ? `
 <br>
 
 <form method="POST" action="/cms/settings">
+
+    <fieldset class="feature-switches" style="border:1px solid #ddd;border-radius:10px;padding:16px 18px;margin:0 0 28px;">
+        <legend style="font-weight:bold;padding:0 6px;">功能開關</legend>
+        <p style="margin:0 0 12px;color:#777;font-size:13px;">關閉的功能會從後台選單、新增模組清單與前台隱藏，資料都會保留，重新打開就恢復。</p>
+        ${FEATURES.map(f => `
+        <label style="display:flex;gap:10px;align-items:flex-start;margin:0 0 10px;">
+            <input type="checkbox" name="feature_${f.key}" ${(settings.features || {})[f.key] ? "checked" : ""} style="margin-top:4px;">
+            <span><strong>${f.label}</strong><br><span style="color:#777;font-size:13px;">${f.description}</span></span>
+        </label>`).join("")}
+    </fieldset>
 
     <label>導覽列 Logo 高度（單位 px，預設 40，範圍 20-160）</label>
 

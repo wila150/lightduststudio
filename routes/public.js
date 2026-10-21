@@ -1,4 +1,5 @@
 const express = require("express");
+const { requireFeature } = require("../services/featureService");
 const router = express.Router();
 
 const homeController = require("../controllers/homeController");
@@ -20,7 +21,7 @@ router.get("/fonts/:id", homeController.serveFont);
 // 對應的新自訂頁面 slug 要剛好是 about/contact/booking/projects/blog 才會生效
 router.get("/about", (req, res) => res.redirect(301, "/p/about"));
 router.get("/contact", (req, res) => res.redirect(301, "/p/contact"));
-router.get("/booking", (req, res) => res.redirect(301, "/p/booking"));
+router.get("/booking", requireFeature("booking"), (req, res) => res.redirect(301, "/p/booking"));
 router.get("/projects", (req, res) => res.redirect(301, "/p/projects"));
 router.get("/blog", (req, res) => res.redirect(301, "/p/blog"));
 // 舊的單一作品/文章網址沒有一對一搬過去的新網址，一律導回清單頁
@@ -32,11 +33,11 @@ router.post("/contact", publicFormLimiter, homeController.submitContact);
 
 // LINE 官方帳號 webhook（在 LINE Developers 後台的 Messaging API 分頁設定這個網址），不能加表單那組
 // rate limiter——LINE 可能一次送一批事件過來，而且請求本身有簽章驗證把關，不是給一般訪客打的端點
-router.post("/line/webhook", homeController.lineWebhook);
+router.post("/line/webhook", requireFeature("line"), homeController.lineWebhook);
 
 // 線上預約 API（預約頁面本身是自訂頁面 /p/booking，用 bookingWidget 模組）
-router.get("/booking/availability", homeController.bookingAvailability);
-router.post("/booking", publicFormLimiter, homeController.submitBooking);
+router.get("/booking/availability", requireFeature("booking"), homeController.bookingAvailability);
+router.post("/booking", requireFeature("booking"), publicFormLimiter, homeController.submitBooking);
 
 // 自訂頁面（一般內容頁／分類清單頁清單）
 router.get("/p/:slug", pageCache, homeController.customPage);

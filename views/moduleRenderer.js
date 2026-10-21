@@ -1,3 +1,4 @@
+const featureService = require("../services/featureService");
 const { getEmbedUrl } = require("../services/videoEmbed");
 const { renderGallery } = require("../services/galleryRenderer");
 const { resolveProcessIcon } = require("../services/processIcons");
@@ -728,7 +729,8 @@ function renderModules(modules, context = {}) {
 
     }
 
-    (modules || []).forEach(module => {
+    // 功能開關關閉的模組（例如線上預約、贊助商跑馬燈）不顯示，資料保留
+    (modules || []).filter(module => featureService.moduleAllowed(module.type)).forEach(module => {
 
         const renderer = MODULE_RENDERERS[module.type];
 

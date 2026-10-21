@@ -1,3 +1,4 @@
+const featureService = require("../../services/featureService");
 const { MODULE_TYPES } = require("../../services/moduleTypes");
 const { GALLERY_LAYOUTS } = require("../../services/galleryLayouts");
 const escapeHtml = require("../escapeHtml");
@@ -549,7 +550,7 @@ function renderModulesSection(basePath, modules) {
         <form method="POST" action="${basePath}/modules" class="add-module-bar">
 
             <select name="type">
-                ${MODULE_TYPES.map(item => `<option value="${item.type}">${MODULE_ICONS[item.type] || "🧩"} ${item.label}</option>`).join("")}
+                ${MODULE_TYPES.filter(item => featureService.moduleAllowed(item.type)).map(item => `<option value="${item.type}">${MODULE_ICONS[item.type] || "🧩"} ${item.label}</option>`).join("")}
             </select>
 
             <button type="submit">＋ 新增模組</button>

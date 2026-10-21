@@ -75,6 +75,10 @@ app.use(express.static("public", { maxAge: "1d" }));
 // ===== Routes =====
 
 // 前台
+// 功能開關：每個請求先刷新（有快取），後面的路由與 view 才能判斷哪些功能要隱藏
+const featureService = require("./services/featureService");
+app.use(featureService.middleware);
+
 app.use("/", require("./routes/public"));
 
 // CMS
@@ -91,10 +95,10 @@ app.use("/cms/custom-pages", require("./routes/cms/customPage"));
 app.use("/cms/nav-items", require("./routes/cms/navItem"));
 app.use("/cms/messages", require("./routes/cms/message"));
 app.use("/cms/settings", require("./routes/cms/setting"));
-app.use("/cms/booking-services", require("./routes/cms/serviceItem"));
-app.use("/cms/staff", require("./routes/cms/staff"));
-app.use("/cms/booking-settings", require("./routes/cms/bookingSettings"));
-app.use("/cms/bookings", require("./routes/cms/booking"));
+app.use("/cms/booking-services", featureService.requireFeature("booking"), require("./routes/cms/serviceItem"));
+app.use("/cms/staff", featureService.requireFeature("booking"), require("./routes/cms/staff"));
+app.use("/cms/booking-settings", featureService.requireFeature("booking"), require("./routes/cms/bookingSettings"));
+app.use("/cms/bookings", featureService.requireFeature("booking"), require("./routes/cms/booking"));
 app.use("/cms/admins", require("./routes/cms/adminAccount"));
 app.use("/cms/help", require("./routes/cms/help"));
 app.use("/cms", require("./routes/cms/analytics"));
