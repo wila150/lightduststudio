@@ -471,3 +471,9 @@ body.preview-open .preview-panel{display:flex;}
 .equip-save,.equip-del{padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-size:.78rem;}
 .equip-save:hover{border-color:#2f7a3f;color:#2f7a3f;}
 .equip-del:hover{border-color:var(--danger);color:var(--danger);}
+
+/* Page cover preview in the page editor */
+.cover-preview{display:flex;align-items:flex-end;gap:10px;margin-top:6px;}
+.cover-preview img{width:160px;height:110px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border);}
+.cover-remove{padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-size:.78rem;}
+.cover-remove:hover{border-color:var(--danger);color:var(--danger);}

@@ -267,6 +267,13 @@ async function init() {
   if (!pageCols.includes('title_en')) {
     await db.exec("ALTER TABLE pages ADD COLUMN title_en TEXT NOT NULL DEFAULT ''");
   }
+  // Service pages: a cover photo (also used on the homepage service cards) and a short intro
+  if (!pageCols.includes('cover_url')) {
+    await db.exec("ALTER TABLE pages ADD COLUMN cover_url TEXT NOT NULL DEFAULT ''");
+  }
+  if (!pageCols.includes('intro')) {
+    await db.exec("ALTER TABLE pages ADD COLUMN intro TEXT NOT NULL DEFAULT ''");
+  }
 
   const heroCols = (await db.prepare('PRAGMA table_info(hero_slides)').all()).map((c) => c.name);
   if (!heroCols.includes('media_public_id')) {

@@ -1060,6 +1060,43 @@
       mainEl.addEventListener('input', preview.schedule);
       mainEl.addEventListener('change', preview.schedule);
 
+      // Cover photo: uploaded right away, saved with the page settings
+      var coverUrl = '';
+      var coverFile = document.getElementById('cover-file');
+      var coverPreview = document.getElementById('cover-preview');
+      function renderCover() {
+        coverPreview.innerHTML = coverUrl
+          ? '<img src="' + coverUrl + '" alt=""><button type="button" class="cover-remove">移除封面</button>'
+          : '';
+      }
+      coverPreview.addEventListener('click', function (e) {
+        if (!e.target.closest('.cover-remove')) return;
+        e.preventDefault();
+        coverUrl = '';
+        renderCover();
+        metaStatus.textContent = '已移除封面，按「儲存頁面設定」生效';
+        metaStatus.className = 'status';
+      });
+      coverFile.addEventListener('change', function () {
+        var file = coverFile.files[0];
+        if (!file) return;
+        var fd = new FormData();
+        fd.append('file', file);
+        coverFile.disabled = true;
+        metaStatus.textContent = '封面上傳中…';
+        metaStatus.className = 'status';
+        fetch('/api/pages/upload', { method: 'POST', body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            coverUrl = data.url;
+            renderCover();
+            coverFile.value = '';
+            metaStatus.textContent = '封面已上傳，按「儲存頁面設定」生效';
+          })
+          .catch(function () { metaStatus.textContent = '封面上傳失敗'; metaStatus.className = 'status err'; })
+          .then(function () { coverFile.disabled = false; });
+      });
+
       function load() {
         fetch('/api/pages/id/' + pageId)
           .then(function (r) { return r.json(); })
@@ -1067,6 +1104,9 @@
             metaForm.slug.value = p.slug;
             metaForm.title.value = p.title;
             metaForm.title_en.value = p.title_en || '';
+            metaForm.intro.value = p.intro || '';
+            coverUrl = p.cover_url || '';
+            renderCover();
             metaForm.seo_title.value = p.seo_title;
             metaForm.seo_description.value = p.seo_description;
             metaForm.published.checked = !!p.published;
@@ -1084,6 +1124,8 @@
           slug: metaForm.slug.value.trim(),
           title: metaForm.title.value.trim(),
           title_en: metaForm.title_en.value.trim(),
+          cover_url: coverUrl,
+          intro: metaForm.intro.value,
           seo_title: metaForm.seo_title.value,
           seo_description: metaForm.seo_description.value,
           published: metaForm.published.checked,

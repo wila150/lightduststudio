@@ -696,6 +696,39 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.reel').forEach(initReel);
 
   /* -------------------------------------------------------------- */
+  /* Homepage services grid: one card per page in the nav's          */
+  /* 服務項目 dropdown (cover photo + name), linking to that page    */
+  /* -------------------------------------------------------------- */
+  var servicesSection = document.getElementById('services-home');
+  if (servicesSection) {
+    fetch('/api/nav')
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        var parent = items.filter(function (i) { return i.label === '服務項目'; })[0] ||
+          items.filter(function (i) { return (i.children || []).some(function (c) { return c.url.indexOf('/pages/') === 0; }); })[0];
+        var slugs = parent ? parent.children.map(function (c) {
+          var m = c.url.match(/^\/pages\/([a-z0-9-]+)/);
+          return m && m[1];
+        }).filter(Boolean) : [];
+        if (!slugs.length) return [];
+        return fetch('/api/pages/cards?slugs=' + slugs.join(',')).then(function (r) { return r.json(); });
+      })
+      .then(function (cards) {
+        if (!cards.length) { servicesSection.hidden = true; return; }
+        document.getElementById('services-grid').innerHTML = cards.map(function (c) {
+          return (
+            '<a class="service-card" href="/pages/' + c.slug + '">' +
+              '<span class="service-media">' + (c.cover_url ? '<img src="' + thumbUrl(c.cover_url) + '" alt="' + escapeHtml(c.title) + '" loading="lazy">' : '') + '</span>' +
+              '<span class="service-name">' + escapeHtml(c.title) + '</span>' +
+              (c.title_en ? '<span class="service-name-en">' + escapeHtml(c.title_en) + '</span>' : '') +
+            '</a>'
+          );
+        }).join('');
+      })
+      .catch(function () { servicesSection.hidden = true; });
+  }
+
+  /* -------------------------------------------------------------- */
   /* Equipment: featured cards on the homepage, the full list grouped */
   /* by category on /equipment                                        */
   /* -------------------------------------------------------------- */
@@ -903,7 +936,13 @@ document.addEventListener('DOMContentLoaded', function () {
           document.head.appendChild(m);
         }
 
-        pageContent.innerHTML = page.blocks.map(renderPageBlock).join('');
+        var lead = (page.cover_url || page.intro)
+          ? '<section class="page-lead container">' +
+              (page.cover_url ? '<img class="page-cover" src="' + thumbUrl(page.cover_url).replace('w_900', 'w_1600') + '" alt="' + escapeHtml(page.title) + '">' : '') +
+              (page.intro ? '<p class="page-intro">' + escapeHtml(page.intro).replace(/\n/g, '<br>') + '</p>' : '') +
+            '</section>'
+          : '';
+        pageContent.innerHTML = lead + page.blocks.map(renderPageBlock).join('');
         initContactForm();
       })
       .catch(function () {

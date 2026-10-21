@@ -40,6 +40,21 @@ router.get('/id/:id', requireAuth, async (req, res) => {
   res.json(await withBlocks(page));
 });
 
+// Public: title + cover for a list of published pages, in the order asked
+// (homepage service cards): /api/pages/cards?slugs=a,b,c
+router.get('/cards', async (req, res) => {
+  const slugs = String(req.query.slugs || '').split(',').map((x) => x.trim()).filter(Boolean).slice(0, 24);
+  if (!slugs.length) return res.json([]);
+  const rows = await db.prepare(
+    `SELECT slug, title, title_en, cover_url, published, publish_at FROM pages WHERE slug IN (${slugs.map(() => '?').join(',')})`
+  ).all(...slugs);
+  const bySlug = new Map(rows.filter(isVisible).map((r) => [r.slug, r]));
+  res.json(slugs.filter((s) => bySlug.has(s)).map((s) => {
+    const { slug, title, title_en, cover_url } = bySlug.get(s);
+    return { slug, title, title_en, cover_url };
+  }));
+});
+
 // Public: single published page with blocks, by slug
 router.get('/slug/:slug', async (req, res) => {
   const page = await db.prepare('SELECT * FROM pages WHERE slug = ?').get(req.params.slug);
@@ -50,7 +65,7 @@ router.get('/slug/:slug', async (req, res) => {
 });
 
 router.post('/', requireAuth, async (req, res) => {
-  const { slug, title, title_en, seo_title, seo_description, published, publish_at } = req.body || {};
+  const { slug, title, title_en, cover_url, intro, seo_title, seo_description, published, publish_at } = req.body || {};
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
     return res.status(400).json({ error: 'slug 只能使用小寫英文、數字與連字號' });
   }
@@ -58,9 +73,9 @@ router.post('/', requireAuth, async (req, res) => {
 
   try {
     const info = await db.prepare(`
-      INSERT INTO pages (slug, title, title_en, seo_title, seo_description, published, publish_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(slug, title.trim(), (title_en || '').trim(), seo_title || '', seo_description || '', published === false || published === '0' ? 0 : 1, publish_at || null);
+      INSERT INTO pages (slug, title, title_en, cover_url, intro, seo_title, seo_description, published, publish_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(slug, title.trim(), (title_en || '').trim(), cover_url || '', (intro || '').trim(), seo_title || '', seo_description || '', published === false || published === '0' ? 0 : 1, publish_at || null);
     res.json({ id: info.lastInsertRowid });
   } catch (err) {
     if (String(err.message).includes('UNIQUE')) return res.status(400).json({ error: '這個網址代稱已經被使用了' });
@@ -74,12 +89,14 @@ router.put('/:id', requireAuth, async (req, res) => {
   const body = req.body || {};
 
   await db.prepare(`
-    UPDATE pages SET slug = ?, title = ?, title_en = ?, seo_title = ?, seo_description = ?, published = ?, publish_at = ?
+    UPDATE pages SET slug = ?, title = ?, title_en = ?, cover_url = ?, intro = ?, seo_title = ?, seo_description = ?, published = ?, publish_at = ?
     WHERE id = ?
   `).run(
     body.slug !== undefined ? body.slug : existing.slug,
     body.title !== undefined ? body.title.trim() : existing.title,
     body.title_en !== undefined ? String(body.title_en).trim() : existing.title_en,
+    body.cover_url !== undefined ? String(body.cover_url) : existing.cover_url,
+    body.intro !== undefined ? String(body.intro).trim() : existing.intro,
     body.seo_title !== undefined ? body.seo_title : existing.seo_title,
     body.seo_description !== undefined ? body.seo_description : existing.seo_description,
     body.published !== undefined ? (body.published === false || body.published === '0' ? 0 : 1) : existing.published,
