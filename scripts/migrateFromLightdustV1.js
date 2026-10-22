@@ -131,6 +131,11 @@ async function main() {
         }
     }
 
+    for (const [group, def] of Object.entries(groups)) {
+        const cats = await collectionService.getCategories(T, pageByGroup[group].id);
+        await collectionService.reorderCategories(T, pageByGroup[group].id, def.cats.map(([, label]) => cats.find(c => c.label === label).id));
+    }
+
     // ---------- 3. 作品＋照片 ----------
     console.log(`3/7 作品（${old.portfolio_projects.length} 件、${old.portfolio_photos.length} 張照片）`);
     const rootAlbum = await mediaService.createAlbum(T, "作品集");
@@ -159,6 +164,12 @@ async function main() {
         });
         itemIdByLegacy[p.id] = item.id;
         console.log(`  ✓ ${p.title}（${urls.length} 張）`);
+    }
+
+    for (const page of Object.values(pageByGroup)) {
+        const ordered = projects.map(p => itemIdByLegacy[p.id]).filter(Boolean);
+        const onPage = (await collectionService.getItems(T, page.id)).map(item => item.id);
+        if (onPage.length) await collectionService.reorderItems(T, page.id, ordered.filter(id => onPage.includes(id)));
     }
 
     // ---------- 4. 自訂頁面（服務頁、線上預約說明…） ----------
@@ -190,7 +201,8 @@ async function main() {
         }
         const page = await customPageService.create(T, {
             slug: p.slug, title: p.title, subtitle: p.title_en || "", pageType: "content",
-            published: !!p.published, metaDescription: p.seo_description || ""
+            // 線上預約頁：預約功能預設關閉，頁面先不發布（不然會自動出現在導覽列「更多」）
+            published: !!p.published && p.slug !== "booking", metaDescription: p.seo_description || ""
         });
         await tenantCollection(T, "customPages").doc(page.id).update({ modules });
         pageIdBySlug[p.slug] = page.id;
@@ -238,13 +250,18 @@ async function main() {
     const nav = (label, target) => navConfigService.create(T, target.startsWith("/")
         ? { label, targetType: "url", targetUrl: target }
         : { label, targetType: "page", targetPageId: target });
-    await nav("首頁", "/");
-    const servicesNav = await nav("服務項目", pageIdBySlug.services);
-    await nav("平面攝影", pageByGroup.photography.id);
-    await nav("影片製作", pageByGroup.film.id);
-    await nav("關於我們", pageIdBySlug.about);
-    await nav("我的設備", pageIdBySlug.equipment);
-    await nav("聯絡我們", pageIdBySlug.contact);
+    const navItems = [
+        await nav("首頁", "/"),
+        await nav("服務項目", pageIdBySlug.services),
+        await nav("平面攝影", pageByGroup.photography.id),
+        await nav("影片製作", pageByGroup.film.id),
+        await nav("關於我們", pageIdBySlug.about),
+        await nav("我的設備", pageIdBySlug.equipment),
+        await nav("聯絡我們", pageIdBySlug.contact)
+    ];
+    const servicesNav = navItems[1];
+    // 清單是 sortOrder 大的在前，依建立順序存進去會整個倒過來，所以明確套用一次想要的順序
+    await navConfigService.reorderNavItems(T, navItems.map(item => item.id));
     for (const p of servicePages) {
         await tenantCollection(T, "customPages").doc(pageIdBySlug[p.slug]).update({ navParent: servicesNav.id });
     }

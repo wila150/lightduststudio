@@ -29,11 +29,17 @@ function renderNavItem(navItem, href, childPages, categoryLinks, subtitle) {
         <a href="${href}">${renderNavLabel(navItem.label, subtitle)}</a>
         <div class="nav-dropdown-menu">
             ${categoryLinks.map(cat => `<a href="${href}?category=${cat.id}">${cat.label}</a>`).join("")}
-            ${childPages.map(page => `<a href="/p/${page.slug}">${page.subtitle || page.title}</a>`).join("")}
+            ${childPages.map(page => `<a href="/p/${page.slug}">${page.title || page.subtitle}</a>`).join("")}
         </div>
     </div>
     `;
 
+}
+
+// 下拉選單的子頁面照建立順序排（先建的在上面）；navPages 本身是新的在前，直接用會整個倒過來
+function sortChildPages(pages) {
+    const time = page => (page.createdAt && page.createdAt.toDate ? page.createdAt.toDate() : new Date(page.createdAt || 0)).getTime();
+    return [...pages].sort((a, b) => time(a) - time(b));
 }
 
 // target.type === "page" 時，用 pageId 對應目前的 slug；找不到（頁面被刪除或還沒發布）就拿掉這個導覽項目
@@ -265,7 +271,7 @@ return `
 
         ${resolvedNavItems.map(({ navItem, href }) => {
             const categoryLinks = navItem.categoryLinks || [];
-            const childPages = navPages.filter(page => page.navParent === navItem.id);
+            const childPages = sortChildPages(navPages.filter(page => page.navParent === navItem.id));
             const targetPage = navItem.target.type === "page" ? navPages.find(page => page.id === navItem.target.pageId) : null;
             return renderNavItem(navItem, href, childPages, categoryLinks, targetPage && targetPage.subtitle);
         }).join("")}
@@ -305,7 +311,7 @@ return `
             // 手機版沒有滑鼠 hover，桌機下拉選單的子項目（分類／掛在底下的自訂頁面）改成固定顯示在主連結下方，
             // 確保手機跟桌機看得到的選單項目、連結完全一致，不會漏掉分類或子頁面
             const categoryLinks = navItem.categoryLinks || [];
-            const childPages = navPages.filter(page => page.navParent === navItem.id);
+            const childPages = sortChildPages(navPages.filter(page => page.navParent === navItem.id));
             const children = [
                 ...categoryLinks.map(cat => ({ href: `${href}?category=${cat.id}`, label: cat.label, nameEn: cat.nameEn })),
                 ...childPages.map(page => ({ href: `/p/${page.slug}`, label: page.subtitle || page.title }))

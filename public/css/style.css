@@ -170,7 +170,8 @@
 /* 「自訂配色」目前套的是莫蘭迪低飽和撞色，卡片刻意不用純白，改用半透明白＋毛玻璃模糊融入暖色背景。
    顏色選擇器只能存純色 hex，rgba／backdrop-filter 沒辦法透過那組設定存，所以這個質感直接寫死在這裡 */
 [data-theme="custom"] .site-header {
-  background: rgba(185, 212, 237, .75);
+  /* 跟著後台「導覽列底色」走（原本寫死成 Bluedot 的淡藍色，改了設定也不會變），保留半透明毛玻璃質感 */
+  background: color-mix(in srgb, var(--header-bg) 85%, transparent);
 }
 [data-theme="custom"] .feature-card,
 [data-theme="custom"] .gallery-item,
