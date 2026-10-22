@@ -208,6 +208,12 @@ return `
     ` : ""}
 
     ${settings.theme === "custom" ? `
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+    ` : ""}
+
+    ${settings.theme === "custom" ? `
     <style>
         :root[data-theme="custom"] {
             --bg: ${settings.customColorBg || "#f4f1ec"};

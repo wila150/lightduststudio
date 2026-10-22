@@ -1510,7 +1510,7 @@ img.img-style-mono:hover { filter: grayscale(0); }
 .ld-hero-embed iframe { position: absolute; top: 50%; left: 50%; width: 177.78vh; height: 56.25vw; min-width: 100%; min-height: 100%; transform: translate(-50%, -50%); pointer-events: none; border: 0; }
 .ld-hero-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.1) 40%, rgba(0,0,0,.55) 100%); }
 .ld-hero-content { position: absolute; left: 6vw; bottom: 14vh; z-index: 2; max-width: 640px; }
-.ld-hero-eyebrow { display: block; margin-bottom: 1em; font-size: .8rem; letter-spacing: .5em; color: var(--accent); }
+.ld-hero-eyebrow { display: block; margin-bottom: 1em; font-size: .8rem; letter-spacing: .5em; color: #e0a068; } /* Logo 的金色，疊在照片上比加深過的 accent 清楚 */
 .ld-hero-title { margin: 0 0 .4em; font-family: "Noto Serif TC", serif; font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 700; line-height: 1.15; color: #fff; }
 .ld-hero-sub { margin: 0; font-size: 1rem; font-weight: 300; color: rgba(255,255,255,.85); }
 .ld-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
@@ -1534,3 +1534,19 @@ img.img-style-mono:hover { filter: grayscale(0); }
 .site-nav > a, .site-nav .nav-dropdown > a { display: inline-flex; align-items: center; height: 1.3em; line-height: 1.3em; }
 .site-nav .nav-dropdown { display: inline-flex; align-items: center; }
 .nav-link-swap { vertical-align: middle; }
+
+
+/* ===== LightDust（自訂配色樣板）：標題用思源宋體；後台「網站設定」另外選了標題字體時，
+   views/layout.js 後面輸出的 @font-face/font-family 規則會蓋過這裡 ===== */
+html[data-theme="custom"] { --font-display: "Noto Serif TC", "Songti TC", serif; } /* 跟 layout.js 的自訂字體規則同權重、排在前面，後台選的字體會蓋過它 */
+
+/* 連續兩段有底色的區塊（例如兩段深綠作品輪播）直接接起來，中間不留一條頁面底色 */
+.content-module--custom:has(+ .content-module--custom),
+.content-module--custom:has(+ .content-module--alt),
+.content-module--alt:has(+ .content-module--custom),
+.content-module--alt:has(+ .content-module--alt) { margin-bottom: 0; }
+
+/* 作品輪播下方的作品名稱：放大；深色底上改用 Logo 的金色 */
+.video-carousel-caption { font-size: 21px; font-weight: 400; letter-spacing: .08em; margin-top: 28px; }
+.content-module--custom .video-carousel-caption { color: #e0a068; }
+@media (max-width: 720px) { .video-carousel-caption { font-size: 17px; } }

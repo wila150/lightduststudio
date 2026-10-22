@@ -96,18 +96,18 @@ async function main() {
         socialFacebookUrl: s.social_facebook || "",
         ...(logo ? { logoUrl: logo.url, logoPath: logo.path, logoHeight: 54 } : {}),
         ...(favicon ? { faviconUrl: favicon.url, faviconPath: favicon.path } : {}),
-        // 舊站配色：米白底、墨綠、暖橘點綴（之後重做視覺時在「網站設定 → 自訂配色」調整）
+        // 配色取自 Logo：綠 #1a3a3a（圓底）＋金 #e0a068（LD 字）；淺底上的小字金色加深成 #b8834a 才看得清楚
         theme: "custom",
-        customColorBg: "#faf9f7",
-        customColorBgAlt: "#f1eee8",
+        customColorBg: "#faf8f4",
+        customColorBgAlt: "#f1ece3",
         customColorPanel: "#ffffff",
-        customColorBorder: "#e3e0da",
-        customColorText: "#1a1a1a",
-        customColorMuted: "#5c5c5c",
-        customColorAccent: s.accent_color || "#d18f56",
-        customColorAccent2: "#16383b",
-        customColorDanger: "#b23b3b",
-        customColorHeaderBg: "#faf9f7",
+        customColorBorder: "#e4dccf",
+        customColorText: "#1c2b2b",
+        customColorMuted: "#5d6b6a",
+        customColorAccent: "#b8834a",
+        customColorAccent2: "#1a3a3a",
+        customColorDanger: "#b5533f",
+        customColorHeaderBg: "#faf8f4",
         showHomeCarousel: false,
         features: { booking: false, line: false, sponsorMarquee: false, blog: false }
     });
@@ -284,8 +284,12 @@ async function main() {
     const steps = [["需求訪談", "釐清品牌調性與用途"], ["視覺企劃", "風格參考 + 拍攝腳本"], ["拍攝執行", "棚拍 / 外拍 / 影片"], ["後製精修", "修圖調色 + 影片剪輯"], ["完成交件", "雲端交付高解析檔案"]];
     const aboutTeaser = await importImage("https://res.cloudinary.com/idsbjycq/image/upload/v1788017339/lightduststudio/portfolio/oacjotoxmjvjj6lj03am.jpg");
     const homeModules = [
-        heading("精選作品"),
-        mod("videoCarousel", { items: await resolveCarouselItems(T, workIds), cornerStyle: "sharp" }),
+        // 兩段深綠底的作品輪播（Logo 綠），中文大標＋金色英文小標
+        ...[["精選作品", "OUR WORKS", "#1a3a3a"], ["平面攝影", "PHOTOGRAPH", "#122b2b"]].flatMap(([zh, en, bg]) => [
+            heading(zh),
+            mod("text", { html: `<p style="text-align:center;letter-spacing:.3em;color:#e0a068;margin-top:-6px">${en}</p>` }),
+            mod("videoCarousel", { items: [], cornerStyle: "sharp" })
+        ].map(m => ({ ...m, background: "custom", backgroundColor: bg }))),
         heading("服務項目"),
         mod("serviceGrid", { items: special.find(sp => sp.slug === "services").modules[0].data.items, accentColor: "" }),
         mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }),
@@ -297,6 +301,8 @@ async function main() {
         mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),
         mod("button", { text: "填寫需求表單", link: "/p/contact" })
     ];
+    const carouselItems = await resolveCarouselItems(T, workIds);
+    homeModules.filter(m => m.type === "videoCarousel").forEach(m => { m.data.items = carouselItems; });
     await tenantCollection(T, "pages").doc("home").set({
         heroTitle: String(slide.title || "用鏡頭說出\n品牌的故事").replace(/\n/g, "<br>"),
         heroSubtitle: slide.subtitle || "",
