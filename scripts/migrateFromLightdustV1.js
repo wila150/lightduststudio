@@ -108,6 +108,7 @@ async function main() {
         customColorAccent2: "#1a3a3a",
         customColorDanger: "#b5533f",
         customColorHeaderBg: "#faf8f4",
+        footerBackground: "dark",
         showHomeCarousel: false,
         features: { booking: false, line: false, sponsorMarquee: false, blog: false }
     });
@@ -290,16 +291,17 @@ async function main() {
             mod("text", { html: `<p style="text-align:center;letter-spacing:.3em;color:#e0a068;margin-top:-6px">${en}</p>` }),
             mod("videoCarousel", { items: [], cornerStyle: "sharp" })
         ].map(m => ({ ...m, background: "custom", backgroundColor: bg }))),
-        heading("服務項目"),
-        mod("serviceGrid", { items: special.find(sp => sp.slug === "services").modules[0].data.items, accentColor: "" }),
+        ...[heading("服務項目"), mod("serviceGrid", { items: special.find(sp => sp.slug === "services").modules[0].data.items, accentColor: "" })]
+            .map(m => ({ ...m, background: "alt" })),
         mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }),
         mod("button", { text: "了解更多", link: "/p/about" }),
         mod("equipmentGrid", { mode: "featured", limit: 6, linkUrl: "/p/equipment", linkText: "查看全部設備" }),
-        heading("合作流程"),
-        ...steps.map(([title, description]) => mod("processStep", { title, description })),
-        heading("聯絡我們"),
-        mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),
-        mod("button", { text: "填寫需求表單", link: "/p/contact" })
+        ...[heading("合作流程"), ...steps.map(([title, description]) => mod("processStep", { title, description }))]
+            .map(m => ({ ...m, background: "custom", backgroundColor: "#1a3a3a" })),
+        ...[heading("聯絡我們"),
+            mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),
+            mod("button", { text: "填寫需求表單", link: "/p/contact" })]
+            .map(m => ({ ...m, background: "custom", backgroundColor: "#122b2b" }))
     ];
     const carouselItems = await resolveCarouselItems(T, workIds);
     homeModules.filter(m => m.type === "videoCarousel").forEach(m => { m.data.items = carouselItems; });

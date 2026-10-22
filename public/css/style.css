@@ -1550,3 +1550,31 @@ html[data-theme="custom"] { --font-display: "Noto Serif TC", "Songti TC", serif;
 .video-carousel-caption { font-size: 21px; font-weight: 400; letter-spacing: .08em; margin-top: 28px; }
 .content-module--custom .video-carousel-caption { color: #e0a068; }
 @media (max-width: 720px) { .video-carousel-caption { font-size: 17px; } }
+
+
+/* 首頁／頁面模組外層 .section 上下各有 100px 內距；第一段或最後一段是滿版色塊時，這段內距會露出一條頁面底色
+   （例如主視覺跟深綠輪播之間、最後一段跟頁尾之間），色塊貼齊時拿掉 */
+.section:has(> .content-module:first-child:is(.content-module--custom, .content-module--alt)) { padding-top: 0; }
+.section:has(> .content-module:last-child:is(.content-module--custom, .content-module--alt)) { padding-bottom: 0; }
+
+/* 色塊裡的按鈕置中（例如「聯絡我們」段落的按鈕） */
+.content-module--custom p:has(> .btn-primary),
+.content-module--alt p:has(> .btn-primary) { text-align: center; }
+
+/* 服務項目卡片還沒放封面時，用第二強調色（Logo 綠）當底，不會跟淺色區塊底色混在一起變成空白 */
+.service-grid-media:not(:has(img)) { background: var(--accent-2); }
+
+/* 深色頁尾（網站設定 → 頁尾背景「深色底」） */
+.site-footer--dark {
+  background: color-mix(in srgb, var(--accent-2) 75%, #000);
+  border-top: 0; color: rgba(255,255,255,.7); padding: 56px 40px 40px;
+}
+.site-footer--dark .footer-logo { display: inline-flex; align-items: center; gap: 14px; margin-bottom: 24px; color: #fff; }
+.site-footer--dark .footer-logo img { height: 54px; width: auto; }
+.site-footer--dark .footer-contact-item a, .site-footer--dark .footer-contact-item span { color: rgba(255,255,255,.85); }
+.site-footer--dark .footer-contact-label { color: #e0a068; }
+.site-footer--dark a:hover { color: #e0a068; }
+.site-footer--dark .social-links a { color: rgba(255,255,255,.8); }
+.site-footer--dark .footer-cta-btn { color: #e0a068; border-color: #e0a068; }
+.site-footer--dark .footer-cta-btn:hover { background: #e0a068; color: #122b2b; }
+.site-footer--dark .footer-actions { border-top-color: rgba(255,255,255,.15); }

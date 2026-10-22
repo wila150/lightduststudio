@@ -382,10 +382,19 @@ ${content}
 
 </main>
 
-<footer class="site-footer${settings.footerBackground === "alt" ? " site-footer--alt" : ""}">
+<footer class="site-footer${settings.footerBackground === "alt" ? " site-footer--alt" : ""}${settings.footerBackground === "dark" ? " site-footer--dark" : ""}">
 
     ${settings.theme === "bluedot" ? `
     <div class="footer-brand">${settings.siteName || ""}</div>
+    ` : ""}
+
+    ${settings.footerBackground === "dark" && settings.theme !== "bluedot" ? `
+    <div class="footer-logo">
+        ${settings.logoUrl ? `<img src="${settings.logoUrl}" alt="${settings.siteName || ""}">` : ""}
+        ${settings.brandTextMain || settings.brandTextSub
+            ? `<span class="logo-text"><span class="logo-text-main">${settings.brandTextMain || ""}</span><span class="logo-text-sub">${settings.brandTextSub || ""}</span></span>`
+            : `<span class="logo-text-main">${settings.siteName || ""}</span>`}
+    </div>
     ` : ""}
 
     ${(settings.contactPhone || settings.contactEmail || settings.contactAddress || settings.contactHours) ? `

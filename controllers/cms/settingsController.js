@@ -108,7 +108,7 @@ exports.update = async (req, res) => {
         brandTextMain: (req.body.brandTextMain || "").trim(),
         brandTextSub: (req.body.brandTextSub || "").trim(),
         footerText: req.body.footerText || "",
-        footerBackground: req.body.footerBackground === "alt" ? "alt" : "none",
+        footerBackground: ["alt", "dark"].includes(req.body.footerBackground) ? req.body.footerBackground : "none",
         metaDescription: req.body.metaDescription || "",
         metaKeywords,
         googleSiteVerification,

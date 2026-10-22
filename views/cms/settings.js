@@ -193,6 +193,7 @@ ${fonts.length > 0 ? `
     <select name="footerBackground" style="padding:10px;">
         <option value="none" ${(settings.footerBackground || "none") === "none" ? "selected" : ""}>無（預設，跟頁面底色一樣）</option>
         <option value="alt" ${settings.footerBackground === "alt" ? "selected" : ""}>淺色底（跟內容模組的「淺色底」同一個顏色，做出色塊分段效果）</option>
+        <option value="dark" ${settings.footerBackground === "dark" ? "selected" : ""}>深色底（用第二強調色加深，白字＋金色標籤，頁尾會顯示 Logo 與品牌字）</option>
     </select>
 
     <br><br>
