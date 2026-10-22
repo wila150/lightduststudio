@@ -12,6 +12,9 @@ const DEFAULTS = {
     headingFontId: "",
     bodyFontId: "",
     logoUrl: "",
+    // Logo 旁的品牌字（大字＋小字），空白就只顯示 Logo 圖
+    brandTextMain: "",
+    brandTextSub: "",
     logoPath: "",
     logoHeight: 40,
     headerPaddingY: 24,

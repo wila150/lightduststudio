@@ -15,9 +15,86 @@ const PREVIEW_PATHS = {
     contact: "/contact"
 };
 
-function renderHeroFields(page) {
+// 全螢幕輪播的投影片編輯器：每張投影片＝照片（從媒體庫選）或背景影片網址＋小標／大標題／副標。
+// 畫面上的清單由 JS 管理，送出時整份序列化進 heroSlidesJson（sitePageController 解析）
+function renderSlideshowFields(page) {
+
+    const slides = JSON.stringify(page.heroSlides || []).replace(/</g, "\\u003c");
 
     return `
+        <fieldset style="border:1px solid #ddd;border-radius:10px;padding:16px 18px;margin:0 0 24px;">
+            <legend style="font-weight:bold;padding:0 6px;">主視覺樣式</legend>
+            <label style="display:block;margin-bottom:6px;"><input type="radio" name="heroStyle" value="slideshow" ${page.heroStyle === "slideshow" ? "checked" : ""}> 全螢幕輪播（滿版照片／影片自動輪播，文字在左下角，導覽列透明疊在上面）</label>
+            <label style="display:block;"><input type="radio" name="heroStyle" value="classic" ${page.heroStyle !== "slideshow" ? "checked" : ""}> 經典（置中標題，用下方的「首頁主圖／背景影片」設定）</label>
+
+            <div id="slideshow-editor" style="margin-top:16px;">
+                <p style="color:#777;font-size:13px;margin:0 0 10px;">每張投影片可以用照片（先在媒體庫上傳）或背景影片（YouTube／Vimeo 連結或 MP4 網址，有影片時照片當載入前的封面）。大標題可用 Enter 換行。按鈕文字與連結用下方「按鈕」欄位設定，所有投影片共用。</p>
+                <div id="slides-list"></div>
+                <button type="button" id="add-slide-btn">＋ 新增投影片</button>
+                <input type="hidden" name="heroSlidesJson" id="hero-slides-json">
+            </div>
+
+            <br>
+            <label>第二顆按鈕文字（選填，例如 聯絡我們）</label><br>
+            <input type="text" name="button2Text" value="${page.button2Text || ""}" style="width:100%;padding:10px;">
+            <br><br>
+            <label>第二顆按鈕連結</label><br>
+            <input type="text" name="button2Link" value="${page.button2Link || ""}" placeholder="/p/contact" style="width:100%;padding:10px;">
+        </fieldset>
+
+        <script>
+        (function () {
+            var slides = ${slides};
+            var list = document.getElementById("slides-list");
+            var json = document.getElementById("hero-slides-json");
+            function esc(v) { return String(v || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\\"": "&quot;", "'": "&#39;" }[c]; }); }
+            function sync() { json.value = JSON.stringify(slides); }
+            function render() {
+                list.innerHTML = slides.map(function (s, i) {
+                    return '<div class="slide-row" data-i="' + i + '" style="display:flex;gap:12px;padding:12px;margin-bottom:10px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;">' +
+                        '<div style="flex:0 0 140px;"><div style="width:140px;height:90px;border-radius:6px;background:#f2f0ec center/cover no-repeat;' + (s.image ? "background-image:url(\\'" + esc(s.image) + "\\');" : "") + '"></div>' +
+                        '<button type="button" class="slide-pick" style="font-size:12px;margin-top:6px;">從媒體庫選照片</button></div>' +
+                        '<div style="flex:1;display:grid;gap:6px;">' +
+                        '<input type="text" class="slide-f" data-f="eyebrow" placeholder="小標（例如 COMMERCIAL PHOTOGRAPHY）" value="' + esc(s.eyebrow) + '" style="padding:7px;">' +
+                        '<textarea class="slide-f" data-f="title" rows="2" placeholder="大標題" style="padding:7px;">' + esc(s.title) + '</textarea>' +
+                        '<input type="text" class="slide-f" data-f="subtitle" placeholder="副標" value="' + esc(s.subtitle) + '" style="padding:7px;">' +
+                        '<input type="text" class="slide-f" data-f="video" placeholder="背景影片（選填）：YouTube／Vimeo 連結或 MP4 網址" value="' + esc(s.video) + '" style="padding:7px;">' +
+                        '<div style="display:flex;gap:6px;"><button type="button" class="slide-up">↑</button><button type="button" class="slide-down">↓</button><button type="button" class="slide-del ghost-btn">刪除這張</button></div>' +
+                        '</div></div>';
+                }).join("") || '<p style="color:#999;">還沒有投影片</p>';
+                sync();
+            }
+            list.addEventListener("input", function (e) {
+                var row = e.target.closest(".slide-row");
+                if (!row || !e.target.classList.contains("slide-f")) return;
+                slides[+row.getAttribute("data-i")][e.target.getAttribute("data-f")] = e.target.value;
+                sync();
+            });
+            list.addEventListener("click", function (e) {
+                var row = e.target.closest(".slide-row");
+                if (!row) return;
+                var i = +row.getAttribute("data-i");
+                if (e.target.closest(".slide-del")) { if (confirm("刪除這張投影片？")) { slides.splice(i, 1); render(); } }
+                else if (e.target.closest(".slide-up") && i > 0) { slides.splice(i - 1, 0, slides.splice(i, 1)[0]); render(); }
+                else if (e.target.closest(".slide-down") && i < slides.length - 1) { slides.splice(i + 1, 0, slides.splice(i, 1)[0]); render(); }
+                else if (e.target.closest(".slide-pick")) {
+                    window.openMediaPicker({ multiple: false, onSelect: function (files) { slides[i].image = files[0].url; render(); } });
+                }
+            });
+            document.getElementById("add-slide-btn").addEventListener("click", function () {
+                slides.push({ id: String(Date.now()), image: "", video: "", eyebrow: "", title: "", subtitle: "" });
+                render();
+            });
+            render();
+        })();
+        </script>
+    `;
+
+}
+
+function renderHeroFields(page) {
+
+    return renderSlideshowFields(page) + `
         <label>首頁主圖</label>
 
         <br>

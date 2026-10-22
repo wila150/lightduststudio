@@ -1485,3 +1485,52 @@ img.img-style-mono:hover { filter: grayscale(0); }
 .faq-item[open] summary::after { transform: translateY(-50%) rotate(45deg); }
 .faq-answer { padding: 0 22px 20px; color: var(--muted); line-height: 1.9; }
 .faq-answer p { margin: 0 0 10px; }
+
+
+/* ===== LightDust：Logo 旁的品牌字（網站設定 → 品牌字），「光塵」大字＋「影像工作室」小字，底部對齊 ===== */
+.logo a { display: inline-flex; align-items: center; gap: 14px; }
+.logo-text { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.logo-text-main { font-family: "Noto Serif TC", serif; font-size: 28px; font-weight: 700; letter-spacing: .08em; line-height: 1; }
+.logo-text-sub { font-size: 13px; font-weight: 400; letter-spacing: .3em; }
+@media (max-width: 720px) { .logo-text-main { font-size: 22px; } .logo-text-sub { font-size: 11px; letter-spacing: .2em; } }
+
+/* 導覽列英文小字（滑過才換成英文）：寬度只算中文那行，英文絕對定位疊在下面，
+   不然「平面攝影／PHOTOGRAPHY」這種英文較長的項目會把間距撐得忽寬忽窄 */
+.nav-link-swap { overflow: visible; clip-path: inset(0 -200px); }
+.nav-label-track { position: relative; align-items: center; }
+.nav-label-alt { position: absolute; top: 1.3em; left: 50%; transform: translateX(-50%); font-size: .85em; letter-spacing: .12em; }
+
+/* ===== 全螢幕輪播主視覺（views/home.js renderSlideshow） ===== */
+.ld-hero { position: relative; height: 100vh; min-height: 560px; overflow: hidden; background: #111; color: #fff; }
+.ld-hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; pointer-events: none; }
+.ld-hero-slide.is-active { opacity: 1; pointer-events: auto; }
+.ld-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; object-fit: cover; transform: scale(1.06); transition: transform 7s ease; }
+.ld-hero-slide.is-active .ld-hero-bg { transform: scale(1); }
+.ld-hero-embed { overflow: hidden; transform: none !important; }
+.ld-hero-embed iframe { position: absolute; top: 50%; left: 50%; width: 177.78vh; height: 56.25vw; min-width: 100%; min-height: 100%; transform: translate(-50%, -50%); pointer-events: none; border: 0; }
+.ld-hero-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.1) 40%, rgba(0,0,0,.55) 100%); }
+.ld-hero-content { position: absolute; left: 6vw; bottom: 14vh; z-index: 2; max-width: 640px; }
+.ld-hero-eyebrow { display: block; margin-bottom: 1em; font-size: .8rem; letter-spacing: .5em; color: var(--accent); }
+.ld-hero-title { margin: 0 0 .4em; font-family: "Noto Serif TC", serif; font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 700; line-height: 1.15; color: #fff; }
+.ld-hero-sub { margin: 0; font-size: 1rem; font-weight: 300; color: rgba(255,255,255,.85); }
+.ld-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.ld-hero-btn { display: inline-block; padding: 12px 34px; border: 1px solid rgba(255,255,255,.8); color: #fff; letter-spacing: .2em; font-size: .85rem; text-decoration: none; transition: background .3s ease, color .3s ease, border-color .3s ease; }
+.ld-hero-btn:hover { background: #fff; color: #1a1a1a; }
+.ld-hero-btn.is-solid { background: #fff; color: #1a1a1a; border-color: #fff; }
+.ld-hero-btn.is-solid:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ld-hero-dots { position: absolute; left: 6vw; bottom: 6vh; z-index: 3; display: flex; gap: 8px; }
+.ld-hero-dots button { width: 28px; height: 2px; padding: 0; border: 0; background: rgba(255,255,255,.4); cursor: pointer; }
+.ld-hero-dots button.is-active { background: #fff; }
+.ld-hero-scroll { position: absolute; right: 6vw; bottom: 6vh; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: .7rem; letter-spacing: .3em; color: rgba(255,255,255,.8); }
+.ld-hero-scroll .line { width: 1px; height: 36px; background: rgba(255,255,255,.5); }
+@media (max-width: 720px) {
+  .ld-hero { height: 88vh; }
+  .ld-hero-content { left: 24px; right: 24px; bottom: 16vh; }
+  .ld-hero-dots { left: 24px; }
+  .ld-hero-scroll { display: none; }
+}
+
+/* 導覽項目垂直對齊：有英文小字（滑過切換）的項目跟純文字項目（例如「首頁」）基線不同，統一置中 */
+.site-nav > a, .site-nav .nav-dropdown > a { display: inline-flex; align-items: center; height: 1.3em; line-height: 1.3em; }
+.site-nav .nav-dropdown { display: inline-flex; align-items: center; }
+.nav-link-swap { vertical-align: middle; }

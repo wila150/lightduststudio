@@ -264,7 +264,7 @@ return `
     <h1 class="logo">
         <a href="/">${settings.logoUrl
             ? `<img src="${settings.logoUrl}" alt="${settings.siteName || "我的作品集"}" class="logo-image" style="height:${settings.logoHeight || 40}px;">`
-            : (settings.siteName || "我的作品集")}</a>
+            : (settings.siteName || "我的作品集")}${settings.logoUrl && (settings.brandTextMain || settings.brandTextSub) ? `<span class="logo-text"><span class="logo-text-main">${settings.brandTextMain || ""}</span><span class="logo-text-sub">${settings.brandTextSub || ""}</span></span>` : ""}</a>
     </h1>
 
     <nav class="site-nav">

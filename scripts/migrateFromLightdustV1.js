@@ -84,6 +84,8 @@ async function main() {
     const favicon = fs.existsSync(faviconFile) ? await storageService.uploadBuffer(fs.readFileSync(faviconFile), "favicon-32.png", "image/png", "settings") : null;
     await settingsService.update(T, {
         siteName: s.brand_name_zh || "光塵影像工作室",
+        brandTextMain: "光塵",
+        brandTextSub: "影像工作室",
         footerText: `© ${new Date().getFullYear()} ${s.brand_name_zh || "光塵影像工作室"} ${s.brand_name_en || ""}`.trim(),
         metaDescription: s.seo_description || "",
         contactPhone: s.contact_phone || "",
@@ -268,8 +270,16 @@ async function main() {
 
     // ---------- 7. 首頁 ----------
     console.log("7/7 首頁");
-    const slide = (old.hero_slides || []).filter(h => h.published !== 0).sort((a, b) => a.sort_order - b.sort_order)[0] || {};
-    const heroImage = slide.media_type === "image" && slide.media_url ? await importImage(slide.media_url) : "";
+    const oldSlides = (old.hero_slides || []).filter(h => h.published !== 0).sort((a, b) => a.sort_order - b.sort_order);
+    const slide = oldSlides[0] || {};
+    const heroSlides = [];
+    for (const h of oldSlides) {
+        const isEmbed = h.media_type === "embed";
+        const image = h.media_type === "image" && h.media_url ? await importImage(h.media_url) : "";
+        const video = isEmbed ? h.media_url : (h.media_type === "video" ? h.media_url : "");
+        if (image || video) heroSlides.push({ id: crypto.randomUUID(), image, video, eyebrow: h.eyebrow || "", title: h.title || "", subtitle: h.subtitle || "" });
+    }
+    const heroImage = heroSlides.find(h => h.image) ? heroSlides.find(h => h.image).image : "";
     const workIds = projects.slice().sort((a, b) => b.id - a.id).map(p => itemIdByLegacy[p.id]).filter(Boolean).slice(0, 8);
     const steps = [["需求訪談", "釐清品牌調性與用途"], ["視覺企劃", "風格參考 + 拍攝腳本"], ["拍攝執行", "棚拍 / 外拍 / 影片"], ["後製精修", "修圖調色 + 影片剪輯"], ["完成交件", "雲端交付高解析檔案"]];
     const aboutTeaser = await importImage("https://res.cloudinary.com/idsbjycq/image/upload/v1788017339/lightduststudio/portfolio/oacjotoxmjvjj6lj03am.jpg");
@@ -292,6 +302,11 @@ async function main() {
         heroSubtitle: slide.subtitle || "",
         buttonText: "查看作品",
         buttonLink: "/p/photography",
+        button2Text: "聯絡我們",
+        button2Link: "/p/contact",
+        // 舊站的滿版輪播主視覺
+        heroStyle: heroSlides.length ? "slideshow" : "classic",
+        heroSlides,
         heroShowTitle: true, heroShowSubtitle: true, heroShowButton: true,
         heroImage, heroImagePath: "",
         showFeaturedWorks: false,

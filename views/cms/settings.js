@@ -162,6 +162,17 @@ ${fonts.length > 0 ? `
 
     <br><br>
 
+    <label>Logo 旁的品牌字（選填，有設定 Logo 時才會顯示：大字＋小字，例如「光塵」＋「影像工作室」）</label>
+
+    <br>
+
+    <div style="display:flex;gap:10px;">
+        <input type="text" name="brandTextMain" value="${settings.brandTextMain || ""}" placeholder="大字，例如 光塵" style="flex:1;padding:10px;">
+        <input type="text" name="brandTextSub" value="${settings.brandTextSub || ""}" placeholder="小字，例如 影像工作室" style="flex:1;padding:10px;">
+    </div>
+
+    <br><br>
+
     <label>頁尾文字</label>
 
     <br>

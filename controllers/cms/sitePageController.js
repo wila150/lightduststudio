@@ -41,6 +41,22 @@ module.exports.createHandlers = (pageId) => {
                 data.removeHeroLogo = req.body.removeHeroLogo === "on";
                 data.heroLogoMediaUrl = req.body.heroLogoMediaUrl;
                 data.showFeaturedWorks = req.body.showFeaturedWorks === "on";
+                data.heroStyle = req.body.heroStyle === "slideshow" ? "slideshow" : "classic";
+                data.button2Text = (req.body.button2Text || "").trim();
+                data.button2Link = (req.body.button2Link || "").trim();
+                if (req.body.heroSlidesJson !== undefined) try {
+                    const slides = JSON.parse(req.body.heroSlidesJson || "[]");
+                    data.heroSlides = (Array.isArray(slides) ? slides : []).slice(0, 10).map(slide => ({
+                        id: String(slide.id || Date.now() + Math.random()),
+                        image: String(slide.image || ""),
+                        video: String(slide.video || "").trim(),
+                        eyebrow: String(slide.eyebrow || "").trim(),
+                        title: String(slide.title || "").trim(),
+                        subtitle: String(slide.subtitle || "").trim()
+                    })).filter(slide => slide.image || slide.video);
+                } catch (error) {
+                    // 格式壞掉就不動原本的輪播
+                }
             }
 
             const success = await pageService.updatePage(req.tenantId, pageId, data, req.files);

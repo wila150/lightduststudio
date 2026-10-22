@@ -105,6 +105,8 @@ exports.update = async (req, res) => {
         logoHeight,
         headerPaddingY,
         siteName: req.body.siteName || "",
+        brandTextMain: (req.body.brandTextMain || "").trim(),
+        brandTextSub: (req.body.brandTextSub || "").trim(),
         footerText: req.body.footerText || "",
         footerBackground: req.body.footerBackground === "alt" ? "alt" : "none",
         metaDescription: req.body.metaDescription || "",

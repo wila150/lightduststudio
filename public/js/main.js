@@ -288,6 +288,8 @@ console.log("Portfolio Web");
     }
 
     header.classList.add("header-overlay");
+    // 全螢幕輪播佔滿整個畫面，導覽列要疊在上面，不再往下推內容
+    if (hero.classList.contains("ld-hero")) document.body.classList.add("has-ld-hero");
 
     function update() {
         var pastHero = hero.getBoundingClientRect().bottom <= header.offsetHeight;
@@ -1187,5 +1189,35 @@ console.log("Portfolio Web");
     window.addEventListener("resize", fit);
     window.addEventListener("load", fit);
     if (window.ResizeObserver) new ResizeObserver(fit).observe(hero);
+
+})();
+
+
+// 全螢幕輪播主視覺：自動換張、點圓點切換、滑鼠停在上面時暫停
+(function () {
+
+    var hero = document.querySelector(".ld-hero");
+    if (!hero) return;
+
+    var slides = hero.querySelectorAll(".ld-hero-slide");
+    var dots = hero.querySelectorAll(".ld-hero-dots button");
+    if (slides.length < 2) return;
+
+    var current = 0;
+    var interval = parseInt(hero.getAttribute("data-interval"), 10) || 6000;
+    var timer = null;
+
+    function show(index) {
+        current = (index + slides.length) % slides.length;
+        slides.forEach(function (slide, i) { slide.classList.toggle("is-active", i === current); });
+        dots.forEach(function (dot, i) { dot.classList.toggle("is-active", i === current); });
+    }
+    function start() { stop(); timer = setInterval(function () { show(current + 1); }, interval); }
+    function stop() { if (timer) clearInterval(timer); timer = null; }
+
+    dots.forEach(function (dot, i) { dot.addEventListener("click", function () { show(i); start(); }); });
+    hero.addEventListener("mouseenter", stop);
+    hero.addEventListener("mouseleave", start);
+    start();
 
 })();

@@ -1,3 +1,40 @@
+const escapeSlideText = value => String(value || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+
+// 全螢幕輪播主視覺（首頁管理 → 主視覺樣式「全螢幕輪播」）：每張是滿版照片或背景影片（YouTube／Vimeo／MP4），
+// 左下角放小標、大標題、副標與兩顆按鈕，自動輪播＋圓點切換；導覽列一開始透明疊在上面（main.js 的 header-overlay）
+function renderSlideshow(page, slides) {
+    const { getEmbedUrl } = require("../services/videoEmbed");
+    const buttons = `
+        <div class="ld-hero-actions">
+            ${page.buttonText ? `<a href="${page.buttonLink || "#"}" class="ld-hero-btn is-solid">${escapeSlideText(page.buttonText)}</a>` : ""}
+            ${page.button2Text ? `<a href="${page.button2Link || "#"}" class="ld-hero-btn">${escapeSlideText(page.button2Text)}</a>` : ""}
+        </div>`;
+    return `
+<section class="ld-hero has-video" id="hero-section" data-interval="6000">
+    ${slides.map((slide, i) => {
+        const embed = getEmbedUrl(slide.video);
+        const bg = embed
+            ? `<div class="ld-hero-bg ld-hero-embed"><iframe src="${embed}" allow="autoplay; encrypted-media" frameborder="0" tabindex="-1"></iframe></div>`
+            : slide.video
+                ? `<video class="ld-hero-bg" src="${slide.video}" autoplay muted loop playsinline${slide.image ? ` poster="${slide.image}"` : ""}></video>`
+                : `<div class="ld-hero-bg" style="background-image:url('${slide.image}')"></div>`;
+        const Title = i === 0 ? "h1" : "h2";
+        return `
+    <div class="ld-hero-slide${i === 0 ? " is-active" : ""}">
+        ${bg}
+        <div class="ld-hero-content">
+            ${slide.eyebrow ? `<span class="ld-hero-eyebrow">${escapeSlideText(slide.eyebrow)}</span>` : ""}
+            ${slide.title ? `<${Title} class="ld-hero-title">${escapeSlideText(slide.title).replace(/\n/g, "<br>")}</${Title}>` : ""}
+            ${slide.subtitle ? `<p class="ld-hero-sub">${escapeSlideText(slide.subtitle)}</p>` : ""}
+            ${buttons}
+        </div>
+    </div>`;
+    }).join("")}
+    ${slides.length > 1 ? `<div class="ld-hero-dots">${slides.map((_, i) => `<button type="button" class="${i === 0 ? "is-active" : ""}" aria-label="第 ${i + 1} 張"></button>`).join("")}</div>` : ""}
+    <div class="ld-hero-scroll" aria-hidden="true"><span>SCROLL</span><span class="line"></span></div>
+</section>`;
+}
+
 const layout = require("./layout");
 const { coverStyleAttr } = require("../services/coverPosition");
 const { renderModules } = require("./moduleRenderer");
@@ -10,9 +47,13 @@ module.exports = (page, navPages = [], settings = {}, featuredProjects = [], nav
 
   const pageMeta = { url: `${SITE_URL}/`, image: page.heroImage || "" };
 
+  const slides = (page.heroSlides || []).filter(slide => slide.image || slide.video);
+  const useSlideshow = page.heroStyle === "slideshow" && slides.length > 0;
+
   return layout(
     "首頁",
     `
+${useSlideshow ? renderSlideshow(page, slides) : `
 <section class="hero${page.heroVideo ? " has-video" : ""}" id="hero-section">
 
     <div id="live-heroVideoEmbed" class="hero-video-embed" style="${embedUrl ? "" : "display:none;"}">
@@ -56,6 +97,7 @@ module.exports = (page, navPages = [], settings = {}, featuredProjects = [], nav
     ${page.heroVideo ? `<a href="#feature-section" class="hero-scroll-cue" aria-label="向下捲動">↓</a>` : ""}
 
 </section>
+`}
 
 ${settings.showHomeCarousel && featuredProjects.length > 0 ? `
 
