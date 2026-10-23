@@ -117,7 +117,7 @@ async function main() {
     // ---------- 2. 作品集頁、分類 ----------
     console.log("2/7 作品集頁與分類");
     const groups = {
-        photography: { title: "平面攝影", subtitle: "PHOTOGRAPHY", cats: [["commercial", "商業攝影", "Commercial"], ["food", "美食攝影", "Food"], ["space", "空間攝影", "Interior"], ["portrait", "人像攝影", "Portrait"], ["wedding", "婚禮紀錄", "Wedding"]] },
+        photography: { title: "平面攝影", subtitle: "PHOTOGRAPHY", cats: [["commercial", "商業廣告", "Commercial"], ["space", "建築空間", "Architecture"], ["food", "美食攝影", "Food"], ["cosmetic", "化妝品攝影", "Cosmetics"], ["portrait", "形象照", "Portrait"]] },
         film: { title: "影片製作", subtitle: "FILM", cats: [["production", "影片製作", "Production"], ["brand", "形象影片", "Brand Film"], ["short", "短影音", "Short Video"]] }
     };
     const pageByGroup = {};
@@ -264,6 +264,8 @@ async function main() {
         await nav("聯絡我們", pageIdBySlug.contact)
     ];
     const servicesNav = navItems[1];
+    // 平面攝影的下拉選單列出所有分類（含還沒有作品的）
+    await tenantCollection(T, "navItems").doc(navItems[2].id).update({ showCategories: true, showEmptyCategories: true });
     // 清單是 sortOrder 大的在前，依建立順序存進去會整個倒過來，所以明確套用一次想要的順序
     await navConfigService.reorderNavItems(T, navItems.map(item => item.id));
     for (const p of servicePages) {
