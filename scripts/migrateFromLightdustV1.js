@@ -287,7 +287,7 @@ async function main() {
     }
     const heroImage = heroSlides.find(h => h.image) ? heroSlides.find(h => h.image).image : "";
     const workIds = projects.slice().sort((a, b) => b.id - a.id).map(p => itemIdByLegacy[p.id]).filter(Boolean).slice(0, 8);
-    const steps = [["需求訪談", "釐清品牌調性與用途", "chat"], ["提供報價＆簽訂合約", "確認預算與檔期，簽約後開工", "contract"], ["視覺企劃", "風格參考 + 拍攝腳本", "spark"], ["拍攝執行", "棚拍 / 外拍 / 影片", "camera"], ["後製精修", "修圖調色 + 影片剪輯", "edit"], ["完成交件", "雲端交付高解析檔案", "photos"]];
+    const steps = [["需求訪談", "釐清品牌調性與用途", "chat"], ["提供報價＆簽訂合約", "確認預算與檔期，簽約後開工", "contract"], ["視覺企劃", "風格參考 or 拍攝腳本", "spark"], ["拍攝執行", "棚拍 / 外拍 / 影片", "camera"], ["後製精修", "修圖調色 or 影片剪輯", "edit"], ["完成交件", "雲端交付高解析檔案", "photos"]];
     const aboutTeaser = await importImage("https://res.cloudinary.com/idsbjycq/image/upload/v1788017339/lightduststudio/portfolio/oacjotoxmjvjj6lj03am.jpg");
     const homeModules = [
         // 兩段深綠底的作品輪播（Logo 綠），中文大標＋金色英文小標
