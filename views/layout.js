@@ -167,7 +167,8 @@ return `
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="${settings.theme === "custom" ? (settings.customColorHeaderBg || "#122b2b") : "#0b1220"}">
 
     <title>${fullTitle}</title>
 

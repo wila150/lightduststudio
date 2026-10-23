@@ -1666,3 +1666,16 @@ html[data-theme="custom"] .mobile-nav-group-head .mobile-nav-toggle { position: 
   html[data-theme="custom"] .service-grid-media { margin-bottom: 10px; }
   html[data-theme="custom"] .service-grid-label { font-size: 15px; }
 }
+
+/* 主視覺滿版：高度用「可見區域」（svh 扣掉手機瀏覽器網址列／工具列），手機上不再只佔 88% 露出下一段；
+   不支援 svh 的舊瀏覽器退回 100vh */
+.ld-hero { height: 100vh; height: 100svh; }
+@media (max-width: 720px) {
+  .ld-hero { height: 100vh; height: 100svh; min-height: 520px; }
+  .ld-hero-content { bottom: 12svh; }
+}
+/* viewport-fit=cover：內容延伸到 iPhone 狀態列／瀏海底下（主視覺照片才真的滿版），
+   導覽列與手機選單自己往下讓出安全區域，左右也避開橫向時的瀏海 */
+.site-header { padding-top: calc(var(--header-padding-y, 24px) + env(safe-area-inset-top)); padding-left: max(48px, env(safe-area-inset-left)); padding-right: max(48px, env(safe-area-inset-right)); }
+@media (max-width: 720px) { .site-header { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); } }
+.mobile-nav-bar { padding-top: env(safe-area-inset-top); }
