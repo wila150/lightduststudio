@@ -8,3 +8,5 @@ config/firebase-key.json
 
 .DS_Store
 .claude/settings.local.json
+# 給 Render 匯入用的正式環境變數（含金鑰），不能進版控
+.env.render
