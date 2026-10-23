@@ -1637,3 +1637,20 @@ html[data-theme="custom"] .service-grid-label { font-size: 18px; font-weight: 50
 
 /* 頁面標題下的英文副標（PHOTOGRAPHY、CONTACT…）：金色、加寬字距，跟首頁「OUR WORKS」同一種樣式 */
 html[data-theme="custom"] .collection-list-subtitle { color: var(--accent); font-size: 14px; letter-spacing: .35em; text-transform: uppercase; }
+
+/* 手機選單（LightDust 深綠樣板）：底色用頁首頁尾的墨綠、Logo 不反白（實心圓形徽章反白會變成一個白圓）、
+   展開鈕改成細金色箭頭（原本白色圓框＋粗加號太搶眼）、關閉鈕改成金色細 X */
+html[data-theme="custom"] .mobile-nav-overlay,
+html[data-theme="custom"] .mobile-nav-bar { background: var(--bg-bar); }
+html[data-theme="custom"] .mobile-nav-logo img { filter: none; height: 44px !important; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--accent); }
+html[data-theme="custom"] .mobile-nav-close { background: transparent; color: var(--accent); }
+html[data-theme="custom"] .mobile-nav-toggle {
+  position: relative; width: 28px; height: 28px; border: 0; border-radius: 0; font-size: 0; color: transparent; padding: 0;
+}
+html[data-theme="custom"] .mobile-nav-toggle::before {
+  content: ""; position: absolute; left: 50%; top: 40%; width: 9px; height: 9px;
+  border-right: 1.5px solid var(--accent); border-bottom: 1.5px solid var(--accent);
+  transform: translate(-50%, -50%) rotate(45deg); transition: transform .2s ease;
+}
+html[data-theme="custom"] .mobile-nav-group.is-open .mobile-nav-toggle { transform: none; }
+html[data-theme="custom"] .mobile-nav-group.is-open .mobile-nav-toggle::before { top: 60%; transform: translate(-50%, -50%) rotate(-135deg); }

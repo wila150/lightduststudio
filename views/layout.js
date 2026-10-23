@@ -320,7 +320,7 @@ return `
             const childPages = sortChildPages(navPages.filter(page => page.navParent === navItem.id));
             const children = [
                 ...categoryLinks.map(cat => ({ href: `${href}?category=${cat.id}`, label: cat.label, nameEn: cat.nameEn })),
-                ...childPages.map(page => ({ href: `/p/${page.slug}`, label: page.subtitle || page.title }))
+                ...childPages.map(page => ({ href: `/p/${page.slug}`, label: page.title || page.subtitle }))
             ];
 
             return `
