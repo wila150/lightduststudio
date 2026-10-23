@@ -285,7 +285,7 @@ async function main() {
     }
     const heroImage = heroSlides.find(h => h.image) ? heroSlides.find(h => h.image).image : "";
     const workIds = projects.slice().sort((a, b) => b.id - a.id).map(p => itemIdByLegacy[p.id]).filter(Boolean).slice(0, 8);
-    const steps = [["需求訪談", "釐清品牌調性與用途"], ["視覺企劃", "風格參考 + 拍攝腳本"], ["拍攝執行", "棚拍 / 外拍 / 影片"], ["後製精修", "修圖調色 + 影片剪輯"], ["完成交件", "雲端交付高解析檔案"]];
+    const steps = [["需求訪談", "釐清品牌調性與用途", "chat"], ["提供報價＆簽訂合約", "確認預算與檔期，簽約後開工", "contract"], ["視覺企劃", "風格參考 + 拍攝腳本", "spark"], ["拍攝執行", "棚拍 / 外拍 / 影片", "camera"], ["後製精修", "修圖調色 + 影片剪輯", "edit"], ["完成交件", "雲端交付高解析檔案", "photos"]];
     const aboutTeaser = await importImage("https://res.cloudinary.com/idsbjycq/image/upload/v1788017339/lightduststudio/portfolio/oacjotoxmjvjj6lj03am.jpg");
     const homeModules = [
         // 兩段深綠底的作品輪播（Logo 綠），中文大標＋金色英文小標
@@ -299,7 +299,7 @@ async function main() {
         mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }, { background: "alt" }),
         mod("button", { text: "了解更多", link: "/p/about" }, { background: "alt" }),
         mod("equipmentGrid", { mode: "featured", limit: 6, linkUrl: "/p/equipment", linkText: "查看全部設備" }),
-        ...[heading("合作流程"), ...steps.map(([title, description]) => mod("processStep", { title, description }))]
+        ...[heading("合作流程"), ...steps.map(([title, description, icon]) => mod("processStep", { icon, title, description }))]
             .map(m => ({ ...m, background: "none" })),
         ...[heading("聯絡我們"),
             mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),

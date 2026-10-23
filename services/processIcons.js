@@ -21,6 +21,10 @@ const PROCESS_ICONS = {
         label: "行事曆（預約）",
         svg: svg(`<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>`)
     },
+    contract: {
+        label: "合約（報價／簽約）",
+        svg: svg(`<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 12h6M9 15.5h3"/><path d="m13.5 19 1.2-2.3 3.6-3.6a1 1 0 0 1 1.4 1.4l-3.6 3.6z"/></svg>`.replace("</svg>", ""))
+    },
     camera: {
         label: "相機（拍攝）",
         svg: svg(`<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>`)
