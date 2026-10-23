@@ -120,7 +120,7 @@ async function main() {
     console.log("2/7 作品集頁與分類");
     const groups = {
         photography: { title: "平面攝影", subtitle: "PHOTOGRAPHY", cats: [["commercial", "商業廣告", "Commercial"], ["space", "建築空間", "Architecture"], ["food", "美食攝影", "Food"], ["cosmetic", "化妝品攝影", "Cosmetics"], ["portrait", "形象照", "Portrait"]] },
-        film: { title: "影片製作", subtitle: "FILM", cats: [["production", "影片製作", "Production"], ["brand", "形象影片", "Brand Film"], ["short", "短影音", "Short Video"]] }
+        film: { title: "影片製作", subtitle: "FILM", cats: [["commercial", "商業廣告", "Commercial"], ["short", "短影音製作", "Short Video"], ["editing", "影片剪輯", "Video Editing"]] }
     };
     const pageByGroup = {};
     const catIdByKey = {};
@@ -215,8 +215,8 @@ async function main() {
         console.log(`  ✓ /p/${p.slug}（${modules.length} 個模組）`);
     }
 
-    // ---------- 5. 關於我們、聯絡我們、我的設備、服務項目總覽 ----------
-    console.log("5/7 關於我們、聯絡我們、我的設備、服務項目總覽");
+    // ---------- 5. 關於我們、聯絡我們、專業設備、服務項目總覽 ----------
+    console.log("5/7 關於我們、聯絡我們、專業設備、服務項目總覽");
     const story = [
         ["https://res.cloudinary.com/idsbjycq/image/upload/v1788017349/lightduststudio/portfolio/nzzs6uz6bd6lyuxeuooq.jpg", "用影像記錄品牌的每個瞬間", "LightDust Studio 光塵影像工作室成立於台北，我們相信影像不只是紀錄，更是品牌與消費者溝通的語言。從攝影到影片、從平面到整合行銷，我們陪伴每一個品牌找到屬於自己的視覺敘事方式。", "left"],
         ["https://res.cloudinary.com/idsbjycq/image/upload/v1788017337/lightduststudio/portfolio/faiguaiofsnnik2lmdsi.jpg", "細節成就質感", "每一次拍攝前，我們都會深入了解品牌的核心價值與目標受眾，從燈光、構圖到後期調色，力求每一幀畫面都精準傳達品牌調性，讓專業與美感並存。", "right"]
@@ -236,7 +236,7 @@ async function main() {
             mod("text", { html: paragraph("不論是商業攝影、影片製作或平面設計需求，歡迎填寫表單，或直接透過以下方式與我們聯繫。") + contactInfo.map(([k, v]) => `<p><strong>${k}</strong>　${escapeHtml(v)}</p>`).join("") }),
             mod("contactForm", {})
         ] },
-        { slug: "equipment", title: "我的設備", subtitle: "EQUIPMENT", modules: [mod("equipmentGrid", { mode: "all", limit: 6, linkUrl: "", linkText: "" })] }
+        { slug: "equipment", title: "專業設備", subtitle: "EQUIPMENT", modules: [mod("equipmentGrid", { mode: "all", limit: 6, linkUrl: "", linkText: "" })] }
     ];
     const servicePages = old.pages.filter(p => p.slug !== "booking");
     special.push({ slug: "services", title: "服務項目", subtitle: "SERVICES", modules: [mod("serviceGrid", {
@@ -261,13 +261,13 @@ async function main() {
         await nav("服務項目", pageIdBySlug.services),
         await nav("平面攝影", pageByGroup.photography.id),
         await nav("影片製作", pageByGroup.film.id),
+        await nav("專業設備", pageIdBySlug.equipment),
         await nav("關於我們", pageIdBySlug.about),
-        await nav("我的設備", pageIdBySlug.equipment),
         await nav("聯絡我們", pageIdBySlug.contact)
     ];
     const servicesNav = navItems[1];
     // 平面攝影的下拉選單列出所有分類（含還沒有作品的）
-    await tenantCollection(T, "navItems").doc(navItems[2].id).update({ showCategories: true, showEmptyCategories: true });
+    for (const item of [navItems[2], navItems[3]]) await tenantCollection(T, "navItems").doc(item.id).update({ showCategories: true, showEmptyCategories: true });
     // 清單是 sortOrder 大的在前，依建立順序存進去會整個倒過來，所以明確套用一次想要的順序
     await navConfigService.reorderNavItems(T, navItems.map(item => item.id));
     for (const p of servicePages) {
