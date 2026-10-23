@@ -94,7 +94,7 @@ async function main() {
         lineFriendUrl: s.social_line || "",
         socialInstagramUrl: s.social_instagram || "",
         socialFacebookUrl: s.social_facebook || "",
-        ...(logo ? { logoUrl: logo.url, logoPath: logo.path, logoHeight: 54 } : {}),
+        ...(logo ? { logoUrl: logo.url, logoPath: logo.path, logoHeight: 72 } : {}),
         ...(favicon ? { faviconUrl: favicon.url, faviconPath: favicon.path } : {}),
         // 全站深綠＋金（取自 Logo）：區塊 A 主色、區塊 B 加亮、導覽列／頁尾更深的墨綠；金色當強調色
         theme: "custom",
