@@ -1679,3 +1679,9 @@ html[data-theme="custom"] .mobile-nav-group-head .mobile-nav-toggle { position: 
 .site-header { padding-top: calc(var(--header-padding-y, 24px) + env(safe-area-inset-top)); padding-left: max(48px, env(safe-area-inset-left)); padding-right: max(48px, env(safe-area-inset-right)); }
 @media (max-width: 720px) { .site-header { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); } }
 .mobile-nav-bar { padding-top: env(safe-area-inset-top); }
+
+/* 圓形徽章 Logo 固定正方形：圖片萬一載入失敗，金框不會被替代文字撐成橫向橢圓；
+   載入失敗時 onerror 會藏起圖片、改顯示 .logo-fallback 的網站名稱文字 */
+html[data-theme="custom"] .site-header .logo-image { width: auto; aspect-ratio: 1 / 1; object-fit: contain; font-size: 0; }
+html[data-theme="custom"] .site-footer--dark .footer-logo img { aspect-ratio: 1 / 1; object-fit: contain; font-size: 0; }
+.logo-fallback { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--accent); white-space: nowrap; }

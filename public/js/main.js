@@ -1221,3 +1221,17 @@ console.log("Portfolio Web");
     start();
 
 })();
+
+// Logo 圖片載入失敗（網路不穩、快取問題）：藏起破圖，改顯示網站名稱文字（.logo-fallback）。
+// 網站的 CSP 不允許 onerror 這類行內事件，所以在這裡綁
+(function () {
+    document.querySelectorAll(".logo-image, .footer-logo img").forEach(function (img) {
+        function fail() {
+            img.style.display = "none"; // 不能只設 hidden：樣式表有寫 display 會蓋過它
+            var fallback = img.nextElementSibling;
+            if (fallback && fallback.classList.contains("logo-fallback")) fallback.hidden = false;
+        }
+        if (img.complete && img.naturalWidth === 0) fail();
+        else img.addEventListener("error", fail);
+    });
+})();
