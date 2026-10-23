@@ -78,7 +78,9 @@ async function main() {
 
     // ---------- 1. 網站設定、Logo、favicon ----------
     console.log("1/7 網站設定");
-    const logoFile = path.join(oldRoot, "images/logo-mark.png");
+    // 導覽列用的圓形徽章（從設計原檔 圓形logo.ai 重新輸出、只留英文並放大文字），沒有就退回舊站的 logo
+    const headerLogo = path.join(__dirname, "../public/images/logo-header-en.png");
+    const logoFile = fs.existsSync(headerLogo) ? headerLogo : path.join(oldRoot, "images/logo-mark.png");
     const faviconFile = path.join(oldRoot, "images/favicon-32.png");
     const logo = fs.existsSync(logoFile) ? await storageService.uploadBuffer(fs.readFileSync(logoFile), "logo-mark.png", "image/png", "settings") : null;
     const favicon = fs.existsSync(faviconFile) ? await storageService.uploadBuffer(fs.readFileSync(faviconFile), "favicon-32.png", "image/png", "settings") : null;
