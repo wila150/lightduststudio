@@ -16,6 +16,17 @@ require("./config/firebase");
 
 app.set("trust proxy", 1);
 
+// 自有網域（Render 環境變數 CANONICAL_HOST，例如 lightdustudio.com）：
+// 其他網址（onrender.com、www.）一律 301 轉到這個網域，搜尋引擎只收錄一個網址。沒設定就不轉
+const CANONICAL_HOST = (process.env.CANONICAL_HOST || "").trim().toLowerCase();
+if (CANONICAL_HOST) {
+    app.use((req, res, next) => {
+        const host = (req.hostname || "").toLowerCase();
+        if (!host || host === CANONICAL_HOST || host === "localhost" || host.startsWith("127.")) return next();
+        res.redirect(301, `https://${CANONICAL_HOST}${req.originalUrl}`);
+    });
+}
+
 // 安全性標頭（防 clickjacking、MIME sniffing 等），CSP 先關閉避免擋到既有的 inline script/外部資源（Google 字型、GA、Firebase SDK 等）。
 // referrerPolicy 明確設回瀏覽器原本的預設值：helmet 預設是 no-referrer，會把 Referer 標頭整個拿掉，
 // 導致嵌入的 YouTube 影片播放器抓不到來源網域驗證失敗（錯誤 153）

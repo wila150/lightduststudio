@@ -39,6 +39,12 @@ router.get("/pages/:slug", (req, res) => res.redirect(301, "/p/" + encodeURIComp
 // 作品內頁：舊網址 /work/16 → 搬家時記在作品上的 legacyId（scripts/migrateFromLightdustV1.js）
 router.get("/work/:id", homeController.legacyWorkRedirect);
 
+// lightdustudio.com 原本是 Hostinger 上的 WordPress 網站，Google 收錄過的網址轉到新網站對應頁面
+router.get(["/gallery", "/gallery/"], (req, res) => res.redirect(301, "/p/photography"));
+router.get(["/about/", "/contact/"], (req, res) => res.redirect(301, "/p/" + req.path.replace(/\//g, "")));
+router.get(["/news", "/news/", "/sample-page", "/sample-page/", "/feed", "/feed/", "/comments/feed", "/comments/feed/"], (req, res) => res.redirect(301, "/"));
+router.get(/^\/wp-(admin|login\.php|content|includes|json)(\/.*)?$/, (req, res) => res.status(404).send("Not found"));
+
 // 聯絡我表單送出（聯絡我頁面本身是自訂頁面 /p/contact，用 contactForm 模組）
 router.post("/contact", publicFormLimiter, homeController.submitContact);
 
