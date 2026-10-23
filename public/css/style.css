@@ -1654,3 +1654,15 @@ html[data-theme="custom"] .mobile-nav-toggle::before {
 }
 html[data-theme="custom"] .mobile-nav-group.is-open .mobile-nav-toggle { transform: none; }
 html[data-theme="custom"] .mobile-nav-group.is-open .mobile-nav-toggle::before { top: 60%; transform: translate(-50%, -50%) rotate(-135deg); }
+
+/* 手機選單：「服務項目」右邊的展開箭頭不佔排版寬度（絕對定位貼在文字右側），
+   文字才會跟其他沒有子選單的項目一樣置中、對齊同一條中線 */
+html[data-theme="custom"] .mobile-nav-group-head { position: relative; gap: 0; }
+html[data-theme="custom"] .mobile-nav-group-head .mobile-nav-toggle { position: absolute; left: 100%; top: 50%; margin: -14px 0 0 6px; }
+
+/* 服務項目卡片：手機也維持兩欄（一欄六張太長），卡片間距縮小 */
+@media (max-width: 720px) {
+  html[data-theme="custom"] .service-grid { grid-template-columns: repeat(2, 1fr); gap: 20px 12px; }
+  html[data-theme="custom"] .service-grid-media { margin-bottom: 10px; }
+  html[data-theme="custom"] .service-grid-label { font-size: 15px; }
+}
