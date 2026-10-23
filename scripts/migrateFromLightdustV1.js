@@ -119,7 +119,7 @@ async function main() {
     // ---------- 2. 作品集頁、分類 ----------
     console.log("2/7 作品集頁與分類");
     const groups = {
-        photography: { title: "平面攝影", subtitle: "PHOTOGRAPHY", cats: [["commercial", "商業廣告", "Commercial"], ["space", "建築空間", "Architecture"], ["food", "美食攝影", "Food"], ["cosmetic", "化妝品攝影", "Cosmetics"], ["portrait", "形象照", "Portrait"]] },
+        photography: { title: "平面攝影", subtitle: "PHOTOGRAPHY", cats: [["commercial", "商業廣告", "Commercial"], ["space", "建築空間", "Architecture"], ["food", "美食攝影", "Food"], ["cosmetic", "化妝品攝影", "Cosmetics"], ["portrait", "形象照", "Portrait"], ["personal", "個人寫真", "Personal Portrait"], ["registration", "登記拍攝", "Wedding Registration"], ["wedding", "婚禮紀錄", "Wedding"], ["birthday", "抓周攝影", "First Birthday"], ["event", "活動紀錄", "Event"]] },
         film: { title: "影片製作", subtitle: "FILM", cats: [["commercial", "商業廣告", "Commercial"], ["short", "短影音製作", "Short Video"], ["editing", "影片剪輯", "Video Editing"]] }
     };
     const pageByGroup = {};
