@@ -301,7 +301,7 @@ async function main() {
         mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }, { background: "alt" }),
         mod("button", { text: "了解更多", link: "/p/about" }, { background: "alt" }),
         mod("equipmentGrid", { mode: "featured", limit: 6, linkUrl: "/p/equipment", linkText: "查看全部設備" }),
-        ...[heading("合作流程"), ...steps.map(([title, description, icon]) => mod("processStep", { icon, title, description }))]
+        ...[heading("合作流程"), mod("text", { html: "<p style=\"text-align:center\">無論是專案或是製作，我們有一套標準流程，讓時間分配接軌到穩定產出</p>" }), ...steps.map(([title, description, icon]) => mod("processStep", { icon, title, description }))]
             .map(m => ({ ...m, background: "none" })),
         ...[heading("聯絡我們"),
             mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),
