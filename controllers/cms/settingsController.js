@@ -107,6 +107,7 @@ exports.update = async (req, res) => {
         siteName: req.body.siteName || "",
         brandTextMain: (req.body.brandTextMain || "").trim(),
         brandTextSub: (req.body.brandTextSub || "").trim(),
+        showBrandTextInHeader: req.body.showBrandTextInHeader === "on",
         footerText: req.body.footerText || "",
         footerBackground: ["alt", "dark"].includes(req.body.footerBackground) ? req.body.footerBackground : "none",
         metaDescription: req.body.metaDescription || "",

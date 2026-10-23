@@ -170,6 +170,7 @@ ${fonts.length > 0 ? `
         <input type="text" name="brandTextMain" value="${settings.brandTextMain || ""}" placeholder="大字，例如 光塵" style="flex:1;padding:10px;">
         <input type="text" name="brandTextSub" value="${settings.brandTextSub || ""}" placeholder="小字，例如 影像工作室" style="flex:1;padding:10px;">
     </div>
+    <label style="display:block;margin-top:8px;"><input type="checkbox" name="showBrandTextInHeader" ${settings.showBrandTextInHeader ? "checked" : ""}> 導覽列也顯示品牌字（不勾：導覽列只放圓形 Logo，品牌字只出現在深色頁尾）</label>
 
     <br><br>
 

@@ -1562,11 +1562,11 @@ html[data-theme="custom"] { --font-display: "Noto Serif TC", "Songti TC", serif;
 .content-module--alt p:has(> .btn-primary) { text-align: center; }
 
 /* 服務項目卡片還沒放封面時，用第二強調色（Logo 綠）當底，不會跟淺色區塊底色混在一起變成空白 */
-.service-grid-media:not(:has(img)) { background: var(--accent-2); }
+.service-grid-media:not(:has(img)) { background: var(--panel); }
 
 /* 深色頁尾（網站設定 → 頁尾背景「深色底」） */
 .site-footer--dark {
-  background: color-mix(in srgb, var(--accent-2) 75%, #000);
+  background: var(--bg-bar, color-mix(in srgb, var(--accent-2) 75%, #000));
   border-top: 0; color: rgba(255,255,255,.7); padding: 56px 40px 40px;
 }
 .site-footer--dark .footer-logo { display: inline-flex; align-items: center; gap: 14px; margin-bottom: 24px; color: #fff; }
@@ -1578,3 +1578,62 @@ html[data-theme="custom"] { --font-display: "Noto Serif TC", "Songti TC", serif;
 .site-footer--dark .footer-cta-btn { color: #e0a068; border-color: #e0a068; }
 .site-footer--dark .footer-cta-btn:hover { background: #e0a068; color: #122b2b; }
 .site-footer--dark .footer-actions { border-top-color: rgba(255,255,255,.15); }
+
+
+/* =====================================================================
+   LightDust 深綠＋金色（自訂配色樣板）
+   三個背景色集中在這裡對應後台「網站設定 → 自訂配色」的色票，要調色只改後台一處：
+     --bg-main  區塊 A（主色深綠）＝「背景色」
+     --bg-alt   區塊 B（主色加亮 5–8%）＝「輔助背景色」，模組選「淺色底」就是這個
+     --bg-bar   導覽列／頁尾（更深的墨綠）＝「導覽列底色」
+   金色（強調色）用在按鈕、標題底線、hover、卡片細框
+   ===================================================================== */
+html[data-theme="custom"] {
+  --bg-main: var(--bg);
+  --bg-bar: var(--header-bg);
+  --on-accent: #122b2b;
+  --gold-line: color-mix(in srgb, var(--accent) 55%, transparent);
+  --font-body: "Noto Sans TC", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+html[data-theme="custom"] body { font-size: 17px; }
+html[data-theme="custom"] .content-module p { font-size: 17px; line-height: 1.85; }
+
+/* 金色按鈕上的字用深綠，白字壓在金底上太淡 */
+html[data-theme="custom"] .btn-primary,
+html[data-theme="custom"] .btn-primary:hover { color: var(--on-accent); }
+
+/* 原本自訂配色寫死「半透明白卡片」（淺色樣板用的），深色底上改成跟著卡片色、細金框 */
+html[data-theme="custom"] .feature-card,
+html[data-theme="custom"] .gallery-item,
+html[data-theme="custom"] .gallery-item-title,
+html[data-theme="custom"] .video-block-cover,
+html[data-theme="custom"] .form-card,
+html[data-theme="custom"] .booking-option,
+html[data-theme="custom"] .nav-dropdown-menu,
+html[data-theme="custom"] .admin-row {
+  background: var(--panel);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-color: var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+}
+html[data-theme="custom"] .nav-dropdown-more .nav-dropdown-menu a:hover { background: var(--bg-alt); }
+
+/* 導覽列：字放大加粗；圓形 Logo 加一圈細金框，做出「金色徽章」的感覺 */
+html[data-theme="custom"] .site-nav a { font-size: 15px; font-weight: 500; color: var(--text); }
+html[data-theme="custom"] .site-nav a:hover, html[data-theme="custom"] .site-nav a.active { color: var(--accent); }
+html[data-theme="custom"] .site-header .logo-image { border-radius: 50%; box-shadow: 0 0 0 1.5px var(--accent); }
+
+/* 置中的區塊標題下方加一條短金線 */
+html[data-theme="custom"] .content-module > h2[style*="text-align:center"]::after {
+  content: ""; display: block; width: 48px; height: 2px; margin: 18px auto 0; background: var(--accent);
+}
+
+/* 服務項目卡片：比區塊淺一階的綠＋細金框，背景變深後才不會糊在一起 */
+html[data-theme="custom"] .service-grid-media { background: var(--panel); border: 1px solid var(--gold-line); }
+html[data-theme="custom"] .service-grid-label { font-size: 18px; font-weight: 500; }
+
+/* 頁尾的「光塵影像工作室」用金色 */
+.site-footer--dark .logo-text, .site-footer--dark .logo-text-main { color: var(--accent); }
+
+/* 頁面標題下的英文副標（PHOTOGRAPHY、CONTACT…）：金色、加寬字距，跟首頁「OUR WORKS」同一種樣式 */
+html[data-theme="custom"] .collection-list-subtitle { color: var(--accent); font-size: 14px; letter-spacing: .35em; text-transform: uppercase; }

@@ -96,18 +96,19 @@ async function main() {
         socialFacebookUrl: s.social_facebook || "",
         ...(logo ? { logoUrl: logo.url, logoPath: logo.path, logoHeight: 54 } : {}),
         ...(favicon ? { faviconUrl: favicon.url, faviconPath: favicon.path } : {}),
-        // 配色取自 Logo：綠 #1a3a3a（圓底）＋金 #e0a068（LD 字）；淺底上的小字金色加深成 #b8834a 才看得清楚
+        // 全站深綠＋金（取自 Logo）：區塊 A 主色、區塊 B 加亮、導覽列／頁尾更深的墨綠；金色當強調色
         theme: "custom",
-        customColorBg: "#faf8f4",
-        customColorBgAlt: "#f1ece3",
-        customColorPanel: "#ffffff",
-        customColorBorder: "#e4dccf",
-        customColorText: "#1c2b2b",
-        customColorMuted: "#5d6b6a",
-        customColorAccent: "#b8834a",
-        customColorAccent2: "#1a3a3a",
-        customColorDanger: "#b5533f",
-        customColorHeaderBg: "#faf8f4",
+        customColorBg: "#1a3a3a",
+        customColorBgAlt: "#224343",
+        customColorHeaderBg: "#122b2b",
+        customColorPanel: "#2a4c4b",
+        customColorBorder: "#3b5d5b",
+        customColorText: "#f2ede3",
+        customColorMuted: "#b7c2bd",
+        customColorAccent: "#e0a068",
+        customColorAccent2: "#c98d55",
+        customColorDanger: "#e07a62",
+        showBrandTextInHeader: false,
         footerBackground: "dark",
         showHomeCarousel: false,
         features: { booking: false, line: false, sponsorMarquee: false, blog: false }
@@ -290,18 +291,18 @@ async function main() {
             heading(zh),
             mod("text", { html: `<p style="text-align:center;letter-spacing:.3em;color:#e0a068;margin-top:-6px">${en}</p>` }),
             mod("videoCarousel", { items: [], cornerStyle: "sharp" })
-        ].map(m => ({ ...m, background: "custom", backgroundColor: bg }))),
+        ].map(m => ({ ...m, background: bg === "#1a3a3a" ? "none" : "alt" }))),
         ...[heading("服務項目"), mod("serviceGrid", { items: special.find(sp => sp.slug === "services").modules[0].data.items, accentColor: "" })]
-            .map(m => ({ ...m, background: "alt" })),
-        mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }),
-        mod("button", { text: "了解更多", link: "/p/about" }),
+            .map(m => ({ ...m, background: "none" })),
+        mod("splitFeature", { heading: "關於我們", text: paragraph("我們是一群熱愛影像的創作者，橫跨攝影、影片與設計領域，用專業與美感為品牌打造獨一無二的視覺語彙。"), images: [{ id: crypto.randomUUID(), url: aboutTeaser, path: "" }], imagePosition: "left", darkBg: false, headingSize: "medium", textSize: "medium", imageSize: "medium", imageRatio: "original", imageFrame: false, imageCorner: "sharp", imageBorderColor: "" }, { background: "alt" }),
+        mod("button", { text: "了解更多", link: "/p/about" }, { background: "alt" }),
         mod("equipmentGrid", { mode: "featured", limit: 6, linkUrl: "/p/equipment", linkText: "查看全部設備" }),
         ...[heading("合作流程"), ...steps.map(([title, description]) => mod("processStep", { title, description }))]
-            .map(m => ({ ...m, background: "custom", backgroundColor: "#1a3a3a" })),
+            .map(m => ({ ...m, background: "none" })),
         ...[heading("聯絡我們"),
             mod("text", { html: "<p style=\"text-align:center\">有拍攝、影片或設計的需求嗎？告訴我們你的想法，我們會盡快與你聯繫。</p>" }),
             mod("button", { text: "填寫需求表單", link: "/p/contact" })]
-            .map(m => ({ ...m, background: "custom", backgroundColor: "#122b2b" }))
+            .map(m => ({ ...m, background: "alt" }))
     ];
     const carouselItems = await resolveCarouselItems(T, workIds);
     homeModules.filter(m => m.type === "videoCarousel").forEach(m => { m.data.items = carouselItems; });

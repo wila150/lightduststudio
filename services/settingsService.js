@@ -15,6 +15,8 @@ const DEFAULTS = {
     // Logo 旁的品牌字（大字＋小字），空白就只顯示 Logo 圖
     brandTextMain: "",
     brandTextSub: "",
+    // 導覽列是否在 Logo 旁顯示品牌字（預設只放圓形徽章，品牌字放頁尾）
+    showBrandTextInHeader: false,
     logoPath: "",
     logoHeight: 40,
     headerPaddingY: 24,
