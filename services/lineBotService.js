@@ -18,7 +18,8 @@ const TOKENS = [
     { key: "店家電話", label: "店家電話" },
     { key: "Email", label: "Email" },
     { key: "網站", label: "網站" },
-    { key: "聯絡頁", label: "聯絡／預約頁" },
+    { key: "諮詢表單", label: "預約諮詢表單" },
+    { key: "聯絡頁", label: "聯絡頁" },
     { key: "平面攝影", label: "平面攝影作品" },
     { key: "影片製作", label: "影片作品" },
     { key: "服務項目", label: "服務項目" },
@@ -57,7 +58,7 @@ const DEFAULT_CONFIG = {
     },
     keywords: [
         { id: "price", enabled: true, words: ["報價", "價格", "價目表"], match: "contains", text: "感謝詢問！請告訴我們拍攝類型、日期與地點，我們會盡快回覆報價😊\n也可以先看看服務項目：{服務項目}" },
-        { id: "booking", enabled: true, words: ["預約", "預約諮詢"], match: "exact", text: "填寫表單就能預約諮詢：{聯絡頁}\n或直接來電 {店家電話}" }
+        { id: "booking", enabled: true, words: ["預約", "預約諮詢"], match: "exact", text: "填寫簡單表單就能預約諮詢👇\n{諮詢表單}\n或直接來電 {店家電話}" }
     ],
     richMenu: { layout: "grid6", imageUrl: "", chatBarText: "選單", areas: [], richMenuId: "" },
     broadcast: { imageUrl: "", action: "message", actionValue: "", altText: "", text: "" }
@@ -96,6 +97,7 @@ async function tokenValues(tenantId, displayName) {
         "店家電話": settings.contactPhone || "",
         "Email": settings.contactEmail || "",
         "網站": SITE_URL,
+        "諮詢表單": `${SITE_URL}/inquiry`,
         "聯絡頁": `${SITE_URL}/p/contact`,
         "平面攝影": `${SITE_URL}/p/photography`,
         "影片製作": `${SITE_URL}/p/film`,

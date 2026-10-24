@@ -48,6 +48,12 @@ router.get(/^\/wp-(admin|login\.php|content|includes|json)(\/.*)?$/, (req, res) 
 // 聯絡我表單送出（聯絡我頁面本身是自訂頁面 /p/contact，用 contactForm 模組）
 router.post("/contact", publicFormLimiter, homeController.submitContact);
 
+// 簡短預約諮詢表單（LINE 圖文選單「預約諮詢」開這頁）
+const inquiryController = require("../controllers/inquiryController");
+router.get("/inquiry", inquiryController.form);
+router.post("/inquiry", publicFormLimiter, inquiryController.submit);
+router.get("/inquiry/done", inquiryController.done);
+
 // LINE 官方帳號 webhook（在 LINE Developers 後台的 Messaging API 分頁設定這個網址），不能加表單那組
 // rate limiter——LINE 可能一次送一批事件過來，而且請求本身有簽章驗證把關，不是給一般訪客打的端點
 router.post("/line/webhook", requireFeature("line"), homeController.lineWebhook);
