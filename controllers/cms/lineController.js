@@ -5,13 +5,15 @@ const lineView = require("../../views/cms/line");
 
 exports.index = async (req, res) => {
 
-    const [config, quota, defaultRichMenuId] = await Promise.all([
+    const bindCode = await lineBotService.ensureBindCode(req.tenantId);
+    const [config, quota, defaultRichMenuId, settings] = await Promise.all([
         lineBotService.getConfig(req.tenantId),
         lineBotService.quota(req.tenantId),
-        lineBotService.currentDefaultRichMenu(req.tenantId)
+        lineBotService.currentDefaultRichMenu(req.tenantId),
+        require("../../services/settingsService").get(req.tenantId)
     ]);
 
-    res.send(lineView(config, { quota, defaultRichMenuId }, req.session.user));
+    res.send(lineView(config, { quota, defaultRichMenuId, bindCode, notifyCount: (settings.lineNotifyUserIds || []).length }, req.session.user));
 
 };
 

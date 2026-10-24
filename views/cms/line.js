@@ -17,7 +17,7 @@ function quotaText(quota) {
     return parts.join("・");
 }
 
-module.exports = (config, { quota, defaultRichMenuId }, user) => {
+module.exports = (config, { quota, defaultRichMenuId, bindCode, notifyCount }, user) => {
 
 const layouts = Object.entries(RICH_MENU_LAYOUTS).map(([key, value]) => ({ key, label: value.label, height: value.height, cells: value.cells }));
 const richMenuLive = config.richMenu.richMenuId && config.richMenu.richMenuId === defaultRichMenuId;
@@ -83,6 +83,17 @@ return layout(
     ${quotaText(quota) ? `<br><strong>${escapeHtml(quotaText(quota))}</strong>` : ""}
     ${quota && quota.error ? `<br><span style="color:#b5533f;">${escapeHtml(quota.error)}</span>` : ""}
 </p>
+
+<section class="line-card" id="notify">
+
+    <h2>接收通知 ${notifyCount ? `<span class="badge-live">已綁定 ${notifyCount} 個 LINE</span>` : `<span class="badge-off">尚未綁定</span>`}</h2>
+    <p class="hint" style="margin-bottom:6px;">
+        想在自己的 LINE 收到網站預約表單、聯絡表單和 LINE 預約諮詢的通知：用你的 LINE 加官方帳號好友，在聊天室傳這句話就完成了（可以綁定多人）：
+    </p>
+    <p style="font-size:22px;font-weight:700;letter-spacing:2px;margin:6px 0 4px;">綁定 ${escapeHtml(bindCode)}</p>
+    <p class="hint" style="margin:0;">不想收了就在聊天室輸入「解除綁定」。這組數字只給自己人，知道的人都能綁定收到客人資料。</p>
+
+</section>
 
 <section class="line-card" id="replies">
 

@@ -87,8 +87,43 @@ async function getConfig(tenantId) {
         keywords: Array.isArray(data.keywords) ? data.keywords : DEFAULT_CONFIG.keywords,
         inquiry: { ...DEFAULT_CONFIG.inquiry, ...(data.inquiry || {}) },
         richMenu: { ...DEFAULT_CONFIG.richMenu, ...(data.richMenu || {}) },
-        broadcast: { ...DEFAULT_CONFIG.broadcast, ...(data.broadcast || {}) }
+        broadcast: { ...DEFAULT_CONFIG.broadcast, ...(data.broadcast || {}) },
+        bindCode: data.bindCode || ""
     };
+}
+
+// 店家綁定通知用的密碼：沒有就產生一組 6 位數存起來（後台 LINE 頁會顯示）
+async function ensureBindCode(tenantId) {
+    const config = await getConfig(tenantId);
+    if (config.bindCode) return config.bindCode;
+    const code = String(crypto.randomInt(100000, 1000000));
+    await saveConfig(tenantId, { bindCode: code });
+    return code;
+}
+
+// 在官方帳號聊天室輸入「綁定 123456」→ 把這個 LINE 帳號加進接收通知名單（網站留言、預約諮詢都會推過來）
+// 輸入「解除綁定」→ 移除。密碼錯就當一般訊息處理，不透露有這個功能
+async function handleBinding(tenantId, event, text, config, displayName) {
+    const userId = event.source && event.source.userId;
+    const settings = await settingsService.get(tenantId);
+    const ids = settings.lineNotifyUserIds || [];
+    const bind = text.replace(/\s+/g, "").match(/^綁定(?:通知)?(\d{6})$/);
+
+    if (bind && config.bindCode && bind[1] === config.bindCode) {
+        if (!ids.includes(userId)) {
+            await settingsService.update(tenantId, { lineNotifyUserIds: [...ids, userId] });
+        }
+        await reply(tenantId, event.replyToken, [{ type: "text", text: `✅ 綁定成功${displayName ? "，" + displayName : ""}！\n之後網站的預約表單、聯絡表單和 LINE 預約諮詢，都會通知到這個 LINE。\n\n不想收的話輸入「解除綁定」。` }]);
+        return true;
+    }
+
+    if (text.replace(/\s+/g, "") === "解除綁定" && ids.includes(userId)) {
+        await settingsService.update(tenantId, { lineNotifyUserIds: ids.filter(id => id !== userId) });
+        await reply(tenantId, event.replyToken, [{ type: "text", text: "已解除綁定，這個 LINE 不會再收到網站通知。" }]);
+        return true;
+    }
+
+    return false;
 }
 
 async function saveConfig(tenantId, patch) {
@@ -319,6 +354,10 @@ async function handleEvent(tenantId, event, displayName) {
 
     const text = event.type === "message" && event.message && event.message.type === "text" ? event.message.text : "";
 
+    if (userId && text && /綁定/.test(text) && await handleBinding(tenantId, event, text, config, displayName)) {
+        return { replied: "bind", consumed: true };
+    }
+
     if (userId && config.inquiry.enabled) {
         const triggered = text && (config.inquiry.triggers || []).some(word => normalize(word) === normalize(text));
         if (triggered) {
@@ -480,6 +519,6 @@ function yesterday() {
 }
 
 module.exports = {
-    TOKENS, RICH_MENU_LAYOUTS, getConfig, saveConfig, newId, handleEvent, fill, tokenValues,
+    TOKENS, RICH_MENU_LAYOUTS, getConfig, ensureBindCode, saveConfig, newId, handleEvent, fill, tokenValues,
     prepareRichMenuImage, publishRichMenu, currentDefaultRichMenu, sendTest, sendBroadcast, quota, imageRatio
 };
