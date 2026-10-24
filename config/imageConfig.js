@@ -33,8 +33,11 @@ module.exports = {
         outputFormat: 'jpeg',
         // 色彩空間
         colorSpace: 'srgb',
-        // JPEG 品質（0-100）
-        jpegQuality: 90
+        // JPEG 品質（0-100）：起始值，會依成品大小自動調整（見 services/imageProcessor.js）
+        jpegQuality: 90,
+        // 成品檔案大小目標：800KB–2MB
+        targetMinBytes: 800 * 1024,
+        targetMaxBytes: 2 * 1024 * 1024
     },
 
     // 驗證錯誤訊息

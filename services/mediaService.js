@@ -3,6 +3,7 @@ const { tenantCollection } = require("../config/firebase");
 const storageService = require("./storageService");
 const sharp = require("sharp");
 const imageConfig = require("../config/imageConfig");
+const { processPhoto } = require("./imageProcessor");
 
 class MediaService {
 
@@ -20,98 +21,46 @@ class MediaService {
             throw new Error(imageConfig.errors.invalidMimeType);
         }
 
-        // 驗證檔案大小：太小的擋掉（畫質太差，放大到版面上會模糊），太大的也擋掉
-        // （只是擋原始檔離譜大，不是最終存檔大小，下面 sharp 那段會負責壓縮/縮放到合理大小）
-        // 下限只擋 JPEG 照片：Logo、去背圖這類 PNG/GIF/WebP 圖檔本來就很小（幾十 KB），不代表畫質差
-        if (file.mimetype === "image/jpeg" && file.size < imageConfig.upload.minFileSize) {
-            throw new Error(imageConfig.errors.fileTooSmall);
-        }
-
+        // 只擋原始檔離譜大的；小檔不擋，成品大小由 imageProcessor 調整（目標 800KB–2MB）
         if (file.size > imageConfig.upload.maxFileSize) {
             throw new Error(imageConfig.errors.fileTooLarge);
         }
 
-        // 使用 sharp 處理圖片
-        let pipeline = sharp(file.buffer);
+        const original = await sharp(file.buffer).metadata();
 
-        // 獲取圖片元資訊
-        const metadata = await pipeline.metadata();
+        // 統一規格：長邊 2048px、72dpi、JPG、sRGB、800KB–2MB（GIF、透明 PNG/WebP 保留原格式）
+        const result = await processPhoto(file.buffer, file.mimetype, file.originalname);
 
-        // GIF（可能是動畫）跟有透明背景的圖（Logo、去背圖）不能轉 JPEG：
-        // 轉了動畫會變成單張、透明處會變成白底，交給 storageService 用原格式壓縮/縮放
-        const isGif = file.mimetype === "image/gif";
-        const keepAlpha = !isGif && metadata.hasAlpha && ["image/png", "image/webp"].includes(file.mimetype);
-
-        if (isGif || keepAlpha) {
+        if (!result) {
             return {
                 buffer: file.buffer,
                 originalname: file.originalname,
                 mimetype: file.mimetype,
                 size: file.size,
                 metadata: {
-                    originalWidth: metadata.width || 0,
-                    originalHeight: metadata.height || 0,
+                    originalWidth: original.width || 0,
+                    originalHeight: original.height || 0,
                     format: file.mimetype.replace("image/", "")
                 }
             };
         }
 
-        // 計算需要縮放的尺寸（保持長寬比，長邊不超過 2048px）
-        const maxDim = imageConfig.processing.maxDimension;
-        const width = metadata.width || 0;
-        const height = metadata.height || 0;
+        const processed = result.width ? result : { ...result, ...(await sharp(result.buffer).metadata()) };
 
-        let resizeWidth = width;
-        let resizeHeight = height;
-
-        if (width > maxDim || height > maxDim) {
-            if (width >= height) {
-                resizeWidth = maxDim;
-                resizeHeight = Math.round((maxDim / width) * height);
-            } else {
-                resizeHeight = maxDim;
-                resizeWidth = Math.round((maxDim / height) * width);
-            }
-        }
-
-        // 處理圖片：
-        // 1. 調整大小到 2048px（長邊）
-        // 2. 轉換為 sRGB 色彩空間
-        // 3. 轉換為 JPEG 格式
-        // 4. 設置解析度為 72dpi
-        pipeline = sharp(file.buffer)
-            .resize(resizeWidth, resizeHeight, {
-                fit: 'inside',
-                withoutEnlargement: true
-            })
-            .toColorspace('srgb')
-            .withMetadata({
-                density: imageConfig.processing.dpi,
-                background: { r: 255, g: 255, b: 255, alpha: 1 }
-            })
-            .jpeg({
-                quality: imageConfig.processing.jpegQuality,
-                progressive: true,
-                mozjpeg: true
-            });
-
-        // 轉換為 Buffer
-        const processedBuffer = await pipeline.toBuffer({ resolveWithObject: true });
-
-        // 回傳處理後的檔案資訊
         return {
-            buffer: processedBuffer.data,
-            originalname: file.originalname.replace(/\.[^.]+$/, '.jpg'), // 改為 .jpg 副檔名
-            mimetype: 'image/jpeg',
-            size: processedBuffer.data.length,
+            buffer: result.buffer,
+            originalname: result.originalname,
+            mimetype: result.mimetype,
+            size: result.buffer.length,
             metadata: {
-                originalWidth: width,
-                originalHeight: height,
-                processedWidth: resizeWidth,
-                processedHeight: resizeHeight,
+                originalWidth: original.width || 0,
+                originalHeight: original.height || 0,
+                processedWidth: processed.width,
+                processedHeight: processed.height,
                 dpi: imageConfig.processing.dpi,
                 colorSpace: imageConfig.processing.colorSpace,
-                format: imageConfig.processing.outputFormat
+                format: result.mimetype.replace("image/", ""),
+                quality: result.quality
             }
         };
 
@@ -152,7 +101,8 @@ class MediaService {
             processedFile.buffer,
             processedFile.originalname,
             processedFile.mimetype,
-            "media"
+            "media",
+            { processed: true }
         );
 
         const data = {
