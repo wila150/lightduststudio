@@ -70,6 +70,23 @@ class MessageService {
 
     }
 
+    async get(tenantId, id) {
+
+        const snap = await tenantCollection(tenantId, "messages").doc(id).get();
+
+        return snap.exists ? { id: snap.id, ...snap.data() } : null;
+
+    }
+
+    // 後台回覆過的內容（目前是回 LINE 客人），依序記在留言上
+    async addReply(tenantId, id, reply) {
+
+        const { FieldValue } = require("firebase-admin/firestore");
+
+        await tenantCollection(tenantId, "messages").doc(id).update({ replies: FieldValue.arrayUnion(reply), read: true });
+
+    }
+
     async list(tenantId) {
 
         try {

@@ -21,6 +21,9 @@ router.post("/read-all", messageController.readAll);
 // 批次刪除（要放在 /:id/delete 之前，避免路由衝突）
 router.post("/delete-many", messageController.removeMany);
 
+// 從後台直接回覆 LINE 客人（用推播，會算每月額度）
+router.post("/:id/line-reply", messageController.lineReply);
+
 // 標記／取消標記已讀
 router.post("/:id/read", messageController.toggleRead);
 

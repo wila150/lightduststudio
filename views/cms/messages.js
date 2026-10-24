@@ -10,6 +10,9 @@ function toInboxRow(message) {
     return {
         id: message.id,
         source: lineMatch ? "line" : "web",
+        lineUserId: ((String(message.name || "").match(/（(U[0-9a-f]{32})）/) || [])[1]) || "",
+        canLineReply: /（U[0-9a-f]{32}）/.test(message.name || ""),
+        replies: Array.isArray(message.replies) ? message.replies : [],
         name: lineMatch ? (lineMatch[1] || "LINE 使用者") : (message.name || "（未留名字）"),
         email: message.email || "",
         subject: message.subject || "",

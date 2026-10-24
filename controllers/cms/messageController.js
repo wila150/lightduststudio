@@ -1,4 +1,6 @@
 const messageService = require("../../services/messageService");
+const settingsService = require("../../services/settingsService");
+const lineService = require("../../services/lineService");
 const messagesView = require("../../views/cms/messages");
 const { formatDisplayDate } = require("../../services/publishHelper");
 
@@ -25,6 +27,44 @@ exports.bulk = async (req, res) => {
         console.error(error);
         res.status(500).json({ success: false });
     }
+
+};
+
+// 從後台回覆 LINE 客人：留言名稱裡帶著客人的 User ID（「LINE - 小明（Uxxxx）」），用官方帳號推播給他。
+// 推播會算每月訊息額度；回覆內容記在這則留言的 replies 裡，後台看得到回過什麼
+exports.lineReply = async (req, res) => {
+
+    const text = String(req.body.text || "").trim().slice(0, 4900);
+
+    if (!text) {
+        return res.status(400).json({ error: "請輸入回覆內容" });
+    }
+
+    const message = await messageService.get(req.tenantId, req.params.id);
+    const match = message && String(message.name || "").match(/（(U[0-9a-f]{32})）/);
+
+    if (!match) {
+        return res.status(400).json({ error: "這則留言不是從 LINE 來的，沒辦法用 LINE 回覆" });
+    }
+
+    const settings = await settingsService.get(req.tenantId);
+    const accessToken = await lineService.getAccessToken(settings);
+
+    if (!accessToken) {
+        return res.status(400).json({ error: "尚未設定 LINE 連線（網站設定 → LINE）" });
+    }
+
+    const result = await lineService.pushText(accessToken, match[1], text);
+
+    if (!result.success) {
+        const reason = result.status === 429 ? "本月推播額度已用完" : result.status === 400 || result.status === 403 ? "客人可能已封鎖官方帳號" : "LINE 暫時無法傳送";
+        return res.status(400).json({ error: `傳送失敗：${reason}` });
+    }
+
+    const reply = { text, at: new Date().toISOString(), by: (req.session.user && req.session.user.name) || "" };
+    await messageService.addReply(req.tenantId, req.params.id, reply);
+
+    res.json({ success: true, reply });
 
 };
 
