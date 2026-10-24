@@ -1,3 +1,4 @@
+const { fixUploadName, mapSeries } = require("../config/uploadLimits");
 const { tenantCollection } = require("../config/firebase");
 const storageService = require("./storageService");
 const sharp = require("sharp");
@@ -11,6 +12,8 @@ class MediaService {
      * @returns {Object} 處理後的檔案和元資訊
      */
     async validateAndProcessImage(file) {
+
+        file.originalname = fixUploadName(file.originalname);
 
         // 驗證 MIME 類型
         if (!imageConfig.upload.allowedMimeTypes.includes(file.mimetype)) {
@@ -174,7 +177,7 @@ class MediaService {
     // 不然像「太小/太大/格式不對」這種被擋掉的檔案會直接消失，介面上看起來就是「選了 5 張只上傳 1 張」的怪 bug
     async uploadMany(tenantId, files, albumId) {
 
-        const results = await Promise.allSettled(files.map(file => this.upload(tenantId, file, albumId)));
+        const results = await mapSeries(files, file => this.upload(tenantId, file, albumId));
 
         const uploaded = [];
         const failed = [];

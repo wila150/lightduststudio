@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 // Firebase
 require("./config/firebase");
+require("./config/uploadLimits"); // sharp 記憶體設定要在任何圖片處理之前套用
 
 // ===== Middleware =====
 

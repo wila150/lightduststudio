@@ -1,3 +1,4 @@
+const { fixUploadName } = require("../config/uploadLimits");
 const { sanitizeCoverPosition } = require("./coverPosition");
 const crypto = require("crypto");
 const { tenantCollection } = require("../config/firebase");
@@ -314,9 +315,11 @@ class CollectionService {
 
     async uploadImages(files, folder) {
 
-        const uploads = await Promise.all(files.map(file =>
-            storageService.uploadBuffer(file.buffer, file.originalname, file.mimetype, folder)
-        ));
+        // 逐張上傳壓縮，同時處理整批大照片會把伺服器記憶體撐爆（見 config/uploadLimits.js）
+        const uploads = [];
+        for (const file of files) {
+            uploads.push(await storageService.uploadBuffer(file.buffer, fixUploadName(file.originalname), file.mimetype, folder));
+        }
 
         return uploads.map(upload => ({ id: crypto.randomUUID(), type: "image", url: upload.url, path: upload.path }));
 

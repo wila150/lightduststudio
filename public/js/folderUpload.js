@@ -143,7 +143,8 @@
                 var name = group.dirs.length ? group.label : "目前相簿";
                 return albumFor(group).then(function (albumId) {
                     var batches = [];
-                    for (var i = 0; i < group.files.length; i += 20) batches.push(group.files.slice(i, i + 20));
+                    // 每批 5 張：伺服器收到整批後才逐張壓縮，一批太多大照片會先把記憶體塞滿（見 config/uploadLimits.js）
+                    for (var i = 0; i < group.files.length; i += 5) batches.push(group.files.slice(i, i + 5));
                     return batches.reduce(function (inner, batch) {
                         return inner.then(function () {
                             return postBatch(batch, albumId).then(function (bad) {
