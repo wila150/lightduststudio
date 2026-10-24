@@ -5,6 +5,7 @@ const sharp = require("sharp");
 const { tenantCollection } = require("../config/firebase");
 const settingsService = require("./settingsService");
 const lineService = require("./lineService");
+const messageService = require("./messageService");
 const brand = require("../config/brand");
 
 const API = "https://api.line.me/v2/bot";
@@ -57,9 +58,19 @@ const DEFAULT_CONFIG = {
         text: "歡迎加入 {店名}！\n商業攝影、影片製作都歡迎詢問😊\n點下方選單就能看作品、預約諮詢。"
     },
     keywords: [
-        { id: "price", enabled: true, words: ["報價", "價格", "價目表"], match: "contains", text: "感謝詢問！請告訴我們拍攝類型、日期與地點，我們會盡快回覆報價😊\n也可以先看看服務項目：{服務項目}" },
-        { id: "booking", enabled: true, words: ["預約", "預約諮詢"], match: "exact", text: "填寫簡單表單就能預約諮詢👇\n{諮詢表單}\n或直接來電 {店家電話}" }
+        { id: "price", enabled: true, words: ["報價", "價格", "價目表"], match: "contains", text: "感謝詢問！請告訴我們拍攝類型、日期與地點，我們會盡快回覆報價😊\n也可以先看看服務項目：{服務項目}" }
     ],
+    // 聊天室裡一題一題問的預約諮詢（客人點選單「預約諮詢」或輸入觸發詞開始）
+    inquiry: {
+        enabled: true,
+        triggers: ["預約諮詢", "預約", "我要詢問", "詢問", "諮詢"],
+        services: ["商業廣告", "形象照", "個人寫真", "婚禮紀錄", "活動紀錄", "美食／商品", "建築空間", "抓周攝影", "登記拍攝", "影片製作", "其他"],
+        askService: "您好{好友名稱}！想詢問哪一類拍攝呢？👇",
+        askDate: "預計什麼時候拍攝呢？📅",
+        askPhone: "方便留一支聯絡電話嗎？\n直接輸入就可以😊",
+        askNote: "最後，簡單說明一下需求？\n例如人數、地點、用途、預算（沒有的話按「略過」）",
+        done: "✅ 收到您的詢問！\n{摘要}\n\n我們會盡快在這裡回覆您，謝謝🙏"
+    },
     richMenu: { layout: "grid6", imageUrl: "", chatBarText: "選單", areas: [], richMenuId: "" },
     broadcast: { imageUrl: "", action: "message", actionValue: "", altText: "", text: "" }
 };
@@ -74,6 +85,7 @@ async function getConfig(tenantId) {
     return {
         welcome: { ...DEFAULT_CONFIG.welcome, ...(data.welcome || {}) },
         keywords: Array.isArray(data.keywords) ? data.keywords : DEFAULT_CONFIG.keywords,
+        inquiry: { ...DEFAULT_CONFIG.inquiry, ...(data.inquiry || {}) },
         richMenu: { ...DEFAULT_CONFIG.richMenu, ...(data.richMenu || {}) },
         broadcast: { ...DEFAULT_CONFIG.broadcast, ...(data.broadcast || {}) }
     };
@@ -173,19 +185,157 @@ async function reply(tenantId, replyToken, messages) {
     await lineFetch(tenantId, `${API}/message/reply`, jsonPost({ replyToken, messages: messages.slice(0, 5) }));
 }
 
-// webhook 進來的事件：加好友回歡迎詞、文字訊息比對關鍵字（回覆訊息不算推播額度）
+// ---- 聊天室預約諮詢問答 ----
+// 進行中的問答存在 lineSessions/{userId}，30 分鐘沒回就當作放棄
+
+const SESSION_TTL = 30 * 60 * 1000;
+const CANCEL_WORDS = ["取消", "取消詢問", "不用了"];
+const STEPS = ["service", "date", "phone", "note"];
+
+function sessionRef(tenantId, userId) {
+    return tenantCollection(tenantId, "lineSessions").doc(userId);
+}
+
+async function getSession(tenantId, userId) {
+    const snap = await sessionRef(tenantId, userId).get();
+    if (!snap.exists) return null;
+    const data = snap.data();
+    const updatedAt = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(0);
+    return Date.now() - updatedAt.getTime() > SESSION_TTL ? null : data;
+}
+
+function quickReply(items) {
+    return { items: items.slice(0, 13).map(action => ({ type: "action", action })) };
+}
+
+const msgAction = (label, text) => ({ type: "message", label: label.slice(0, 20), text: (text || label).slice(0, 300) });
+const CANCEL_ACTION = msgAction("取消", "取消");
+
+function todayInTaipei() {
+    return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// 依步驟產生要問的那則訊息（文字＋下方快速按鈕）
+function question(step, inquiry, values) {
+    const text = fill(inquiry["ask" + step[0].toUpperCase() + step.slice(1)], values) || "請輸入";
+    let items;
+    if (step === "service") {
+        items = [...(inquiry.services || []).slice(0, 12).map(s => msgAction(s)), CANCEL_ACTION];
+    } else if (step === "date") {
+        items = [
+            { type: "datetimepicker", label: "📅 選擇日期", data: "inquiry=date", mode: "date", min: todayInTaipei() },
+            msgAction("還不確定"),
+            CANCEL_ACTION
+        ];
+    } else if (step === "note") {
+        items = [msgAction("略過"), CANCEL_ACTION];
+    } else {
+        items = [CANCEL_ACTION];
+    }
+    return { type: "text", text: text.slice(0, 4900), quickReply: quickReply(items) };
+}
+
+function summary(answers) {
+    return [
+        `服務：${answers.service || "-"}`,
+        `日期：${answers.date || "未定"}`,
+        `電話：${answers.phone || "-"}`,
+        answers.note ? `需求：${answers.note}` : ""
+    ].filter(Boolean).join("\n");
+}
+
+async function startInquiry(tenantId, event, config, values) {
+    await sessionRef(tenantId, event.source.userId).set({ step: "service", answers: {}, updatedAt: new Date() });
+    await reply(tenantId, event.replyToken, [question("service", config.inquiry, values)]);
+}
+
+// 回傳 true 代表這則訊息被問答流程吃掉了（不再比對關鍵字、不另存成一般留言）
+async function continueInquiry(tenantId, event, session, config, values, displayName) {
+    const userId = event.source.userId;
+    const ref = sessionRef(tenantId, userId);
+    const text = event.type === "message" ? String(event.message.text || "").trim() : "";
+    const pickedDate = event.type === "postback" && event.postback && event.postback.params && event.postback.params.date;
+
+    if (CANCEL_WORDS.includes(text)) {
+        await ref.delete();
+        await reply(tenantId, event.replyToken, [{ type: "text", text: "已取消，有需要隨時再點選單的「預約諮詢」😊" }]);
+        return true;
+    }
+
+    const step = session.step;
+    const answers = { ...(session.answers || {}) };
+
+    if (step === "date") {
+        if (!pickedDate && !text) return true;
+        answers.date = pickedDate || text;
+    } else if (step === "phone") {
+        // 至少要有幾個數字才像電話；打錯就再問一次
+        if ((text.match(/\d/g) || []).length < 8) {
+            await reply(tenantId, event.replyToken, [{ ...question("phone", config.inquiry, values), text: "電話號碼好像不太對，再輸入一次？例如 0912345678" }]);
+            return true;
+        }
+        answers.phone = text.slice(0, 40);
+    } else if (step === "note") {
+        answers.note = text === "略過" ? "" : text.slice(0, 1000);
+    } else {
+        if (!text) return true;
+        answers.service = text.slice(0, 40);
+    }
+
+    const next = STEPS[STEPS.indexOf(step) + 1];
+
+    if (next) {
+        await ref.set({ step: next, answers, updatedAt: new Date() });
+        await reply(tenantId, event.replyToken, [question(next, config.inquiry, values)]);
+        return true;
+    }
+
+    await ref.delete();
+    const text2 = summary(answers);
+    await reply(tenantId, event.replyToken, [{ type: "text", text: fill(config.inquiry.done, { ...values, "摘要": text2 }).slice(0, 4900) }]);
+
+    await messageService.create(tenantId, {
+        name: `LINE - ${displayName || "訪客"}（${userId}）`,
+        email: "",
+        subject: `LINE 預約諮詢｜${answers.service || ""}`,
+        message: text2
+    });
+    lineService.notifyOwners(tenantId, `📅 LINE 預約諮詢\n客人：${displayName || "訪客"}\n${text2}\n\n可以直接在 LINE 官方帳號聊天室回覆他`)
+        .catch(error => console.error("LINE notify error:", error));
+    return true;
+}
+
+// webhook 進來的事件：加好友回歡迎詞、預約諮詢問答、文字訊息比對關鍵字（回覆訊息不算推播額度）
+// 回傳 consumed: true 代表是問答流程裡的回答，呼叫端不用再存成一般留言
 async function handleEvent(tenantId, event, displayName) {
     const config = await getConfig(tenantId);
+    const userId = event.source && event.source.userId;
+    const values = await tokenValues(tenantId, displayName);
+
     if (event.type === "follow" && config.welcome.enabled && config.welcome.text) {
-        const text = fill(config.welcome.text, await tokenValues(tenantId, displayName));
-        await reply(tenantId, event.replyToken, textMessages(text));
+        await reply(tenantId, event.replyToken, textMessages(fill(config.welcome.text, values)));
         return { replied: "welcome" };
     }
-    if (event.type === "message" && event.message && event.message.type === "text") {
-        const rule = findKeyword(config.keywords, event.message.text);
+
+    const text = event.type === "message" && event.message && event.message.type === "text" ? event.message.text : "";
+
+    if (userId && config.inquiry.enabled) {
+        const triggered = text && (config.inquiry.triggers || []).some(word => normalize(word) === normalize(text));
+        if (triggered) {
+            await startInquiry(tenantId, event, config, values);
+            return { replied: "inquiry", consumed: true };
+        }
+        const session = (text || event.type === "postback") ? await getSession(tenantId, userId) : null;
+        if (session) {
+            await continueInquiry(tenantId, event, session, config, values, displayName);
+            return { replied: "inquiry", consumed: true };
+        }
+    }
+
+    if (text) {
+        const rule = findKeyword(config.keywords, text);
         if (rule) {
-            const text = fill(rule.text, await tokenValues(tenantId, displayName));
-            await reply(tenantId, event.replyToken, textMessages(text, rule.imageUrl));
+            await reply(tenantId, event.replyToken, textMessages(fill(rule.text, values), rule.imageUrl));
             return { replied: rule.id };
         }
     }

@@ -29,9 +29,24 @@ exports.saveReplies = async (req, res) => {
         }))
         .filter(rule => rule.words.length && rule.text);
 
+    const inquiry = req.body.inquiry || {};
+    const list = value => String(value || "").split(/[、,，\n]/).map(w => w.trim()).filter(Boolean);
+    const ask = value => String(value || "").slice(0, 2000);
+
     await lineBotService.saveConfig(req.tenantId, {
         welcome: { enabled: welcome.enabled !== false, text: String(welcome.text || "").slice(0, 4900) },
-        keywords
+        keywords,
+        inquiry: {
+            enabled: inquiry.enabled !== false,
+            triggers: list(inquiry.triggers).slice(0, 20),
+            // 快速按鈕 LINE 最多 13 個（要留一個給「取消」），每個最多 20 字
+            services: list(inquiry.services).map(s => s.slice(0, 20)).slice(0, 12),
+            askService: ask(inquiry.askService),
+            askDate: ask(inquiry.askDate),
+            askPhone: ask(inquiry.askPhone),
+            askNote: ask(inquiry.askNote),
+            done: ask(inquiry.done)
+        }
     });
 
     res.json({ success: true, count: keywords.length });

@@ -4,7 +4,7 @@
     var data = JSON.parse(document.getElementById("line-data").textContent);
     var config = data.config;
     var TOKENS = data.tokens;
-    var tokenLabel = {};
+    var tokenLabel = { "摘要": "摘要" };
     TOKENS.forEach(function (t) { tokenLabel[t.key] = t.label; });
 
     var EMOJIS = "😊😄😍🥰😉🙏👍👏🎉✨📷📸🎬🎥💡📅⏰📍📞✉️💬❤️🧡💛💚🔥⭐🌟✅👉🎁💰🏷️🆕📣🙌🤩😎🌿🌸☀️🌙".match(/\p{Extended_Pictographic}️?/gu);
@@ -181,8 +181,13 @@
         kwList.lastElementChild.querySelector(".kw-words").focus();
     });
 
-    document.getElementById("replies-save").addEventListener("click", async function () {
-        var status = document.getElementById("replies-status");
+    var INQ_FIELDS = ["askService", "askDate", "askPhone", "askNote", "done"];
+    INQ_FIELDS.forEach(function (key) {
+        setupEditor(document.getElementById("inq-" + key), config.inquiry[key] || "");
+    });
+
+    // 訊息與關鍵字、預約諮詢問答存在同一份設定，兩個儲存鈕都整包送出
+    async function saveReplies(status) {
         var keywords = Array.prototype.map.call(kwList.querySelectorAll(".kw-rule"), function (box) {
             return {
                 id: box.dataset.id,
@@ -195,14 +200,28 @@
         var incomplete = keywords.filter(function (k) { return !k.words.trim() || !k.text.trim(); }).length;
         setStatus(status, "儲存中…");
         try {
+            var inquiry = {
+                enabled: document.getElementById("inq-enabled").checked,
+                triggers: document.getElementById("inq-triggers").value,
+                services: document.getElementById("inq-services").value
+            };
+            INQ_FIELDS.forEach(function (key) { inquiry[key] = editorValue(document.getElementById("inq-" + key)); });
             var json = await postJson("/cms/line/replies", {
                 welcome: { enabled: document.getElementById("welcome-enabled").checked, text: editorValue(welcomeEditor) },
-                keywords: keywords
+                keywords: keywords,
+                inquiry: inquiry
             });
             setStatus(status, "已儲存，" + json.count + " 組關鍵字" + (incomplete ? "（" + incomplete + " 組沒填關鍵字或回覆內容，已略過）" : ""), "ok");
         } catch (error) {
             setStatus(status, error.message, "err");
         }
+    }
+
+    document.getElementById("replies-save").addEventListener("click", function () {
+        saveReplies(document.getElementById("replies-status"));
+    });
+    document.querySelector(".replies-save-alt").addEventListener("click", function () {
+        saveReplies(document.getElementById("inq-status"));
     });
 
     // ---- 圖文選單 ----

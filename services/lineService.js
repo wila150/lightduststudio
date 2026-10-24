@@ -173,21 +173,23 @@ class LineService {
         // 放這裡 require，避免跟 lineBotService 互相引用
         const lineBotService = require("./lineBotService");
 
-        const handled = (events || []).filter(event => event.type === "follow" || (event.type === "message" && event.message && event.message.type === "text"));
+        const handled = (events || []).filter(event => event.type === "follow" || event.type === "postback" || (event.type === "message" && event.message && event.message.type === "text"));
 
         await Promise.all(handled.map(async event => {
 
             const userId = event.source && event.source.userId;
             const displayName = (accessToken && userId) ? await this.getProfile(accessToken, userId) : null;
 
-            // 加好友歡迎詞、關鍵字自動回覆（後台「LINE 官方帳號」設定）
+            // 加好友歡迎詞、預約諮詢問答、關鍵字自動回覆（後台「LINE 官方帳號」設定）
+            let result = {};
             try {
-                await lineBotService.handleEvent(tenantId, event, displayName);
+                result = await lineBotService.handleEvent(tenantId, event, displayName);
             } catch (error) {
                 console.error("LINE auto reply error:", error.message);
             }
 
-            if (event.type !== "message") {
+            // 問答流程裡的每個回答不另存，問完會整理成一筆留言
+            if (event.type !== "message" || result.consumed) {
                 return;
             }
 

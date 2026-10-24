@@ -108,6 +108,43 @@ return layout(
 
 </section>
 
+<section class="line-card" id="inquiry">
+
+    <h2>預約諮詢問答</h2>
+    <p class="hint">
+        客人點選單的「預約諮詢」或輸入觸發詞，官方帳號會在聊天室一題一題問：服務 → 日期 → 電話 → 需求，客人點按鈕回答就好。
+        問完會整理成一筆存進「留言」並推播通知你，你可以直接在 LINE 聊天室回覆客人。客人隨時輸入「取消」可以中止。
+    </p>
+
+    <label class="line-label"><input type="checkbox" id="inq-enabled" ${config.inquiry.enabled ? "checked" : ""}> 啟用</label>
+
+    <div class="field">
+        <label>觸發詞（完全符合，多個用「、」分隔）</label>
+        <input type="text" id="inq-triggers" value="${escapeHtml((config.inquiry.triggers || []).join("、"))}">
+    </div>
+    <div class="field">
+        <label>服務選項（會變成按鈕，最多 12 個，用「、」分隔）</label>
+        <input type="text" id="inq-services" value="${escapeHtml((config.inquiry.services || []).join("、"))}">
+    </div>
+
+    <label class="line-label">第 1 題：問服務</label>
+    <div class="token-editor" contenteditable="true" id="inq-askService"></div>
+    <label class="line-label">第 2 題：問日期 <span style="font-weight:400;color:#888;font-size:12px;">（下方會有「選擇日期」「還不確定」按鈕）</span></label>
+    <div class="token-editor" contenteditable="true" id="inq-askDate"></div>
+    <label class="line-label">第 3 題：問電話</label>
+    <div class="token-editor" contenteditable="true" id="inq-askPhone"></div>
+    <label class="line-label">第 4 題：問需求 <span style="font-weight:400;color:#888;font-size:12px;">（下方會有「略過」按鈕）</span></label>
+    <div class="token-editor" contenteditable="true" id="inq-askNote"></div>
+    <label class="line-label">完成訊息 <span style="font-weight:400;color:#888;font-size:12px;">（{摘要} 會換成客人填的服務、日期、電話、需求）</span></label>
+    <div class="token-editor" contenteditable="true" id="inq-done"></div>
+
+    <div class="save-row">
+        <button type="button" class="replies-save-alt">儲存</button>
+        <span class="status" id="inq-status"></span>
+    </div>
+
+</section>
+
 <section class="line-card" id="rich-menu">
 
     <h2>圖文選單
