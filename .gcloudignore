@@ -1,0 +1,12 @@
+# Cloud Run 原始碼部署（gcloud run deploy --source）要上傳的檔案：排除金鑰與本機檔案
+.git
+.gitignore
+.gcloudignore
+node_modules/
+.env
+.env.*
+config/firebase-key.json
+.claude/
+.DS_Store
+*.log
+docs/
