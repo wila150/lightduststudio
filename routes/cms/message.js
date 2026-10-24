@@ -24,6 +24,9 @@ router.post("/delete-many", messageController.removeMany);
 // 從後台直接回覆 LINE 客人（用推播，會算每月額度）
 router.post("/:id/line-reply", messageController.lineReply);
 
+// 從後台用工作室 Gmail 回覆網站表單留言
+router.post("/:id/email-reply", messageController.emailReply);
+
 // 標記／取消標記已讀
 router.post("/:id/read", messageController.toggleRead);
 

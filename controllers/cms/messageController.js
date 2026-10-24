@@ -1,6 +1,7 @@
 const messageService = require("../../services/messageService");
 const settingsService = require("../../services/settingsService");
 const lineService = require("../../services/lineService");
+const mailService = require("../../services/mailService");
 const messagesView = require("../../views/cms/messages");
 const { formatDisplayDate } = require("../../services/publishHelper");
 
@@ -61,7 +62,48 @@ exports.lineReply = async (req, res) => {
         return res.status(400).json({ error: `傳送失敗：${reason}` });
     }
 
-    const reply = { text, at: new Date().toISOString(), by: (req.session.user && req.session.user.name) || "" };
+    const reply = { text, at: new Date().toISOString(), by: (req.session.user && req.session.user.name) || "", via: "line" };
+    await messageService.addReply(req.tenantId, req.params.id, reply);
+
+    res.json({ success: true, reply });
+
+};
+
+// 從後台用工作室 Gmail 回覆網站表單的留言（services/mailService.js），回覆內容一樣記在 replies
+exports.emailReply = async (req, res) => {
+
+    const text = String(req.body.text || "").trim().slice(0, 10000);
+
+    if (!text) {
+        return res.status(400).json({ error: "請輸入回覆內容" });
+    }
+
+    const message = await messageService.get(req.tenantId, req.params.id);
+
+    if (!message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(message.email || "")) {
+        return res.status(400).json({ error: "這則留言沒有 Email，沒辦法用 Email 回覆" });
+    }
+
+    const settings = await settingsService.get(req.tenantId);
+    const createdAt = message.createdAt && message.createdAt.toDate ? message.createdAt.toDate() : null;
+
+    try {
+        await mailService.sendReply({
+            to: message.email,
+            toName: message.name,
+            subject: `Re: ${message.subject || "您的詢問"}｜${require("../../config/brand").name}`,
+            text,
+            original: message.message,
+            originalAt: createdAt ? createdAt.toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false }) : "",
+            phone: settings.contactPhone
+        });
+    } catch (error) {
+        console.error("Email reply failed:", error);
+        const reason = /Invalid login|Username and Password|535/.test(error.message || "") ? "Gmail 登入失敗，請確認應用程式密碼" : (error.message || "寄送失敗");
+        return res.status(400).json({ error: `寄送失敗：${reason}` });
+    }
+
+    const reply = { text, at: new Date().toISOString(), by: (req.session.user && req.session.user.name) || "", via: "email" };
     await messageService.addReply(req.tenantId, req.params.id, reply);
 
     res.json({ success: true, reply });

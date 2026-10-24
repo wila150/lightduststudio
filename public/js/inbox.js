@@ -50,7 +50,7 @@
             var key = m.lineUserId ? "line:" + m.lineUserId : m.id;
             var item = byKey[key];
             if (!item) {
-                item = byKey[key] = { key: key, ids: [], msgs: [], source: m.source, name: m.name, email: m.email, subject: m.subject, message: m.message, createdAt: m.createdAt, canLineReply: m.canLineReply, read: true, starred: false };
+                item = byKey[key] = { key: key, ids: [], msgs: [], source: m.source, name: m.name, email: m.email, subject: m.subject, message: m.message, createdAt: m.createdAt, canLineReply: m.canLineReply, canEmailReply: m.canEmailReply, read: true, starred: false };
                 items.push(item);
             }
             item.ids.push(m.id);
@@ -64,7 +64,7 @@
             var timeline = [];
             item.msgs.forEach(function (m) {
                 timeline.push({ dir: "in", text: (m.subject ? m.subject + "\n" : "") + m.message, at: m.createdAt });
-                (m.replies || []).forEach(function (r) { timeline.push({ dir: "out", text: r.text, at: r.at, by: r.by }); });
+                (m.replies || []).forEach(function (r) { timeline.push({ dir: "out", text: r.text, at: r.at, by: r.by, via: r.via || "line" }); });
             });
             item.timeline = timeline.sort(function (a, b) { return a.at < b.at ? -1 : 1; });
             item.searchText = (item.name + " " + item.email + " " + timeline.map(function (t) { return t.text; }).join(" ")).toLowerCase();
@@ -115,11 +115,13 @@
 
     function detailHtml(item) {
         var body;
+        var channel = item.canLineReply ? "line" : (item.canEmailReply ? "email" : "");
+        var channelName = channel === "line" ? "LINE" : "Email";
         if (item.isThread || item.canLineReply) {
             body = "<div class=\"chat\">" + item.timeline.map(function (t) {
                 return "<div class=\"chat-msg " + t.dir + "\">" +
                     "<div class=\"chat-bubble\">" + escapeHtml(t.text) + "</div>" +
-                    "<div class=\"chat-time\">" + (t.dir === "out" ? "已用 LINE 回覆" + (t.by ? "・" + escapeHtml(t.by) : "") + "・" : "") + escapeHtml(fmtFull(t.at)) + "</div>" +
+                    "<div class=\"chat-time\">" + (t.dir === "out" ? "已用 " + (t.via === "email" ? "Email" : "LINE") + " 回覆" + (t.by ? "・" + escapeHtml(t.by) : "") + "・" : "") + escapeHtml(fmtFull(t.at)) + "</div>" +
                 "</div>";
             }).join("") + "</div>";
         } else {
@@ -133,17 +135,17 @@
                 (item.isThread ? "<span>共 " + item.msgs.length + " 則訊息</span>" : "<span>" + escapeHtml(fmtFull(item.createdAt)) + "</span>") +
             "</div>" +
             body +
-            (item.canLineReply ? (
+            (channel ? (
                 "<div class=\"line-reply\">" +
-                    "<textarea placeholder=\"輸入要回覆給 " + escapeHtml(item.name) + " 的內容，送出後客人會在 LINE 收到（Ctrl／⌘＋Enter 送出）\">" + escapeHtml(drafts[item.key] || "") + "</textarea>" +
+                    "<textarea placeholder=\"輸入要回覆給 " + escapeHtml(item.name) + " 的內容，" + (channel === "line" ? "送出後客人會在 LINE 收到" : "會用工作室 Gmail 寄到 " + escapeHtml(item.email)) + "（Ctrl／⌘＋Enter 送出）\">" + escapeHtml(drafts[item.key] || "") + "</textarea>" +
                     "<div class=\"line-reply-bar\">" +
-                        "<button type=\"button\" class=\"btn-line-reply\">用 LINE 回覆</button>" +
-                        "<span class=\"inbox-hint\">每則會用掉 1 則推播額度；在 LINE 官方帳號 App 回覆則不算額度</span>" +
+                        "<button type=\"button\" class=\"btn-line-reply" + (channel === "email" ? " is-email" : "") + "\" data-channel=\"" + channel + "\">用 " + channelName + " 回覆</button>" +
+                        "<span class=\"inbox-hint\">" + (channel === "line" ? "每則會用掉 1 則推播額度；在 LINE 官方帳號 App 回覆則不算額度" : "簽名檔和客人原本的留言會自動附在信件下方；客人回信會回到工作室 Gmail") + "</span>" +
                     "</div>" +
                 "</div>"
             ) : "") +
             "<div class=\"inbox-actions\">" +
-                (item.email ? "<a class=\"btn-reply\" href=\"mailto:" + encodeURIComponent(item.email) + "?subject=" + encodeURIComponent("Re: " + (item.subject || "您的詢問")) + "\">回覆 Email</a>" : "") +
+                (item.email && !item.canEmailReply ? "<a class=\"btn-reply\" href=\"mailto:" + encodeURIComponent(item.email) + "?subject=" + encodeURIComponent("Re: " + (item.subject || "您的詢問")) + "\">回覆 Email</a>" : "") +
                 (item.source === "line" && !item.canLineReply ? "<span class=\"inbox-hint\">LINE 訊息請到 LINE 官方帳號後台回覆</span>" : "") +
                 "<button type=\"button\" data-row-action=\"unread\">標為未讀</button>" +
                 "<button type=\"button\" data-row-action=\"delete\" class=\"danger\">" + (item.isThread && item.msgs.length > 1 ? "刪除整串" : "刪除") + "</button>" +
@@ -317,7 +319,9 @@
         var target = item.msgs[0];
         btn.disabled = true;
         btn.textContent = "傳送中…";
-        fetch("/cms/messages/" + target.id + "/line-reply", {
+        var channel = btn.getAttribute("data-channel");
+        var label = channel === "email" ? "用 Email 回覆" : "用 LINE 回覆";
+        fetch("/cms/messages/" + target.id + "/" + (channel === "email" ? "email" : "line") + "-reply", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ text: text })
@@ -333,7 +337,7 @@
         }).catch(function (error) {
             alert(error.message);
             btn.disabled = false;
-            btn.textContent = "用 LINE 回覆";
+            btn.textContent = label;
         });
     }
 

@@ -816,6 +816,7 @@ tr.dragging, .drag-handle:active {
 .line-reply textarea { width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 14px; resize: vertical; box-sizing: border-box; }
 .line-reply-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .content .line-reply-bar .btn-line-reply { background: #06c755; color: #fff; border: 0; padding: 7px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.content .line-reply-bar .btn-line-reply.is-email { background: #1a3a3a; }
 .content .line-reply-bar .btn-line-reply:disabled { opacity: .6; cursor: default; }
 .inbox-empty { padding: 30px; text-align: center; color: var(--soft); }
 .inbox-more { text-align: center; padding: 12px; }
