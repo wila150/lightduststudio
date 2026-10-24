@@ -10,7 +10,7 @@ const STYLE = `
 body { margin:0; background:var(--bg); color:var(--text); font-family:"Noto Sans TC",-apple-system,"PingFang TC",sans-serif; line-height:1.6; }
 .wrap { max-width:520px; margin:0 auto; padding:28px 18px 48px; }
 .head { text-align:center; margin-bottom:22px; }
-.head img { width:72px; height:72px; border-radius:50%; }
+.head img { width:76px; height:76px; border-radius:50%; border:2px solid rgba(224,160,104,.55); box-shadow:0 4px 18px rgba(0,0,0,.3); }
 .head h1 { font-size:22px; margin:10px 0 4px; letter-spacing:2px; }
 .head p { color:var(--muted); font-size:14px; margin:0; }
 form { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:20px 18px; }
