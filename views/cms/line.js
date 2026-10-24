@@ -48,7 +48,7 @@ return layout(
 .kw-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .kw-head input[type=text] { flex: 1; min-width: 200px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; }
 .kw-head select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
-.danger-btn { border: 1px solid #e3a59a; color: #c0533f; background: #fff; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.content .danger-btn { border: 1px solid #e3a59a; color: #c0533f; background: #fff; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
 .save-row { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
 .status { font-size: 13px; color: #888; }
 .status.ok { color: #2f7a3f; } .status.err { color: #c0533f; }
