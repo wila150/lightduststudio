@@ -30,6 +30,7 @@ const DEFAULTS = {
     ogImagePath: "",
     googleAnalyticsId: "",
     googleSiteVerification: "",
+    lineChannelId: "",
     lineChannelAccessToken: "",
     lineChannelSecret: "",
     // 收到新留言時要推播通知的 LINE User ID 清單（不是廣播給所有加好友的人——LINE 好友按鈕上線後，

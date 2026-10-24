@@ -167,7 +167,8 @@ exports.lineWebhook = async (req, res) => {
     // 一定要回 200，不然 LINE 會一直重送同一批事件；實際處理留言失敗只記 log，不影響這個 response
     res.status(200).send("ok");
 
-    lineService.receiveWebhookEvents(DEFAULT_TENANT_ID, req.body.events, settings.lineChannelAccessToken)
+    lineService.getAccessToken(settings)
+        .then(accessToken => lineService.receiveWebhookEvents(DEFAULT_TENANT_ID, req.body.events, accessToken))
         .catch(error => console.error("LINE webhook error:", error));
 
 };

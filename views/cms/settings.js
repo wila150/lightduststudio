@@ -284,6 +284,24 @@ ${fonts.length > 0 ? `
         後台找到該 Channel → 在「Messaging API」分頁發行「Channel access token」貼在下面。
     </p>
 
+    <label>Channel ID</label>
+
+    <p style="font-size:12px;color:#888;margin:4px 0;">
+        在 LINE Developers 該 Channel 的「Basic settings」分頁。填了 Channel ID 跟下面的 Channel Secret，
+        網站會自動取得連線用的 token，上面的 Channel Access Token 可以留空。
+    </p>
+
+    <input
+        type="text"
+        name="lineChannelId"
+        value="${settings.lineChannelId || ""}"
+        placeholder="例如 2012186245"
+        style="width:100%;padding:10px;"
+        autocomplete="off"
+    >
+
+    <br><br>
+
     <input
         type="password"
         name="lineChannelAccessToken"
@@ -354,7 +372,7 @@ ${fonts.length > 0 ? `
 
     <br><br>
 
-    ${settings.lineChannelAccessToken ? `
+    ${settings.lineChannelAccessToken || (settings.lineChannelId && settings.lineChannelSecret) ? `
     <button type="button" id="line-test-btn">測試 LINE 連線</button>
     <span id="line-test-status" style="font-size:12px;color:#888;margin-left:8px;"></span>
     <p style="font-size:12px;color:#888;margin-top:6px;">若有更改 Token，請先按下方「儲存」後再測試</p>

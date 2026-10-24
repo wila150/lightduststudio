@@ -5,8 +5,62 @@ const messageService = require("./messageService");
 
 const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const LINE_PROFILE_URL = "https://api.line.me/v2/bot/profile";
+const LINE_TOKEN_URL = "https://api.line.me/oauth2/v3/token";
+
+// 用 Channel ID + Secret 自動換的短效 token（stateless，15 分鐘），快取到快過期前再換，
+// 這樣後台不用手動發行長效 Channel access token，也不會有 token 過期忘了換的問題
+const tokenCache = new Map();
 
 class LineService {
+
+    // 有手動貼的 Channel access token 就用它；沒有的話用 Channel ID + Secret 自動換一組
+    async getAccessToken(settings) {
+
+        if (settings.lineChannelAccessToken) {
+            return settings.lineChannelAccessToken;
+        }
+
+        if (!settings.lineChannelId || !settings.lineChannelSecret) {
+            return null;
+        }
+
+        const cached = tokenCache.get(settings.lineChannelId);
+        if (cached && cached.expiresAt > Date.now()) {
+            return cached.token;
+        }
+
+        try {
+
+            const response = await fetch(LINE_TOKEN_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    grant_type: "client_credentials",
+                    client_id: settings.lineChannelId,
+                    client_secret: settings.lineChannelSecret
+                })
+            });
+
+            if (!response.ok) {
+                console.error("LINE token failed:", response.status, await response.text());
+                return null;
+            }
+
+            const data = await response.json();
+
+            tokenCache.set(settings.lineChannelId, { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 });
+
+            return data.access_token;
+
+        } catch (error) {
+
+            console.error("LINE token error:", error);
+
+            return null;
+
+        }
+
+    }
 
     // 推播文字訊息給單一 LINE User ID（跟廣播不同，廣播是送給所有加官方帳號好友的人——
     // 網站上的「加 LINE 好友」按鈕上線後，一般訪客也可能加好友，廣播的話每個人都會收到店家自己的留言通知，不是我們要的）
@@ -51,11 +105,17 @@ class LineService {
         const settings = await settingsService.get(tenantId);
         const userIds = settings.lineNotifyUserIds || [];
 
-        if (!settings.lineChannelAccessToken || userIds.length === 0) {
+        if (userIds.length === 0) {
             return { skipped: true };
         }
 
-        const results = await Promise.all(userIds.map(userId => this.pushText(settings.lineChannelAccessToken, userId, text)));
+        const accessToken = await this.getAccessToken(settings);
+
+        if (!accessToken) {
+            return { skipped: true };
+        }
+
+        const results = await Promise.all(userIds.map(userId => this.pushText(accessToken, userId, text)));
 
         return { success: results.some(result => result.success), results };
 

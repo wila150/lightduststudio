@@ -121,6 +121,7 @@ exports.update = async (req, res) => {
         showFeaturedSidebar: req.body.showFeaturedSidebar === "on",
         featuredProjectIds,
         googleAnalyticsId,
+        lineChannelId: (req.body.lineChannelId || "").trim(),
         lineChannelAccessToken: (req.body.lineChannelAccessToken || "").trim(),
         lineChannelSecret: (req.body.lineChannelSecret || "").trim(),
         lineNotifyUserIds,
@@ -375,8 +376,8 @@ exports.testLine = async (req, res) => {
 
     const settings = await settingsService.get(req.tenantId);
 
-    if (!settings.lineChannelAccessToken) {
-        return res.status(400).json({ success: false, message: "請先填寫並儲存 Channel Access Token" });
+    if (!settings.lineChannelAccessToken && !(settings.lineChannelId && settings.lineChannelSecret)) {
+        return res.status(400).json({ success: false, message: "請先填寫並儲存 Channel ID 與 Channel Secret（或 Channel Access Token）" });
     }
 
     if (!settings.lineNotifyUserIds || settings.lineNotifyUserIds.length === 0) {
