@@ -51,6 +51,8 @@ module.exports = (title, content, user) => `
 
             <a href="/cms/analytics">即時統計</a>
 
+            ${featureService.enabled("line") ? `<a href="/cms/line">LINE 官方帳號</a>` : ""}
+
             ${featureService.enabled("booking") ? `<div class="nav-dropdown" tabindex="0">
                 <span>線上預約</span>
                 <div class="nav-dropdown-menu">

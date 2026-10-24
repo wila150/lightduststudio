@@ -164,17 +164,32 @@ class LineService {
 
     }
 
-    // webhook 收到的事件只處理文字訊息，貼圖/加好友/封鎖等其他類型先略過；
+    // webhook 收到的事件：加好友回歡迎詞，文字訊息比對關鍵字自動回覆，貼圖/封鎖等其他類型先略過；
+    // 文字訊息不管有沒有自動回覆都
     // 存進跟聯絡表單共用的 messages collection，客人在 LINE 傳的訊息就會跟表單留言一起出現在 CMS「留言」列表。
     // 名稱裡帶著 userId（不只顯示名稱），店家要設定「接收通知的 LINE User ID」時可以直接從這裡複製
     async receiveWebhookEvents(tenantId, events, accessToken) {
 
-        const textEvents = (events || []).filter(event => event.type === "message" && event.message && event.message.type === "text");
+        // 放這裡 require，避免跟 lineBotService 互相引用
+        const lineBotService = require("./lineBotService");
 
-        await Promise.all(textEvents.map(async event => {
+        const handled = (events || []).filter(event => event.type === "follow" || (event.type === "message" && event.message && event.message.type === "text"));
+
+        await Promise.all(handled.map(async event => {
 
             const userId = event.source && event.source.userId;
             const displayName = (accessToken && userId) ? await this.getProfile(accessToken, userId) : null;
+
+            // 加好友歡迎詞、關鍵字自動回覆（後台「LINE 官方帳號」設定）
+            try {
+                await lineBotService.handleEvent(tenantId, event, displayName);
+            } catch (error) {
+                console.error("LINE auto reply error:", error.message);
+            }
+
+            if (event.type !== "message") {
+                return;
+            }
 
             await messageService.create(tenantId, {
                 name: `LINE - ${displayName || "訪客"}${userId ? `（${userId}）` : ""}`,
