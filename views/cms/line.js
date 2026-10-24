@@ -37,10 +37,10 @@ return layout(
 .token-editor { min-height: 70px; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; line-height: 2; white-space: pre-wrap; word-break: break-word; outline: none; background: #fff; }
 .token-editor:focus { border-color: #6aa06a; box-shadow: 0 0 0 3px rgba(106,160,106,.15); }
 .token-chip { display: inline-flex; align-items: center; gap: 4px; background: #6abf69; color: #fff; border-radius: 999px; padding: 0 6px 0 12px; margin: 0 2px; line-height: 1.8; font-size: 14px; user-select: none; }
-.token-chip button { border: 0; background: none; color: #fff; cursor: pointer; font-size: 15px; padding: 0 4px; line-height: 1; }
+.content .token-chip button { border: 0; background: none; color: #fff; box-shadow: none; cursor: pointer; font-size: 15px; padding: 0 4px; line-height: 1; }
 .token-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; position: relative; }
-.token-buttons button { border: 1.5px solid #333; background: #fff; border-radius: 999px; padding: 4px 14px; cursor: pointer; font-size: 13px; }
-.token-buttons button:hover { background: #f3f3f3; }
+.content .token-buttons button { border: 1.5px solid #333; background: #fff; color: #222; border-radius: 999px; padding: 4px 14px; cursor: pointer; font-size: 13px; font-weight: 400; box-shadow: none; }
+.content .token-buttons button:hover { background: #f3f3f3; color: #222; }
 .emoji-pop { position: absolute; top: 36px; left: 0; z-index: 5; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px; display: grid; grid-template-columns: repeat(10, 30px); gap: 2px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
 .emoji-pop span { cursor: pointer; font-size: 20px; text-align: center; border-radius: 4px; }
 .emoji-pop span:hover { background: #f0f0f0; }
