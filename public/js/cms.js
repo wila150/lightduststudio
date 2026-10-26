@@ -87,7 +87,18 @@
 
         event.preventDefault();
 
+        // 按的是哪顆按鈕：同一個表單裡「儲存」「刪除」常常是兩顆 submit，刪除那顆用 formaction 指到別的網址，
+        // 要照按下去那顆的網址送，按鈕本身的 name/value 也要一起帶上（跟瀏覽器原生送出一樣）
+        var submitter = event.submitter;
+        var action = submitter && submitter.hasAttribute("formaction")
+            ? submitter.getAttribute("formaction")
+            : (form.getAttribute("action") || window.location.href);
+
         var formData = new FormData(form);
+
+        if (submitter && submitter.name) {
+            formData.append(submitter.name, submitter.value);
+        }
 
         // 表單如果沒有檔案欄位就不需要 multipart/form-data，改用一般的 urlencoded 格式送出——
         // 後端只掛了 express.urlencoded()/express.json()，沒有 multer 的路由收到 multipart body
@@ -108,7 +119,7 @@
             btn.disabled = true;
         });
 
-        fetch(form.getAttribute("action") || window.location.href, {
+        fetch(action, {
             method: "POST",
             body: body,
             credentials: "same-origin"
