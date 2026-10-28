@@ -798,6 +798,10 @@ console.log("Portfolio Web");
         // 2026/10/28 回饋：直式、橫式切換時整個輪播放大縮小、版面跳動。照片在固定框裡完整顯示（contain）
         function fitTrack() {}
 
+        // 下面手機滑動會用到（上次拿掉 fitTrack 內容時一起刪掉了，滑動就會出錯）
+        var track = carousel.querySelector(".video-carousel-track");
+        var mobileQuery = window.matchMedia("(max-width: 720px)");
+
         function go(delta) {
             activeIndex = (activeIndex + delta + slides.length) % slides.length;
             render();
