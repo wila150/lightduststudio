@@ -1105,10 +1105,9 @@ img.img-style-mono:hover { filter: grayscale(0); }
 /* 手機版：跟桌機版不是同一種排法——不露出左右鄰居，改成單張全寬卡片＋圓點翻頁＋左右滑動 */
 @media (max-width: 720px) {
   /* 左右滑動切換時照片會滑出框外，裁掉；pan-y 讓橫向手勢交給輪播，直向照常捲動頁面；
-     高度跟著照片比例變化時也用動畫過渡，不要瞬間跳動 */
+     框固定正方形，直式、橫式照片切換時版面不跳動 */
   .video-carousel-track {
-    height: 110vw; max-height: 75vh; overflow: hidden; touch-action: pan-y;
-    transition: height .34s cubic-bezier(.22, .61, .36, 1);
+    height: 100vw; max-height: 70vh; overflow: hidden; touch-action: pan-y;
   }
   .video-carousel-slide.prev, .video-carousel-slide.next { display: none !important; }
   /* 單張全寬顯示時不需要 3D 透視放大，不然渲染出來的圖會比自己的版位大，可能溢出裁切邊界 */

@@ -794,40 +794,9 @@ console.log("Portfolio Web");
 
         }
 
-        // 手機版單張全寬：框的高度跟著目前這張照片的比例走（橫式矮、直式高），不要一律留同一個高度造成大片空白；
-        // 桌機版是固定 4:3 框，清掉 inline 高度交回 CSS
-        var track = carousel.querySelector(".video-carousel-track");
-        var mobileQuery = window.matchMedia("(max-width: 720px)");
-
-        function fitTrack() {
-
-            if (!track) {
-                return;
-            }
-
-            var img = slides[activeIndex].querySelector("img");
-
-            if (!mobileQuery.matches || !img || !img.naturalWidth) {
-                track.style.height = "";
-                return;
-            }
-
-            var width = track.clientWidth;
-            var height = width * img.naturalHeight / img.naturalWidth;
-            var maxHeight = window.innerHeight * 0.75;
-
-            track.style.height = Math.round(Math.min(Math.max(height, width * 0.5), maxHeight)) + "px";
-
-        }
-
-        slides.forEach(function (slide) {
-            var slideImg = slide.querySelector("img");
-            if (slideImg && !slideImg.complete) {
-                slideImg.addEventListener("load", fitTrack);
-            }
-        });
-
-        window.addEventListener("resize", fitTrack);
+        // 框的大小一律交給 CSS 固定（桌機 4:3、手機正方形），不跟著每張照片的比例變高變矮——
+        // 2026/10/28 回饋：直式、橫式切換時整個輪播放大縮小、版面跳動。照片在固定框裡完整顯示（contain）
+        function fitTrack() {}
 
         function go(delta) {
             activeIndex = (activeIndex + delta + slides.length) % slides.length;
