@@ -182,7 +182,7 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
 
                         ${(() => {
                             const cover = (item.coverImage && item.coverImage.url) || (item.images && item.images[0] && item.images[0].url);
-                            return cover ? `<img src="${cover}" alt="${item.title}" style="width:80px;height:80px;object-fit:cover;">` : "-";
+                            return cover ? `<img src="${cover}" alt="${item.title}" loading="lazy" style="width:80px;height:80px;object-fit:cover;">` : "-";
                         })()}
 
                     </td>

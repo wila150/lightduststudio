@@ -94,8 +94,8 @@ module.exports = (page, items, categories, navPages = [], settings = {}, navItem
                     ? `<img class="yt-portrait-thumb" src="${cover}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${videoThumb}'">`
                     : usesVideoThumb
                     // maxresdefault 畫質最好但不是每支影片都有，載入失敗就退回每支都有的 hqdefault
-                    ? `<img src="${cover}" alt="${item.title}" onerror="this.onerror=null;this.src='${videoThumb}'">`
-                    : cover ? `<img src="${cover}" alt="${item.title}"${coverStyleAttr(item)}>` : ""}
+                    ? `<img src="${cover}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${videoThumb}'">`
+                    : cover ? `<img src="${cover}" alt="${item.title}" loading="lazy"${coverStyleAttr(item)}>` : ""}
                 ${coverIsVideo ? `<span class="work-card-badge">影片</span>` : ""}
             </div>
 
