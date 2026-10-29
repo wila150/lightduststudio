@@ -132,6 +132,70 @@ console.log("Portfolio Web");
 
 })();
 
+// 瀑布流作品清單改成「由左到右」排順序：CSS column-count 是一欄排滿才換下一欄（1 4 / 2 5 / 3 6），
+// 後台排的順序看起來會亂掉。這裡把卡片依序輪流分到每一欄（第 1 張第一欄、第 2 張第二欄…），
+// 讀起來就是 1 2 3 / 4 5 6。分類篩選切換、視窗寬度改變時重新分一次；沒有 JS 時退回 CSS 多欄
+(function () {
+
+    var grids = Array.from(document.querySelectorAll('.works-grid[data-layout="masonry"]'));
+
+    if (!grids.length) {
+        return;
+    }
+
+    var states = grids.map(function (grid) {
+        return { grid: grid, cards: Array.from(grid.querySelectorAll(".work-card")), count: 0 };
+    });
+
+    function columnCount() {
+        if (window.innerWidth <= 600) return 1;
+        if (window.innerWidth <= 900) return 2;
+        return 3;
+    }
+
+    function layout(force) {
+
+        var count = columnCount();
+
+        states.forEach(function (state) {
+
+            if (!force && state.count === count) {
+                return;
+            }
+
+            state.count = count;
+
+            var columns = [];
+            for (var i = 0; i < count; i++) {
+                var col = document.createElement("div");
+                col.className = "works-masonry-col";
+                columns.push(col);
+            }
+
+            var visibleIndex = 0;
+            state.cards.forEach(function (card) {
+                if (card.style.display === "none") {
+                    columns[0].appendChild(card);
+                } else {
+                    columns[visibleIndex % count].appendChild(card);
+                    visibleIndex++;
+                }
+            });
+
+            state.grid.querySelectorAll(".works-masonry-col").forEach(function (old) { old.remove(); });
+            columns.forEach(function (col) { state.grid.appendChild(col); });
+            state.grid.classList.add("is-columns");
+
+        });
+
+    }
+
+    window.relayoutWorksMasonry = function () { layout(true); };
+    window.addEventListener("resize", function () { layout(false); });
+    layout(true);
+
+})();
+
 // 作品集分類篩選標籤：純前端切換 .work-card 顯示/隱藏，不重新載入頁面
 (function () {
 
@@ -170,6 +234,10 @@ console.log("Portfolio Web");
 
         if (emptyNote) {
             emptyNote.hidden = visibleCount > 0;
+        }
+
+        if (window.relayoutWorksMasonry) {
+            window.relayoutWorksMasonry();
         }
 
         // 麵包屑最後一層換成目前的分類（可以點，連到這個分類），網址也同步帶上 ?category=，

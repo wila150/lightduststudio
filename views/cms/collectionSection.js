@@ -16,6 +16,19 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
         ...categories.filter(cat => cat.parentCategoryId === top.id)
     ]);
 
+    // 項目清單依分類分組：不同分類的作品不混在一起排，順序編號、拖拉、輸入數字移動都只在同一個分類裡
+    // （前台每個分類標籤各自顯示，順序也是各自的）。沒有分類或分類已刪除的放最後「未分類」
+    const knownIds = new Set(orderedCategories.map(cat => cat.id));
+    const itemGroups = [
+        ...orderedCategories.map(cat => ({
+            id: cat.id,
+            label: cat.parentCategoryId ? `└ ${cat.label}` : cat.label,
+            items: items.filter(item => item.category === cat.id)
+        })),
+        { id: "", label: "未分類", items: items.filter(item => !knownIds.has(item.category)) }
+    ].filter(group => group.items.length > 0);
+    const showGroupHeaders = categories.length > 0 && !activeCategoryId;
+
     return `
     <h2>分類與項目</h2>
 
@@ -135,7 +148,7 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
 
         <thead>
             <tr>
-                <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;"></th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">順序</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;"></th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">圖片</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">標題</th>
@@ -146,12 +159,19 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
 
         <tbody>
 
-            ${items.map(item => `
+            ${itemGroups.map(group => `
 
-                <tr data-drag-id="${item.id}">
+            ${showGroupHeaders ? `
+                <tr class="item-group-row"><td colspan="6">${group.label}（${group.items.length}）</td></tr>
+            ` : ""}
 
-                    <td style="padding:8px;border-bottom:1px solid #eee;">
+            ${group.items.map((item, index) => `
+
+                <tr data-drag-id="${item.id}" data-drag-group="${group.id}">
+
+                    <td style="padding:8px;border-bottom:1px solid #eee;white-space:nowrap;">
                         <span class="drag-handle" title="拖拉排序">⠿</span>
+                        <input type="number" class="order-input" data-move-to min="1" max="${group.items.length}" value="${index + 1}" title="輸入數字直接移到這個分類裡的第幾個">
                     </td>
 
                     <td style="padding:8px;border-bottom:1px solid #eee;">
@@ -184,6 +204,8 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
                     </td>
 
                 </tr>
+
+            `).join("")}
 
             `).join("")}
 

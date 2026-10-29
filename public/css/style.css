@@ -678,6 +678,9 @@ a:hover .nav-label-track { transform: translateY(-1.3em); }
 /* 瀑布流封面照原始比例完整顯示：直式照片不能被裁切（回饋「直式都會被裁切到」），也不墊底色框 */
 .works-grid[data-layout="masonry"] .work-card-media { background: none; }
 .works-grid[data-layout="masonry"] .work-card-media img { aspect-ratio: auto; height: auto; object-fit: initial; }
+/* main.js 分好欄（由左到右的順序）之後改用 flex 並排每一欄，不再用 CSS 多欄 */
+.works-grid[data-layout="masonry"].is-columns { display: flex; align-items: flex-start; gap: 32px; column-count: auto; }
+.works-masonry-col { flex: 1 1 0; min-width: 0; }
 @media (max-width: 900px) {
   .works-grid[data-layout="masonry"] { column-count: 2; }
 }

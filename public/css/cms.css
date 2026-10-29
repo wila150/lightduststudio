@@ -829,3 +829,8 @@ tr.dragging, .drag-handle:active {
 /* 登入過期提示（2026/10/04） */
 #login-expired-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 5000; padding: 12px 20px; background: var(--danger); color: #fff; text-align: center; font-size: 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .15); }
 #login-expired-bar a { color: #fff; font-weight: 700; margin-left: 12px; padding: 4px 14px; border: 1px solid #fff; border-radius: 999px; text-decoration: none; }
+
+/* 清單的順序編號：輸入數字直接移到第幾個 */
+.order-input { width: 52px; padding: 4px 6px; margin-left: 6px; text-align: center; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
+tr.just-moved td { background: #fff5e6; transition: background .3s; }
+.item-group-row td { padding: 14px 8px 6px !important; font-weight: 700; color: #8a6a3d; border-bottom: 2px solid #e6d8c3 !important; background: transparent; }

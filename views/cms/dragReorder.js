@@ -37,6 +37,10 @@ function dragReorderScript() {
                     if (number) {
                         number.textContent = i + 1;
                     }
+                    var moveInput = el.querySelector("[data-move-to]");
+                    if (moveInput) {
+                        moveInput.value = i + 1;
+                    }
                 });
 
                 var ids = getItems()
@@ -88,6 +92,53 @@ function dragReorderScript() {
                         submitOrder(item);
                     }
 
+                });
+
+            });
+
+            // 順序編號輸入框：直接打要移到第幾個，項目多、要一次移很多格時比拖拉方便
+            container.querySelectorAll("[data-move-to]").forEach(function (input) {
+
+                input.addEventListener("change", function () {
+
+                    var item = input.closest("[data-drag-id]");
+
+                    if (!item) {
+                        return;
+                    }
+
+                    var group = item.getAttribute("data-drag-group") || "";
+                    var siblings = getItems().filter(function (el) {
+                        return (el.getAttribute("data-drag-group") || "") === group;
+                    });
+                    var from = siblings.indexOf(item);
+                    var to = Math.min(Math.max(parseInt(input.value, 10) || 1, 1), siblings.length) - 1;
+
+                    if (to === from) {
+                        input.value = from + 1;
+                        return;
+                    }
+
+                    var others = siblings.filter(function (el) { return el !== item; });
+
+                    if (to >= others.length) {
+                        list.insertBefore(item, others[others.length - 1].nextSibling);
+                    } else {
+                        list.insertBefore(item, others[to]);
+                    }
+
+                    submitOrder(item);
+                    item.classList.add("just-moved");
+                    setTimeout(function () { item.classList.remove("just-moved"); }, 1200);
+
+                });
+
+                // 按 Enter 直接套用，不要送出外層表單
+                input.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        input.blur();
+                    }
                 });
 
             });
