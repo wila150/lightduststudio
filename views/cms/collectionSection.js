@@ -162,12 +162,12 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
             ${itemGroups.map(group => `
 
             ${showGroupHeaders ? `
-                <tr class="item-group-row"><td colspan="6">${group.label}（${group.items.length}）</td></tr>
+                <tr class="item-group-row" data-group-toggle="${group.id}"><td colspan="6"><span class="item-group-arrow">▸</span> ${group.label}（${group.items.length}）</td></tr>
             ` : ""}
 
             ${group.items.map((item, index) => `
 
-                <tr data-drag-id="${item.id}" data-drag-group="${group.id}">
+                <tr data-drag-id="${item.id}" data-drag-group="${group.id}"${showGroupHeaders ? " hidden" : ""}>
 
                     <td style="padding:8px;border-bottom:1px solid #eee;white-space:nowrap;">
                         <span class="drag-handle" title="拖拉排序">⠿</span>
@@ -215,6 +215,30 @@ function renderCollectionSection(pageId, categories, items, activeCategoryId = "
 
     <script>${batchDeleteScript("collection-item-select-checkbox", `${basePath}/items/delete-many`, "項目")}</script>
     <script>${dragReorderScript()}</script>
+    <script>
+    // 分類分組預設收合，點分類標題展開／收合；展開過的分類記在這個分頁裡，刪除或存檔後畫面重畫還是展開的
+    (function () {
+        var key = "cms-open-groups:${pageId}";
+        var open = [];
+        try { open = JSON.parse(sessionStorage.getItem(key) || "[]"); } catch (e) {}
+        document.querySelectorAll("[data-group-toggle]").forEach(function (header) {
+            var id = header.getAttribute("data-group-toggle");
+            var rows = document.querySelectorAll('tr[data-drag-group="' + id + '"]');
+            function set(isOpen) {
+                rows.forEach(function (row) { row.hidden = !isOpen; });
+                header.classList.toggle("is-open", isOpen);
+            }
+            set(open.indexOf(id) !== -1);
+            header.addEventListener("click", function () {
+                var isOpen = !header.classList.contains("is-open");
+                set(isOpen);
+                open = open.filter(function (g) { return g !== id; });
+                if (isOpen) open.push(id);
+                try { sessionStorage.setItem(key, JSON.stringify(open)); } catch (e) {}
+            });
+        });
+    })();
+    </script>
 
     `}
     `;

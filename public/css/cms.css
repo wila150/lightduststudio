@@ -834,3 +834,7 @@ tr.dragging, .drag-handle:active {
 .order-input { width: 52px; padding: 4px 6px; margin-left: 6px; text-align: center; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
 tr.just-moved td { background: #fff5e6; transition: background .3s; }
 .item-group-row td { padding: 14px 8px 6px !important; font-weight: 700; color: #8a6a3d; border-bottom: 2px solid #e6d8c3 !important; background: transparent; }
+.item-group-row { cursor: pointer; user-select: none; }
+.item-group-row:hover td { color: #5c4526; }
+.item-group-arrow { display: inline-block; width: 1em; transition: transform .2s; }
+.item-group-row.is-open .item-group-arrow { transform: rotate(90deg); }
