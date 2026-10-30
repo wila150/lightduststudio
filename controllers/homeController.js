@@ -258,7 +258,10 @@ exports.customPage = async (req, res) => {
             collectionService.getPublishedItems(DEFAULT_TENANT_ID, page.id)
         ]);
 
-        return res.send(collectionListView(page, items, categories, navPages, settings, navItems));
+        // 照片牆排版要知道每張封面的長寬比（services/imageRatio.js，算過會存起來）
+        const itemsWithRatio = await require("../services/imageRatio").withCoverRatios(DEFAULT_TENANT_ID, items);
+
+        return res.send(collectionListView(page, itemsWithRatio, categories, navPages, settings, navItems));
 
     }
 

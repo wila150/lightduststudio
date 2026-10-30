@@ -132,9 +132,10 @@ console.log("Portfolio Web");
 
 })();
 
-// 瀑布流作品清單改成「由左到右」排順序：CSS column-count 是一欄排滿才換下一欄（1 4 / 2 5 / 3 6），
-// 後台排的順序看起來會亂掉。這裡把卡片依序輪流分到每一欄（第 1 張第一欄、第 2 張第二欄…），
-// 讀起來就是 1 2 3 / 4 5 6。分類篩選切換、視窗寬度改變時重新分一次；沒有 JS 時退回 CSS 多欄
+// 平面作品列表「照片牆」排版（2026/10/31 回饋選的 D 方案）：每一排高度一樣，寬度照每張封面的比例分配，
+// 直式窄、橫式寬，排滿一整排剛好對齊左右兩邊，照片不裁切、順序由左到右。
+// 比例由伺服器先量好放在 data-ratio（services/imageRatio.js），量不到的用 3:2。
+// 分類篩選切換、視窗寬度改變時重排；沒有 JS 時退回 CSS 多欄
 (function () {
 
     var grids = Array.from(document.querySelectorAll('.works-grid[data-layout="masonry"]'));
@@ -143,56 +144,74 @@ console.log("Portfolio Web");
         return;
     }
 
-    var states = grids.map(function (grid) {
-        return { grid: grid, cards: Array.from(grid.querySelectorAll(".work-card")), count: 0 };
-    });
-
-    function columnCount() {
-        if (window.innerWidth <= 600) return 1;
-        if (window.innerWidth <= 900) return 2;
-        return 3;
+    function targetHeight() {
+        if (window.innerWidth <= 600) return 150;
+        if (window.innerWidth <= 900) return 240;
+        return 320;
     }
 
-    function layout(force) {
+    function gapSize() {
+        return window.innerWidth <= 600 ? 8 : 16;
+    }
 
-        var count = columnCount();
+    function layout() {
 
-        states.forEach(function (state) {
+        var target = targetHeight();
+        var gap = gapSize();
 
-            if (!force && state.count === count) {
-                return;
+        grids.forEach(function (grid) {
+
+            grid.classList.add("is-justified");
+            grid.style.setProperty("--justify-gap", gap + "px");
+
+            var width = grid.clientWidth;
+            var cards = Array.from(grid.querySelectorAll(".work-card")).filter(function (card) {
+                return card.style.display !== "none";
+            });
+
+            var row = [];
+            var ratioSum = 0;
+
+            function place(rowCards, height) {
+                rowCards.forEach(function (card) {
+                    var ratio = parseFloat(card.getAttribute("data-ratio")) || 1.5;
+                    card.style.width = Math.floor(ratio * height) + "px";
+                    var img = card.querySelector(".work-card-media img");
+                    if (img) img.style.height = Math.round(height) + "px";
+                });
             }
 
-            state.count = count;
-
-            var columns = [];
-            for (var i = 0; i < count; i++) {
-                var col = document.createElement("div");
-                col.className = "works-masonry-col";
-                columns.push(col);
-            }
-
-            var visibleIndex = 0;
-            state.cards.forEach(function (card) {
-                if (card.style.display === "none") {
-                    columns[0].appendChild(card);
-                } else {
-                    columns[visibleIndex % count].appendChild(card);
-                    visibleIndex++;
+            cards.forEach(function (card) {
+                var ratio = parseFloat(card.getAttribute("data-ratio")) || 1.5;
+                row.push(card);
+                ratioSum += ratio;
+                // 這一排用目標高度排起來已經超過容器寬：把高度縮到剛好排滿一整排
+                var rowWidth = ratioSum * target + gap * (row.length - 1);
+                if (rowWidth >= width) {
+                    place(row, (width - gap * (row.length - 1)) / ratioSum);
+                    row = [];
+                    ratioSum = 0;
                 }
             });
 
-            state.grid.querySelectorAll(".works-masonry-col").forEach(function (old) { old.remove(); });
-            columns.forEach(function (col) { state.grid.appendChild(col); });
-            state.grid.classList.add("is-columns");
+            // 最後一排不夠滿：維持目標高度靠左，不硬拉大
+            if (row.length) {
+                place(row, target);
+            }
 
         });
 
     }
 
-    window.relayoutWorksMasonry = function () { layout(true); };
-    window.addEventListener("resize", function () { layout(false); });
-    layout(true);
+    var pending = null;
+    function schedule() {
+        if (pending) return;
+        pending = requestAnimationFrame(function () { pending = null; layout(); });
+    }
+
+    window.relayoutWorksMasonry = layout;
+    window.addEventListener("resize", schedule);
+    layout();
 
 })();
 

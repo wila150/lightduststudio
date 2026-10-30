@@ -85,7 +85,7 @@ module.exports = (page, items, categories, navPages = [], settings = {}, navItem
 
             return `
 
-        <a href="/p/${page.slug}/${item.slug}" class="work-card" data-category="${item.category || ""}" data-media-type="${usesVideoThumb ? "player" : coverIsVideo ? "video" : "image"}"${item.videoRatio === "9:16" ? ' data-video-ratio="portrait"' : ""}>
+        <a href="/p/${page.slug}/${item.slug}" class="work-card" data-category="${item.category || ""}" data-media-type="${usesVideoThumb ? "player" : coverIsVideo ? "video" : "image"}"${item.videoRatio === "9:16" ? ' data-video-ratio="portrait"' : ""}${item.coverRatio ? ` data-ratio="${item.coverRatio}"` : ""}>
 
             <div class="work-card-media">
                 ${usesVideoThumb && item.videoRatio === "9:16"
