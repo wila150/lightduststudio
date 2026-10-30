@@ -1,5 +1,5 @@
 const featureService = require("../../services/featureService");
-const { ASSET_VERSION } = require("../../config/version");
+const { ASSET_VERSION, VERSION_LABEL } = require("../../config/version");
 
 module.exports = (title, content, user) => `
 <!DOCTYPE html>
@@ -22,6 +22,9 @@ module.exports = (title, content, user) => `
     <script src="/js/trashPanel.js?v=${ASSET_VERSION}" defer></script>
     <script src="/js/cmsLive.js?v=${ASSET_VERSION}" defer></script>
     <script src="/js/cms.js?v=${ASSET_VERSION}"></script>
+    <meta name="app-version" content="${ASSET_VERSION}">
+    <script>window.CMS_CHANGELOG = ${JSON.stringify(require("../../config/changelog")[0] || null).replace(/</g, "\\u003c")};</script>
+    <script src="/js/cmsUpdate.js?v=${ASSET_VERSION}" defer></script>
 
 </head>
 
@@ -31,7 +34,7 @@ module.exports = (title, content, user) => `
 
     <header class="admin-header">
 
-        <div class="brand">LightDust <span>CMS</span></div>
+        <div class="brand">LightDust <span>CMS</span> <small class="ver" title="目前後台版本（每次部署＋1）">v${VERSION_LABEL}</small></div>
 
         <nav class="admin-nav">
 

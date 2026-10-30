@@ -101,6 +101,13 @@ app.use("/api/track", require("./routes/track"));
 // 給 AI 搜尋讀的網站導覽（GEO）
 app.use("/", require("./routes/llms"));
 // 後台有任何寫入就清空前台頁面快取（middleware/pageCache.js）
+// 後台頁面一律 no-cache：瀏覽器每次打開都要先問伺服器，不會一直用手機裡存的舊版
+app.use("/cms", (req, res, next) => { res.set("Cache-Control", "no-cache"); next(); });
+// 目前部署的版本號，後台 cmsUpdate.js 切回分頁／每 10 分鐘抓一次比對，有新版就重新載入或跳更新按鈕
+app.get("/version.json", (req, res) => {
+    res.set("Cache-Control", "no-store");
+    res.json({ version: require("./config/version").ASSET_VERSION });
+});
 app.use("/cms", require("./middleware/pageCache").clearOnCmsWrite);
 app.use("/cms", require("./routes/cms/auth"));
 app.use("/cms/pages", require("./routes/cms/sitePage")("home"));

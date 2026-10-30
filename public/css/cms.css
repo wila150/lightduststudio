@@ -838,3 +838,23 @@ tr.just-moved td { background: #fff5e6; transition: background .3s; }
 .item-group-row:hover td { color: #5c4526; }
 .item-group-arrow { display: inline-block; width: 1em; transition: transform .2s; }
 .item-group-row.is-open .item-group-arrow { transform: rotate(90deg); }
+
+/* 版本號＋有新版本按鈕（public/js/cmsUpdate.js） */
+.brand .ver { font-size: 11px; color: #aaa; letter-spacing: 0; font-weight: 400; vertical-align: middle; }
+#cms-update-btn {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 9999;
+  padding: 12px 22px; border: 0; border-radius: 999px; background: #8a6a3d; color: #fff;
+  font-size: 15px; box-shadow: 0 6px 20px rgba(0,0,0,.2); cursor: pointer;
+}
+#cms-update-btn:disabled { opacity: .7; cursor: default; }
+#cms-changelog {
+  position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.cms-changelog-box {
+  background: #fff; border-radius: 14px; padding: 24px 24px 20px; max-width: 460px; width: 100%;
+  max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,.25);
+}
+.cms-changelog-box h3 { margin: 0 0 12px; font-size: 18px; color: #8a6a3d; }
+.cms-changelog-box ul { margin: 0 0 18px; padding-left: 20px; line-height: 1.7; font-size: 15px; color: #333; }
+.cms-changelog-box button { display: block; width: 100%; padding: 12px; border: 0; border-radius: 8px; background: #222; color: #fff; font-size: 15px; cursor: pointer; }
