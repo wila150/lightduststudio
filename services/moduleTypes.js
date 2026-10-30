@@ -151,7 +151,24 @@ module.exports = {
     },
 
     // 頁面渲染前把所有輪播模組的作品資料換成最新的；沒有輪播模組就原樣回傳，不多查資料庫
+    // 另外：沒放任何照片的「服務項目宮格」（例如 /p/services 服務項目頁）直接沿用首頁那組服務項目（照片、名稱、連結），
+    // 只要在首頁管理改一次，兩邊就一致，不用維護兩份
     async refreshCarousels(modules, tenantId) {
+
+        const needsServices = (modules || []).some(m => m.type === "serviceGrid"
+            && !((m.data && m.data.items) || []).some(item => item.url));
+
+        if (needsServices) {
+            const { tenantCollection } = require("../config/firebase");
+            const home = await tenantCollection(tenantId, "pages").doc("home").get();
+            const homeGrid = ((home.exists && home.data().modules) || []).find(m => m.type === "serviceGrid"
+                && ((m.data && m.data.items) || []).some(item => item.url));
+            if (homeGrid) {
+                modules = modules.map(m => m.type === "serviceGrid" && !((m.data && m.data.items) || []).some(item => item.url)
+                    ? { ...m, data: { ...m.data, items: homeGrid.data.items } }
+                    : m);
+            }
+        }
 
         if (!(modules || []).some(m => m.type === "videoCarousel")) {
             return modules;
