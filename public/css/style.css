@@ -684,6 +684,8 @@ a:hover .nav-label-track { transform: translateY(-1.3em); }
   display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--justify-gap, 16px); column-count: auto;
 }
 .works-grid[data-layout="masonry"].is-justified .work-card { flex: 0 0 auto; padding-bottom: 8px; min-width: 0; }
+/* 最後一排張數太少、不適合拉滿時置中（main.js 判斷）。只有一排時整排置中；多排時前面的排本來就剛好排滿，置中不影響 */
+.works-grid[data-layout="masonry"].is-justified.is-last-centered { justify-content: center; }
 .works-grid[data-layout="masonry"].is-justified .work-card-media img { width: 100%; object-fit: cover; }
 @media (max-width: 900px) {
   .works-grid[data-layout="masonry"] { column-count: 2; }

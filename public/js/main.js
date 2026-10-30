@@ -194,9 +194,17 @@ console.log("Portfolio Web");
                 }
             });
 
-            // 最後一排不夠滿：維持目標高度靠左，不硬拉大
+            // 最後一排不夠滿（分類只有幾件作品時，常常整個分類就這一排）：
+            // 拉滿後高度不超過一般排的 1.5 倍就拉滿左右對齊；張數太少、拉滿會太大的就維持目標高度置中，不要只靠左
+            grid.classList.remove("is-last-centered");
             if (row.length) {
-                place(row, target);
+                var fillHeight = (width - gap * (row.length - 1)) / ratioSum;
+                if (fillHeight <= target * 1.5) {
+                    place(row, fillHeight);
+                } else {
+                    place(row, target);
+                    grid.classList.add("is-last-centered");
+                }
             }
 
         });
