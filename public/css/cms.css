@@ -858,3 +858,17 @@ tr.just-moved td { background: #fff5e6; transition: background .3s; }
 .cms-changelog-box h3 { margin: 0 0 12px; font-size: 18px; color: #8a6a3d; }
 .cms-changelog-box ul { margin: 0 0 18px; padding-left: 20px; line-height: 1.7; font-size: 15px; color: #333; }
 .cms-changelog-box button { display: block; width: 100%; padding: 12px; border: 0; border-radius: 8px; background: #222; color: #fff; font-size: 15px; cursor: pointer; }
+
+/* 首頁輪播挑作品：已選（可排序）＋全部作品勾選清單 */
+.vc-section-title { margin: 4px 0 2px; font-size: 13px; font-weight: 700; color: #8a6a3d; }
+.vc-selected { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+.vc-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #faf7f2; border: 1px solid #eee3d3; border-radius: 8px; transition: background .3s; }
+.vc-row.dragging { opacity: .5; outline: 2px dashed #8a6a3d; }
+.vc-row.just-moved { background: #fff1dc; }
+.vc-row .order-input { margin-left: 0; }
+.vc-title { flex: 1; min-width: 0; font-size: 14px; }
+.vc-thumb { width: 60px; height: 40px; object-fit: cover; border-radius: 4px; background: #eee; flex: 0 0 auto; }
+.content .vc-btn { flex: 0 0 auto; width: 30px; height: 30px; padding: 0; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #444; font-size: 12px; line-height: 1; cursor: pointer; }
+.content .vc-btn:disabled { opacity: .3; cursor: default; }
+.vc-pick { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.vc-pick-row { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }

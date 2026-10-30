@@ -375,7 +375,7 @@ function renderModuleFields(module) {
 
         case "videoCarousel":
             return `
-                <p style="color:#888;font-size:13px;margin-bottom:10px;">勾選要放進首頁輪播的作品（列出作品集裡的所有項目，有附影片的項目點下去會播放影片，純照片的項目點下去會連到該作品詳情頁；順序依下方勾選順序決定）</p>
+                <p style="color:#888;font-size:13px;margin-bottom:10px;">勾選要放進首頁輪播的作品（列出作品集裡的所有項目，有附影片的項目點下去會播放影片，純照片的項目點下去會連到該作品詳情頁；在下方「已選」清單調整：可以拖拉、輸入數字或按 ▲▼）</p>
 
                 <div class="video-carousel-picker" data-module-id="${module.id}" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:10px;">
                     <p style="color:#888;">載入中...</p>
@@ -1097,6 +1097,8 @@ function moduleEditorScript() {
 
     });
 
+    // 首頁輪播挑作品：上面「已選（輪播順序）」可以拖拉、輸入數字、▲▼ 調順序、✕ 移除，
+    // 下面勾選清單只負責加入／取消；勾選時加到已選最後面。存檔送出的是已選清單的順序
     document.querySelectorAll(".video-carousel-picker").forEach(function (container) {
 
         var moduleId = container.getAttribute("data-module-id");
@@ -1115,53 +1117,235 @@ function moduleEditorScript() {
             .then(function (data) {
 
                 var items = data.items || [];
+                var byId = {};
+
+                items.forEach(function (item) { byId[item.id] = item; });
+
+                // 作品已刪除的就不留在已選裡
+                selectedIds = selectedIds.filter(function (id) { return byId[id]; });
 
                 if (items.length === 0) {
-                    container.innerHTML = "<p style=\\"color:#888;\\">作品集裡目前還沒有任何項目，請先到「作品集」新增作品</p>";
+                    container.innerHTML = "<p style='color:#888;'>作品集裡目前還沒有任何項目，請先到「作品集」新增作品</p>";
                     return;
                 }
 
                 container.innerHTML = "";
+                container.style.maxHeight = "none";
 
-                items.forEach(function (item) {
+                var selectedTitle = document.createElement("p");
+                selectedTitle.className = "vc-section-title";
+                container.appendChild(selectedTitle);
 
-                    var label = document.createElement("label");
-                    label.style.cssText = "display:flex;align-items:center;gap:8px;cursor:pointer;";
+                var selectedList = document.createElement("div");
+                selectedList.className = "vc-selected";
+                container.appendChild(selectedList);
 
-                    var checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkbox.value = item.id;
-                    checkbox.checked = selectedIds.indexOf(item.id) !== -1;
+                var pickTitle = document.createElement("p");
+                pickTitle.className = "vc-section-title";
+                pickTitle.textContent = "全部作品（勾選加入輪播）";
+                container.appendChild(pickTitle);
 
-                    checkbox.addEventListener("change", function () {
+                var pickList = document.createElement("div");
+                pickList.className = "vc-pick";
+                container.appendChild(pickList);
 
-                        var checked = Array.from(container.querySelectorAll("input[type=checkbox]:checked")).map(function (box) {
-                            return box.value;
+                function label(item) {
+                    return item.title + (item.hasVideo ? "（影片）" : "（照片）");
+                }
+
+                function thumb(item) {
+                    var img = document.createElement("img");
+                    if (item.coverUrl) {
+                        img.src = item.coverUrl;
+                        img.loading = "lazy";
+                    }
+                    img.className = "vc-thumb";
+                    return img;
+                }
+
+                function save() {
+                    field.value = JSON.stringify(selectedIds);
+                    field.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+
+                function moveTo(id, position) {
+                    var from = selectedIds.indexOf(id);
+                    var to = Math.min(Math.max(position, 0), selectedIds.length - 1);
+                    if (from === -1 || from === to) {
+                        renderSelected();
+                        return;
+                    }
+                    selectedIds.splice(from, 1);
+                    selectedIds.splice(to, 0, id);
+                    save();
+                    renderSelected(id);
+                }
+
+                function renderSelected(flashId) {
+
+                    selectedTitle.textContent = "已選（輪播順序，" + selectedIds.length + " 個）";
+                    selectedList.innerHTML = "";
+
+                    if (selectedIds.length === 0) {
+                        selectedList.innerHTML = "<p style='color:#888;margin:4px 0;'>還沒選任何作品，從下面勾選加入</p>";
+                    }
+
+                    selectedIds.forEach(function (id, index) {
+
+                        var item = byId[id];
+                        var row = document.createElement("div");
+                        row.className = "vc-row" + (id === flashId ? " just-moved" : "");
+                        row.setAttribute("data-id", id);
+
+                        var handle = document.createElement("span");
+                        handle.className = "drag-handle";
+                        handle.textContent = "⠿";
+                        handle.title = "拖拉排序";
+
+                        var number = document.createElement("input");
+                        number.type = "number";
+                        number.className = "order-input";
+                        number.min = 1;
+                        number.max = selectedIds.length;
+                        number.value = index + 1;
+                        number.title = "輸入數字直接移到第幾個";
+                        number.addEventListener("change", function () {
+                            moveTo(id, (parseInt(number.value, 10) || 1) - 1);
+                        });
+                        number.addEventListener("keydown", function (event) {
+                            if (event.key === "Enter") {
+                                event.preventDefault();
+                                number.blur();
+                            }
                         });
 
-                        field.value = JSON.stringify(checked);
+                        var title = document.createElement("span");
+                        title.className = "vc-title";
+                        title.textContent = label(item);
+
+                        var up = document.createElement("button");
+                        up.type = "button";
+                        up.className = "vc-btn";
+                        up.textContent = "▲";
+                        up.title = "往前";
+                        up.disabled = index === 0;
+                        up.addEventListener("click", function () { moveTo(id, index - 1); });
+
+                        var down = document.createElement("button");
+                        down.type = "button";
+                        down.className = "vc-btn";
+                        down.textContent = "▼";
+                        down.title = "往後";
+                        down.disabled = index === selectedIds.length - 1;
+                        down.addEventListener("click", function () { moveTo(id, index + 1); });
+
+                        var remove = document.createElement("button");
+                        remove.type = "button";
+                        remove.className = "vc-btn";
+                        remove.textContent = "✕";
+                        remove.title = "從輪播移除";
+                        remove.addEventListener("click", function () {
+                            selectedIds = selectedIds.filter(function (x) { return x !== id; });
+                            save();
+                            renderSelected();
+                            renderPick();
+                        });
+
+                        // 拖拉：按住把手上下拖，放開時依畫面上的位置存新順序
+                        handle.addEventListener("pointerdown", function (event) {
+
+                            event.preventDefault();
+                            row.classList.add("dragging");
+
+                            function onMove(moveEvent) {
+                                var rows = Array.from(selectedList.querySelectorAll(".vc-row")).filter(function (r) { return r !== row; });
+                                var target = null;
+                                for (var i = 0; i < rows.length; i++) {
+                                    var rect = rows[i].getBoundingClientRect();
+                                    if (moveEvent.clientY < rect.top + rect.height / 2) {
+                                        target = rows[i];
+                                        break;
+                                    }
+                                }
+                                if (target) {
+                                    selectedList.insertBefore(row, target);
+                                } else {
+                                    selectedList.appendChild(row);
+                                }
+                            }
+
+                            function onUp() {
+                                document.removeEventListener("pointermove", onMove);
+                                document.removeEventListener("pointerup", onUp);
+                                selectedIds = Array.from(selectedList.querySelectorAll(".vc-row")).map(function (r) {
+                                    return r.getAttribute("data-id");
+                                });
+                                save();
+                                renderSelected(id);
+                            }
+
+                            document.addEventListener("pointermove", onMove);
+                            document.addEventListener("pointerup", onUp);
+
+                        });
+
+                        row.appendChild(handle);
+                        row.appendChild(number);
+                        row.appendChild(thumb(item));
+                        row.appendChild(title);
+                        row.appendChild(up);
+                        row.appendChild(down);
+                        row.appendChild(remove);
+                        selectedList.appendChild(row);
 
                     });
 
-                    if (item.coverUrl) {
-                        var img = document.createElement("img");
-                        img.src = item.coverUrl;
-                        img.style.cssText = "width:60px;height:40px;object-fit:cover;border-radius:4px;";
-                        label.appendChild(img);
-                    }
+                }
 
-                    var span = document.createElement("span");
-                    span.textContent = item.title + (item.hasVideo ? "（影片）" : "（照片）");
+                function renderPick() {
 
-                    label.appendChild(checkbox);
-                    label.appendChild(span);
-                    container.appendChild(label);
+                    pickList.innerHTML = "";
 
-                });
+                    items.forEach(function (item) {
+
+                        var row = document.createElement("label");
+                        row.className = "vc-pick-row";
+
+                        var checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkbox.value = item.id;
+                        checkbox.checked = selectedIds.indexOf(item.id) !== -1;
+
+                        checkbox.addEventListener("change", function () {
+                            if (checkbox.checked) {
+                                if (selectedIds.indexOf(item.id) === -1) selectedIds.push(item.id);
+                                save();
+                                renderSelected(item.id);
+                            } else {
+                                selectedIds = selectedIds.filter(function (x) { return x !== item.id; });
+                                save();
+                                renderSelected();
+                            }
+                        });
+
+                        var span = document.createElement("span");
+                        span.textContent = label(item);
+
+                        row.appendChild(checkbox);
+                        row.appendChild(thumb(item));
+                        row.appendChild(span);
+                        pickList.appendChild(row);
+
+                    });
+
+                }
+
+                renderSelected();
+                renderPick();
 
             })
             .catch(function () {
-                container.innerHTML = "<p style=\\"color:#888;\\">載入失敗</p>";
+                container.innerHTML = "<p style='color:#888;'>載入失敗</p>";
             });
 
     });
