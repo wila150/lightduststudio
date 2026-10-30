@@ -8,6 +8,19 @@ const { renderGallery } = require("../../services/galleryRenderer");
 const { formatDatetimeLocal, isEffectivelyPublished } = require("../../services/publishHelper");
 const { ASSET_VERSION } = require("../../config/version");
 const escapeHtml = require("../escapeHtml");
+const { fixUploadName } = require("../../config/uploadLimits");
+
+// 「依檔名排序」用的檔名：新照片有存 sourceName；舊照片沒有，就從檔案網址取出檔名
+// （去掉上傳時加的時間戳記前綴、修正中文亂碼）
+function photoSortName(image) {
+    if (image.sourceName) return image.sourceName;
+    try {
+        const path = decodeURIComponent(String(image.url || "").split("/o/")[1].split("?")[0]);
+        return fixUploadName(path.split("/").pop().replace(/^\d{10,}-/, ""));
+    } catch (error) {
+        return "";
+    }
+}
 
 // 分類清單型自訂頁面底下單一項目的編輯表單，比照 views/cms/projectForm.js
 // （封面裁切、相簿排版選擇+預覽、照片上傳/從媒體庫選/alt文字、影片網址新增都沿用同一套元件），
@@ -279,7 +292,7 @@ ${item.coverImage
 
         ${item.images.map((image, index) => `
 
-            <div class="photo-sort-card" data-drag-id="${image.id}" data-source-name="${escapeHtml(image.sourceName || "")}">
+            <div class="photo-sort-card" data-drag-id="${image.id}" data-source-name="${escapeHtml(photoSortName(image))}">
 
                 <div class="photo-sort-thumb drag-handle" title="按住拖拉排序">
                     <span class="photo-sort-number" data-order-number>${index + 1}</span>

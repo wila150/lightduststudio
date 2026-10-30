@@ -315,13 +315,19 @@ class CollectionService {
 
     async uploadImages(files, folder) {
 
+        // 照檔名編號順序加進相簿（IMG_2 在 IMG_10 前面），記下原始檔名給後台「依檔名排序」用
+        const sorted = [...files]
+            .map(file => ({ file, name: fixUploadName(file.originalname) }))
+            .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant", { numeric: true }));
+
         // 逐張上傳壓縮，同時處理整批大照片會把伺服器記憶體撐爆（見 config/uploadLimits.js）
-        const uploads = [];
-        for (const file of files) {
-            uploads.push(await storageService.uploadBuffer(file.buffer, fixUploadName(file.originalname), file.mimetype, folder));
+        const images = [];
+        for (const { file, name } of sorted) {
+            const upload = await storageService.uploadBuffer(file.buffer, name, file.mimetype, folder);
+            images.push({ id: crypto.randomUUID(), type: "image", url: upload.url, path: upload.path, sourceName: name });
         }
 
-        return uploads.map(upload => ({ id: crypto.randomUUID(), type: "image", url: upload.url, path: upload.path }));
+        return images;
 
     }
 

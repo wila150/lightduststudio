@@ -834,6 +834,9 @@ img.img-style-mono:hover { filter: grayscale(0); }
 .gallery-grid[data-layout="masonry"] .gallery-item img { aspect-ratio: auto; border-radius: 6px; }
 .gallery-grid[data-layout="masonry"] .gallery-item:hover img { transform: none; }
 .gallery-grid[data-layout="masonry"] .gallery-caption { bottom: 20px; border-radius: 6px; }
+/* main.js 依序把照片放進最矮的欄（由左到右的順序）之後，改用 flex 並排每一欄 */
+.gallery-grid[data-layout="masonry"].is-columns { display: flex; align-items: flex-start; gap: 20px; column-count: auto; }
+.gallery-masonry-col { flex: 1 1 0; min-width: 0; }
 @media (max-width: 900px) {
   .gallery-grid[data-layout="masonry"] { column-count: 2; }
 }

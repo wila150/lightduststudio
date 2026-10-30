@@ -196,6 +196,93 @@ console.log("Portfolio Web");
 
 })();
 
+// 作品內頁石版相簿：照片照檔名順序「由左到右」排。CSS 多欄是一欄排滿才換下一欄（第一欄 1 2 3、第二欄 4 5 6），
+// 跟資料夾的編號順序對不起來。這裡依序把每張放進目前最矮的那一欄，讀起來是 1 2 3 / 4 5 6，各欄高度也差不多。
+// 照片還沒載入時先用 3:2 估高度，每張載入後重新排一次；沒有 JS 時退回 CSS 多欄
+(function () {
+
+    var grids = Array.from(document.querySelectorAll('.gallery-grid[data-layout="masonry"]'));
+
+    if (!grids.length) {
+        return;
+    }
+
+    var GAP = 20;
+
+    function columnCount() {
+        if (window.innerWidth <= 600) return 1;
+        if (window.innerWidth <= 900) return 2;
+        return 3;
+    }
+
+    var states = grids.map(function (grid) {
+        var items = Array.from(grid.querySelectorAll(".gallery-item"));
+        items.forEach(function (item, i) { item.setAttribute("data-order", i); });
+        return { grid: grid, items: items };
+    });
+
+    function estimatedHeight(item, width) {
+        var img = item.querySelector("img");
+        var ratio = img && img.naturalWidth ? img.naturalHeight / img.naturalWidth : 2 / 3;
+        return width * ratio + GAP;
+    }
+
+    function layout() {
+
+        var count = columnCount();
+
+        states.forEach(function (state) {
+
+            var width = (state.grid.clientWidth - GAP * (count - 1)) / count;
+            var columns = [];
+            var heights = [];
+
+            for (var i = 0; i < count; i++) {
+                var col = document.createElement("div");
+                col.className = "gallery-masonry-col";
+                columns.push(col);
+                heights.push(0);
+            }
+
+            state.items.forEach(function (item) {
+                var shortest = heights.indexOf(Math.min.apply(null, heights));
+                columns[shortest].appendChild(item);
+                heights[shortest] += estimatedHeight(item, width);
+            });
+
+            state.grid.querySelectorAll(".gallery-masonry-col").forEach(function (old) { old.remove(); });
+            columns.forEach(function (col) { state.grid.appendChild(col); });
+            state.grid.classList.add("is-columns");
+
+        });
+
+    }
+
+    var pending = null;
+    function schedule() {
+        if (pending) return;
+        pending = requestAnimationFrame(function () { pending = null; layout(); });
+    }
+
+    states.forEach(function (state) {
+        state.items.forEach(function (item) {
+            var img = item.querySelector("img");
+            if (img && !img.complete) img.addEventListener("load", schedule);
+        });
+    });
+
+    var lastCount = columnCount();
+    window.addEventListener("resize", function () {
+        if (columnCount() !== lastCount) {
+            lastCount = columnCount();
+            schedule();
+        }
+    });
+
+    layout();
+
+})();
+
 // 作品集分類篩選標籤：純前端切換 .work-card 顯示/隱藏，不重新載入頁面
 (function () {
 
@@ -573,6 +660,11 @@ console.log("Portfolio Web");
                 return !el.classList.contains("gallery-item-video");
             })
             : [item];
+
+        // 石版相簿被 main.js 分到各欄後，畫面上的 DOM 順序不是照片原本的順序，用 data-order 排回來
+        gridItems.sort(function (a, b) {
+            return (+a.getAttribute("data-order") || 0) - (+b.getAttribute("data-order") || 0);
+        });
 
         const items = gridItems.map(function (el) {
             const image = el.querySelector("img");
