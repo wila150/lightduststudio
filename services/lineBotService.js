@@ -394,10 +394,18 @@ async function prepareRichMenuImage(buffer, layoutKey) {
     throw new Error("圖文選單圖片壓不到 1MB 以下，請換一張比較單純的圖片");
 }
 
+// 圖文選單／推播圖片的網址一律用手機的外部瀏覽器（Safari、Chrome）開，不在 LINE 內建瀏覽器裡開：
+// LINE 認得網址上的 openExternalBrowser=1 參數
+function externalUri(url) {
+    if (/[?&]openExternalBrowser=1\b/.test(url)) return url;
+    const [base, hash] = url.split("#");
+    return base + (base.includes("?") ? "&" : "?") + "openExternalBrowser=1" + (hash !== undefined ? "#" + hash : "");
+}
+
 function areaAction(area, index) {
     const label = (area.label || `區塊${index + 1}`).slice(0, 20);
     if (area.type === "uri" && /^https?:\/\//.test(area.value || "")) {
-        return { type: "uri", label, uri: area.value };
+        return { type: "uri", label, uri: externalUri(area.value) };
     }
     if (area.type === "message" && area.value) {
         return { type: "message", label, text: area.value.slice(0, 300) };
@@ -458,7 +466,7 @@ async function buildBroadcastMessages(tenantId, broadcast) {
         const ratio = broadcast.imageRatio || "1:1";
         let action;
         if (broadcast.action === "uri" && /^https?:\/\//.test(broadcast.actionValue || "")) {
-            action = { type: "uri", label: "查看", uri: broadcast.actionValue };
+            action = { type: "uri", label: "查看", uri: externalUri(broadcast.actionValue) };
         } else if (broadcast.action === "message" && broadcast.actionValue) {
             action = { type: "message", label: "詢問", text: broadcast.actionValue.slice(0, 300) };
         }
