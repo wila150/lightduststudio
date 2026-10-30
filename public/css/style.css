@@ -665,27 +665,17 @@ a:hover .nav-label-track { transform: translateY(-1.3em); }
 .feature-description p { margin: 0 0 8px; }
 .feature-description p:last-child { margin-bottom: 0; }
 
-/* 作品集列表：Masonry 石版排版（依圖片原始比例排列，不裁切） */
-.works-grid[data-layout="masonry"] {
-  display: block; column-count: 3; column-gap: 32px;
-}
-/* 間距用 padding 不用 margin：Safari 的多欄排版會把上一欄最後一張的 margin-bottom 帶到下一欄頂端，
-   造成第二、三欄整欄往下掉一截、每次載入/每台裝置對齊都不一樣（回饋「照片有些對齊有些沒對齊」）。
-   padding 屬於元素本身，不會被搬到別欄 */
-.works-grid[data-layout="masonry"] .work-card {
-  break-inside: avoid; margin-bottom: 0; padding-bottom: 32px; display: block;
-}
-/* 瀑布流封面照原始比例完整顯示：直式照片不能被裁切（回饋「直式都會被裁切到」），也不墊底色框 */
+/* 照片作品列表（data-layout="masonry"，見 views/collectionList.js）：2026/10/31 回饋改成「等比例縮放」——
+   每張卡片同一個 3:2 框、由左到右一排一排排，直式照片在框裡等比例縮小完整顯示（不裁切、也不會比橫式大一截），
+   框不上底色，縮小後兩側留的是頁面背景。之前的瀑布流（照原始比例、直式特別長）不再使用 */
+.works-grid[data-layout="masonry"] { grid-template-columns: repeat(3, 1fr); }
 .works-grid[data-layout="masonry"] .work-card-media { background: none; }
-.works-grid[data-layout="masonry"] .work-card-media img { aspect-ratio: auto; height: auto; object-fit: initial; }
-/* main.js 分好欄（由左到右的順序）之後改用 flex 並排每一欄，不再用 CSS 多欄 */
-.works-grid[data-layout="masonry"].is-columns { display: flex; align-items: flex-start; gap: 32px; column-count: auto; }
-.works-masonry-col { flex: 1 1 0; min-width: 0; }
+.works-grid[data-layout="masonry"] .work-card-media img { aspect-ratio: 3/2; object-fit: contain; }
 @media (max-width: 900px) {
-  .works-grid[data-layout="masonry"] { column-count: 2; }
+  .works-grid[data-layout="masonry"] { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
-  .works-grid[data-layout="masonry"] { column-count: 1; }
+  .works-grid[data-layout="masonry"] { grid-template-columns: 1fr; }
 }
 
 /* 服務項目宮格：照片卡片，預設 3 欄，項目數不是 3 的倍數時最後一排自然靠左，不用特別處理。
@@ -1461,10 +1451,7 @@ img.img-style-mono:hover { filter: grayscale(0); }
   /* 平面作品集（清單裡只有照片、沒有影片）一排兩張，作品量大時比較容易一次瀏覽到各種風格；
      有影片的清單（動態作品）維持一排一張 */
   .works-grid[data-layout="masonry"]:not(:has([data-media-type="video"], [data-media-type="player"])) {
-    column-count: 2; column-gap: 12px;
-  }
-  .works-grid[data-layout="masonry"]:not(:has([data-media-type="video"], [data-media-type="player"])) .work-card {
-    padding-bottom: 16px;
+    grid-template-columns: repeat(2, 1fr); gap: 16px 12px;
   }
   .works-grid:not([data-layout="masonry"]):not(:has([data-media-type="video"], [data-media-type="player"])) {
     grid-template-columns: repeat(2, 1fr); gap: 16px 12px;
