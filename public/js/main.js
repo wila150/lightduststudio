@@ -145,8 +145,9 @@ console.log("Portfolio Web");
     }
 
     function targetHeight() {
-        if (window.innerWidth <= 600) return 150;
-        if (window.innerWidth <= 900) return 240;
+        // 手機 2026/10/31 回饋照片太小：260 讓橫式一張就排滿一整排、直式兩張一排
+        if (window.innerWidth <= 600) return 260;
+        if (window.innerWidth <= 900) return 300;
         return 320;
     }
 
