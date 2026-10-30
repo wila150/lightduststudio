@@ -48,10 +48,48 @@ function renderSlideshowFields(page) {
             var list = document.getElementById("slides-list");
             var json = document.getElementById("hero-slides-json");
             function esc(v) { return String(v || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\\"": "&quot;", "'": "&#39;" }[c]; }); }
+            // 最多 10 張（sitePageController 存檔時也只收前 10 張）
+            var MAX = 10;
             function sync() { json.value = JSON.stringify(slides); }
+            function moveSlide(from, to) {
+                to = Math.min(Math.max(to, 0), slides.length - 1);
+                if (from !== to) slides.splice(to, 0, slides.splice(from, 1)[0]);
+                render();
+            }
+            // 順序數字框：輸入要移到第幾張，Enter 或點旁邊就套用
+            list.addEventListener("change", function (e) {
+                if (!e.target.classList.contains("slide-order-input")) return;
+                var row = e.target.closest(".slide-row");
+                moveSlide(+row.getAttribute("data-i"), (parseInt(e.target.value, 10) || 1) - 1);
+            });
+            list.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && e.target.classList.contains("slide-order-input")) { e.preventDefault(); e.target.blur(); }
+            });
+            // 拖拉：按住 ⠿ 上下拖，放開後依畫面上的位置重排
+            list.addEventListener("pointerdown", function (e) {
+                if (!e.target.classList.contains("drag-handle")) return;
+                e.preventDefault();
+                var row = e.target.closest(".slide-row");
+                row.classList.add("dragging");
+                function onMove(ev) {
+                    var rows = Array.from(list.querySelectorAll(".slide-row")).filter(function (r) { return r !== row; });
+                    var target = rows.find(function (r) { var rect = r.getBoundingClientRect(); return ev.clientY < rect.top + rect.height / 2; });
+                    if (target) list.insertBefore(row, target); else list.appendChild(row);
+                }
+                function onUp() {
+                    document.removeEventListener("pointermove", onMove);
+                    document.removeEventListener("pointerup", onUp);
+                    var old = slides.slice();
+                    slides = Array.from(list.querySelectorAll(".slide-row")).map(function (r) { return old[+r.getAttribute("data-i")]; });
+                    render();
+                }
+                document.addEventListener("pointermove", onMove);
+                document.addEventListener("pointerup", onUp);
+            });
             function render() {
                 list.innerHTML = slides.map(function (s, i) {
                     return '<div class="slide-row" data-i="' + i + '" style="display:flex;gap:12px;padding:12px;margin-bottom:10px;border:1px solid #e3e3e3;border-radius:8px;background:#fff;">' +
+                        '<div class="slide-order"><span class="drag-handle" title="按住拖拉排序">⠿</span><input type="number" class="order-input slide-order-input" min="1" max="' + slides.length + '" value="' + (i + 1) + '" title="輸入數字直接移到第幾張"></div>' +
                         '<div style="flex:0 0 140px;"><div style="width:140px;height:90px;border-radius:6px;background:#f2f0ec center/cover no-repeat;' + (s.image ? "background-image:url(\\'" + esc(s.image) + "\\');" : "") + '"></div>' +
                         '<button type="button" class="slide-pick" style="font-size:12px;margin-top:6px;">從媒體庫選照片</button></div>' +
                         '<div style="flex:1;display:grid;gap:6px;">' +
@@ -62,6 +100,9 @@ function renderSlideshowFields(page) {
                         '<div style="display:flex;gap:6px;"><button type="button" class="slide-up">↑</button><button type="button" class="slide-down">↓</button><button type="button" class="slide-del ghost-btn">刪除這張</button></div>' +
                         '</div></div>';
                 }).join("") || '<p style="color:#999;">還沒有投影片</p>';
+                var addBtn = document.getElementById("add-slide-btn");
+                addBtn.disabled = slides.length >= MAX;
+                addBtn.textContent = slides.length >= MAX ? "已達上限 " + MAX + " 張" : "＋ 新增投影片（" + slides.length + "／" + MAX + "）";
                 sync();
             }
             list.addEventListener("input", function (e) {
@@ -82,6 +123,7 @@ function renderSlideshowFields(page) {
                 }
             });
             document.getElementById("add-slide-btn").addEventListener("click", function () {
+                if (slides.length >= MAX) return;
                 slides.push({ id: String(Date.now()), image: "", video: "", eyebrow: "", title: "", subtitle: "" });
                 render();
             });

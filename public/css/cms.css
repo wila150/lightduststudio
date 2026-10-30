@@ -872,3 +872,7 @@ tr.just-moved td { background: #fff5e6; transition: background .3s; }
 .content .vc-btn:disabled { opacity: .3; cursor: default; }
 .vc-pick { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
 .vc-pick-row { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+/* 首頁輪播投影片的順序欄：拖拉把手＋數字框 */
+.slide-order { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 4px; }
+.slide-order .order-input { margin-left: 0; }
+.slide-row.dragging { opacity: .5; outline: 2px dashed #8a6a3d; }

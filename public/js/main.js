@@ -1257,6 +1257,26 @@ console.log("Portfolio Web");
     function stop() { if (timer) clearInterval(timer); timer = null; }
 
     dots.forEach(function (dot, i) { dot.addEventListener("click", function () { show(i); start(); }); });
+
+    // 左右滑動切換（手機用手指、電腦用滑鼠拖）：往左滑下一張、往右滑上一張；
+    // 垂直移動比較多就當作捲動頁面不處理。按鈕、圓點上按下去不算，避免點按鈕被當成滑動
+    var swipeX = null;
+    var swipeY = null;
+    hero.addEventListener("pointerdown", function (e) {
+        if (e.target.closest("a, button")) return;
+        swipeX = e.clientX;
+        swipeY = e.clientY;
+    });
+    hero.addEventListener("pointerup", function (e) {
+        if (swipeX === null) return;
+        var dx = e.clientX - swipeX;
+        var dy = e.clientY - swipeY;
+        swipeX = null;
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+        show(current + (dx < 0 ? 1 : -1));
+        start();
+    });
+    hero.addEventListener("pointercancel", function () { swipeX = null; });
     hero.addEventListener("mouseenter", stop);
     hero.addEventListener("mouseleave", start);
     start();
