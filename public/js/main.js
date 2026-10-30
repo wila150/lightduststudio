@@ -196,6 +196,38 @@ console.log("Portfolio Web");
 
 })();
 
+// 首頁作品輪播（OUR WORKS／PHOTOGRAPH）進場動畫：捲到畫面裡（或一載入就在畫面裡）時，
+// 中間那張往上浮現、左右兩張從兩側滑進來。先藏起來是 JS 加的 is-pending，沒有 JS 就照常直接顯示
+(function () {
+
+    var carousels = Array.from(document.querySelectorAll(".video-carousel"));
+
+    if (!carousels.length || !("IntersectionObserver" in window)) {
+        return;
+    }
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var carousel = entry.target;
+            observer.unobserve(carousel);
+            carousel.classList.remove("is-pending");
+            carousel.classList.add("is-entering");
+            setTimeout(function () { carousel.classList.remove("is-entering"); }, 1600);
+        });
+    }, { threshold: 0.2 });
+
+    carousels.forEach(function (carousel) {
+        carousel.classList.add("is-pending");
+        observer.observe(carousel);
+    });
+
+})();
+
 // 作品內頁石版相簿：照片照檔名順序「由左到右」排。CSS 多欄是一欄排滿才換下一欄（第一欄 1 2 3、第二欄 4 5 6），
 // 跟資料夾的編號順序對不起來。這裡依序把每張放進目前最矮的那一欄，讀起來是 1 2 3 / 4 5 6，各欄高度也差不多。
 // 照片還沒載入時先用 3:2 估高度，每張載入後重新排一次；沒有 JS 時退回 CSS 多欄
