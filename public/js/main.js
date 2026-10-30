@@ -145,8 +145,6 @@ console.log("Portfolio Web");
     }
 
     function targetHeight() {
-        // 手機 2026/10/31 回饋照片太小：260 讓橫式一張就排滿一整排、直式兩張一排
-        if (window.innerWidth <= 600) return 260;
         if (window.innerWidth <= 900) return 300;
         return 320;
     }
@@ -160,8 +158,23 @@ console.log("Portfolio Web");
         var target = targetHeight();
         var gap = gapSize();
 
+        // 手機（2026/10/31 回饋改回原本）：不用照片牆，一排一張滿版、照原比例
+        if (window.innerWidth <= 600) {
+            grids.forEach(function (grid) {
+                grid.classList.remove("is-justified", "is-last-centered");
+                grid.classList.add("is-stacked");
+                grid.querySelectorAll(".work-card").forEach(function (card) {
+                    card.style.width = "";
+                    var img = card.querySelector(".work-card-media img");
+                    if (img) img.style.height = "";
+                });
+            });
+            return;
+        }
+
         grids.forEach(function (grid) {
 
+            grid.classList.remove("is-stacked");
             grid.classList.add("is-justified");
             grid.style.setProperty("--justify-gap", gap + "px");
 
